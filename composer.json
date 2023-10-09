@@ -1,0 +1,68 @@
+{
+    "name": "openeuropa/oe_subscriptions",
+    "description": "OpenEuropa Drupal module to handle subscriptions.",
+    "type": "drupal-module",
+    "license": "EUPL-1.2",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.1",
+        "drupal/core": "^9.5 || ^10"
+    },
+    "require-dev": {
+        "composer/installers": "^2.0",
+        "drupal/config_devel": "^1.9",
+        "drupal/core-composer-scaffold": "^9.4 || ^10",
+        "drupal/core-dev": "^9.4 || ^10",
+        "drush/drush": "^11.1",
+        "openeuropa/code-review": "^2.0",
+        "openeuropa/task-runner-drupal-project-symlink": "^1.0.0-beta6",
+        "phpspec/prophecy-phpunit": "^2"
+    },
+    "scripts": {
+        "post-install-cmd": "./vendor/bin/run drupal:site-setup",
+        "post-update-cmd": "./vendor/bin/run drupal:site-setup"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Drupal\\oe_subscriptions\\": "./src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\Tests\\oe_subscriptions\\": "./tests/src"
+        }
+    },
+    "extra": {
+        "composer-exit-on-patch-failure": true,
+        "enable-patching": true,
+        "installer-paths": {
+            "build/core": ["type:drupal-core"],
+            "build/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "build/modules/contrib/{$name}": ["type:drupal-module"],
+            "build/themes/contrib/{$name}": ["type:drupal-theme"]
+        },
+        "drupal-scaffold": {
+            "locations": {
+                "web-root": "./build"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true,
+            "cweagans/composer-patches": true,
+            "drupal/core-composer-scaffold": true,
+            "phpro/grumphp": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
+        }
+    }
+}

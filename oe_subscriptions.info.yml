@@ -1,0 +1,5 @@
+name: OpenEuropa Subscriptions
+description: Handles subscriptions.
+package: OpenEuropa
+type: module
+core_version_requirement: ^9.5 || ^10
