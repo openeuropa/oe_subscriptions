@@ -4,5 +4,5 @@ oe_subscriptions_anonymous.anonymous_subscribe:
     _title: 'Subscribe'
     _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController::subscribeAnonymous'
   requirements:
-    #_user_is_logged_in: 'FALSE'
+    _user_is_logged_in: 'FALSE'
     _access: 'TRUE'
