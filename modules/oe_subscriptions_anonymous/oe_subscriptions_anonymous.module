@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * Anonymous subscriptions module.
+ */
+
+/**
+ * Implements hook_extra_field_display_info_alter().
+ */
+function oe_subscriptions_anonymous_extra_field_display_info_alter(array &$info) {
+  // This makes extra field available only for bundles where whe have flags.
+  // Get flag service.
+  $flagService = \Drupal::service('flag');
+  $flags = $flagService->getAllFlags();
+  // Compose extra field allowed bundles.
+  $bundles = [];
+  foreach ($flags as $flag) {
+    // Get flag entity type and related bundles.
+    $flag_entity_type = $flag->getFlaggableEntityTypeId();
+    $flag_bundles = $flag->getBundles();
+    // Check if it was added before and merge.
+    if (isset($bundles[$flag_entity_type])) {
+      if ($bundles[$flag_entity_type] == '*') {
+        continue;
+      }
+      $existing_bundles = explode(',', $bundles[$flag_entity_type]);
+      $flag_bundles = array_unique(array_merge($existing_bundles, $flag_bundles), SORT_REGULAR);
+    }
+    // Glue bundles, if no bundle means all.
+    $bundles[$flag_entity_type] = empty($flag_bundles) ? '*' : implode(',', $flag_bundles);
+  }
+  // No bundles we leave only nodes, there musbe always a value.
+  if (empty($bundles)) {
+    return;
+  }
+  // Concatenate keys and values.
+  $result = array_map(function ($key, $value) {
+    return "$key.$value";
+  }, array_keys($bundles), array_values($bundles));
+  // Final bundles value.
+  if (empty($result)) {
+    return;
+  }
+  // Set bundles in our extra field.
+  $info['oe_subscriptions_anonymous_subscribe_link']['bundles'] = $result;
+}
