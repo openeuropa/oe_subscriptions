@@ -20,7 +20,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   label = @Translation("Anonymous subscribe link"),
  *   description = @Translation("Link to subscribe to notifications about this entity."),
  *   bundles = {
- *     "node.*"
+ *     "node.article",
+ *     "node.page"
  *   },
  *   weight = -30,
  *   visible = true

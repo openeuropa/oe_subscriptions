@@ -11,7 +11,7 @@ use Drupal\Tests\flag\Traits\FlagCreateTrait;
 /**
  * Anonymous link test.
  */
-class AnonymousLink extends BrowserTestBase {
+class AnonymousLinkTest extends BrowserTestBase {
 
   use FlagCreateTrait;
 
@@ -70,6 +70,11 @@ class AnonymousLink extends BrowserTestBase {
       'type' => 'article',
       'name' => 'Article',
     ]);
+    // Create a page content type.
+    $type = $this->drupalCreateContentType([
+      'type' => 'page',
+      'name' => 'Page',
+    ]);
     // Get the Flag Service.
     $this->flagService = \Drupal::service('flag');
     // Create a flag.
@@ -107,26 +112,25 @@ class AnonymousLink extends BrowserTestBase {
   /**
    * Tests that the created flag is related to a content type 'article'.
    */
-  public function testFlagInContentType(): void {
+  public function testAnonymousLink(): void {
+    // Created flag is related to articles.
     $this->assertEquals('node', $this->flag->getFlaggableEntityTypeId());
     $this->assertContains('article', $this->flag->getBundles());
-  }
-
-  /**
-   * Tests that the link is displayed to anonymous.
-   */
-  public function testAnonymousLink(): void {
+    // Link is present for anonymous.
     $this->drupalGet('node/' . $this->node->id());
-    $this->assertSession()->responseContains('Anonymous Subscribe');
-  }
-
-  /**
-   * Tests that the link is not displayed to auth.
-   */
-  public function testAdminLink(): void {
+    $this->assertSession()->linkExists('Anonymous Subscribe');
+    // Link is not displayed for admin.
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('node/' . $this->node->id());
-    $this->assertSession()->responseNotContains('Anonymous Subscribe');
+    $this->assertSession()->linkNotExists('Anonymous Subscribe');
+    // Go to page content type display.
+    $this->drupalGet('admin/structure/types/manage/page/display/teaser');
+    // No extra field.
+    $this->assertSession()->responseNotContains('Anonymous subscribe link');
+    // Go to article content type display.
+    $this->drupalGet('admin/structure/types/manage/article/display/teaser');
+    // Extra field on this one.
+    $this->assertSession()->responseContains('Anonymous subscribe link');
   }
 
 }

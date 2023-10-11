@@ -1,0 +1,6 @@
+services:
+  oe_subscriptions_anonymous.entity_type_event_subscriber:
+    class: '\Drupal\oe_subscriptions_anonymous\EventSubscriber\EntityTypeSubscriber'
+    arguments: ['@plugin.manager.extra_field_display']
+    tags:
+      - { name: 'event_subscriber' }
