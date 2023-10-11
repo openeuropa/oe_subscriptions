@@ -16,6 +16,10 @@ function oe_subscriptions_anonymous_extra_field_display_info_alter(array &$info)
   // Compose extra field allowed bundles.
   $bundles = [];
   foreach ($flags as $flag) {
+    // Disabled config, nothing to do.
+    if (!$flag->status()) {
+      continue;
+    }
     // Get flag entity type and related bundles.
     $flag_entity_type = $flag->getFlaggableEntityTypeId();
     $flag_bundles = $flag->getBundles();

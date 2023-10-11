@@ -5,4 +5,5 @@ type: module
 core_version_requirement: ^9.5 || ^10
 dependencies:
   - message
+  - message_subscribe
   - flag
