@@ -4,5 +4,5 @@ description: This module allows anonymous users to subscribe to entities.
 package: OpenEuropa
 core_version_requirement: ^9.5 || ^10
 dependencies:
-  - oe_subscriptions
-  - extra_field
+  - oe_subscriptions:oe_subscriptions
+  - extra_field:extra_field
