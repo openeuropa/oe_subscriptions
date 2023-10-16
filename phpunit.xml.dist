@@ -11,6 +11,7 @@
   <testsuites>
     <testsuite name="OpenEuropa Subscriptions">
       <directory>./tests/src/</directory>
+      <directory>./modules/**/tests/src/</directory>
     </testsuite>
   </testsuites>
 </phpunit>
