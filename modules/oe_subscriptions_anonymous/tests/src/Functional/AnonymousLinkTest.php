@@ -28,13 +28,6 @@ class AnonymousLinkTest extends BrowserTestBase {
   ];
 
   /**
-   * The flag service.
-   *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected $flagService;
-
-  /**
    * A user with Flag admin rights.
    *
    * @var AccountInterface
@@ -75,10 +68,15 @@ class AnonymousLinkTest extends BrowserTestBase {
       'type' => 'page',
       'name' => 'Page',
     ]);
-    // Get the Flag Service.
-    $this->flagService = \Drupal::service('flag');
     // Create a flag.
-    $this->flag = $this->createFlag('node', ['article'], 'reload');
+    $this->flag = $this->createFlagFromArray([
+      'id' => 'subscribe_article',
+      'label' => 'Subscribe article',
+      'entity_type' => 'node',
+      'bundles' => ['article'],
+      'link_type' => 'reload',
+      'global' => FALSE,
+    ]);
     // Create a admin user.
     $this->adminUser = $this->createUser([
       'administer flags',
