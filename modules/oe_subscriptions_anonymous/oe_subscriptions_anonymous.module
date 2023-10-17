@@ -17,7 +17,7 @@ function oe_subscriptions_anonymous_extra_field_display_info_alter(array &$info)
   $bundles = [];
   foreach ($flags as $flag) {
     // Disabled config, nothing to do.
-    if (!$flag->status()) {
+    if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
       continue;
     }
     // Get flag entity type and related bundles.
