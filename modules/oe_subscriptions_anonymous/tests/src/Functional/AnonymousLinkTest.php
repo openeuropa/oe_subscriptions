@@ -59,12 +59,12 @@ class AnonymousLinkTest extends BrowserTestBase {
   protected function setUp(): void {
     parent::setUp();
     // Create an article content type.
-    $type = $this->drupalCreateContentType([
+    $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
     ]);
     // Create a page content type.
-    $type = $this->drupalCreateContentType([
+    $this->drupalCreateContentType([
       'type' => 'page',
       'name' => 'Page',
     ]);
