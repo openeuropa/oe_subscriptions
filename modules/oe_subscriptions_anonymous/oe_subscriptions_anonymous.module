@@ -5,6 +5,29 @@
  * Anonymous subscriptions module.
  */
 
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_ENTITY_insert().
+ */
+function oe_subscriptions_anonymous_flag_insert(EntityInterface $entity) {
+  _oe_subscriptions_anonymous_flush_extra_field($entity);
+}
+
+/**
+ * Implements hook_ENTITY_update().
+ */
+function oe_subscriptions_anonymous_flag_update(EntityInterface $entity) {
+  _oe_subscriptions_anonymous_flush_extra_field($entity);
+}
+
+/**
+ * Implements hook_ENTITY_delete().
+ */
+function oe_subscriptions_anonymous_flag_delete(EntityInterface $entity) {
+  _oe_subscriptions_anonymous_flush_extra_field($entity);
+}
+
 /**
  * Implements hook_extra_field_display_info_alter().
  */
@@ -48,4 +71,13 @@ function oe_subscriptions_anonymous_extra_field_display_info_alter(array &$info)
   }
   // Set bundles in our extra field.
   $info['oe_subscriptions_anonymous_subscribe_link']['bundles'] = $bundles;
+}
+
+/**
+ * Helper function to flush extra field cache().
+ */
+function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) {
+  if (str_starts_with($entity->id(), 'subscribe_')) {
+    \Drupal::service('plugin.manager.extra_field_display')->clearCachedDefinitions();
+  }
 }
