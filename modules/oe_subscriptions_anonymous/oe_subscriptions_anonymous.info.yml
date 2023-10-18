@@ -7,3 +7,4 @@ dependencies:
   - oe_subscriptions:oe_subscriptions
   - extra_field:extra_field
   - decoupled_auth:decoupled_auth
+  - drupal:link

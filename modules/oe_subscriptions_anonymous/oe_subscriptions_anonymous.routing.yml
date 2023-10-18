@@ -46,3 +46,12 @@ oe_subscriptions_anonymous.user_subscriptions.view:
     _user_is_logged_in: 'FALSE'
   options:
     no_cache: TRUE
+    _access: 'TRUE'
+
+oe_subscriptions_anonymous.settings:
+  path: '/admin/config/message/oe_subscriptions_anonymous'
+  defaults:
+    _form: 'Drupal\oe_subscriptions_anonymous\Form\SettingsForm'
+    _title: 'Anonymous subscriptions Terms page'
+  requirements:
+    _permission: 'administer anonymous subscriptions'

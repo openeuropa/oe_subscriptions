@@ -1,0 +1,5 @@
+oe_subscriptions_anonymous.settings:
+  title: Anonymous subscriptions
+  description: 'Configure anonymous subscriptions.'
+  route_name: oe_subscriptions_anonymous.settings
+  parent: message.main_settings
