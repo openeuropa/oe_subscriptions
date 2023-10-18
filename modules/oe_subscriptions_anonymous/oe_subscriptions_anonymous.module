@@ -29,51 +29,6 @@ function oe_subscriptions_anonymous_flag_delete(EntityInterface $entity) {
 }
 
 /**
- * Implements hook_extra_field_display_info_alter().
- */
-function oe_subscriptions_anonymous_extra_field_display_info_alter(array &$info) {
-  // This makes extra field available only for bundles where whe have flags.
-  // Get flag service.
-  $flag_service = \Drupal::service('flag');
-  $flags = $flag_service->getAllFlags();
-  // Compose extra field allowed bundles.
-  $bundles = [];
-  foreach ($flags as $flag) {
-    // Disabled config, nothing to do.
-    if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
-      continue;
-    }
-    // Get flag entity type and related bundles.
-    $flag_entity_type = $flag->getFlaggableEntityTypeId();
-    $flag_bundles = $flag->getBundles();
-    // If there 'entity.*' we skip.
-    if (in_array("$flag_entity_type.*", $bundles)) {
-      continue;
-    }
-    // No match with previous check and no bundles means all.
-    if (empty($flag_bundles)) {
-      $bundles[] = "$flag_entity_type.*";
-      continue;
-    }
-    // Check each of the flag bundles.
-    foreach ($flag_bundles as $flag_bundle) {
-      // Already there, we skip.
-      if (in_array("$flag_entity_type.$flag_bundle", $bundles)) {
-        continue;
-      }
-      // We add flag bundle.
-      $bundles[] = "$flag_entity_type.$flag_bundle";
-    }
-  }
-  // No bundles we leave only nodes, there musbe always a value.
-  if (empty($bundles)) {
-    return;
-  }
-  // Set bundles in our extra field.
-  $info['oe_subscriptions_anonymous_subscribe_link']['bundles'] = $bundles;
-}
-
-/**
  * Helper function to flush extra field cache().
  */
 function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) {

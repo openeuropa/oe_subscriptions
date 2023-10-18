@@ -19,8 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "oe_subscriptions_anonymous_subscribe_link",
  *   label = @Translation("Anonymous subscribe link"),
  *   description = @Translation("Link to subscribe to notifications about this entity."),
- *   bundles = {},
- *   weight = -30,
+ *   deriver = "Drupal\oe_subscriptions_anonymous\Plugin\ExtraField\Display\AnonymousSubscribeLinkDeriver",
  *   visible = true
  * )
  */
