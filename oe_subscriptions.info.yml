@@ -3,3 +3,7 @@ description: Handles subscriptions.
 package: OpenEuropa
 type: module
 core_version_requirement: ^9.5 || ^10
+dependencies:
+  - message:message
+  - message_subscribe:message_subscribe
+  - flag:flag
