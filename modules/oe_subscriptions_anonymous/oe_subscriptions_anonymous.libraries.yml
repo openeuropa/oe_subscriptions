@@ -1,0 +1,4 @@
+oe_subscriptions_anonymous:
+  version: 1.x
+  dependencies:
+    - core/drupal.dialog.ajax

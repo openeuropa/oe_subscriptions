@@ -97,8 +97,6 @@ class AnonymousSubscribeForm extends FormBase {
       'cancel' => [
         '#type' => 'button',
         '#value' => $this->t('No thanks') ,
-
-        '#submit' => [],
         '#attributes' => [
           'class' => ['dialog-cancel'],
         ],

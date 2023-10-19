@@ -88,6 +88,11 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
         'class' => ['use-ajax', 'button', 'button--small'],
         'data-dialog-type' => 'modal',
       ],
+      '#attached' => [
+        'library' => [
+          'oe_subscriptions_anonymous/oe_subscriptions_anonymous',
+        ],
+      ],
     ];
 
     return $build;
