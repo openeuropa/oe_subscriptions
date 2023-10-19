@@ -94,13 +94,16 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Click subscribe link.
     $this->clickLink('Anonymous Subscribe');
     $assert_session->assertWaitOnAjaxRequest();
-    $this->createScreenshot("./test.jpg");
     // The form is shown.
     $assert_session->elementExists('css', $form_selector);
     // E-mail.
-    $this->assertTrue($assert_session->fieldEnabled('email')->hasAttribute('required'));
+    $email = $assert_session->fieldEnabled('email');
+    $this->assertTrue($email->isVisible());
+    $this->assertTrue($email->hasAttribute('required'));
     // Terms and conditions.
-    $this->assertTrue($assert_session->fieldEnabled('accept_terms')->hasAttribute('required'));
+    $terms = $assert_session->fieldEnabled('accept_terms');
+    $this->assertTrue($terms->isVisible());
+    $this->assertTrue($terms->hasAttribute('required'));
     // Suscribe.
     $subscribe = $page->find('css', 'button.button.form-submit');
     $this->assertTrue($subscribe->isVisible());
@@ -111,6 +114,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $close = $page->find('css', 'button.ui-dialog-titlebar-close');
     $close->click();
     $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->elementNotExists('css', $form_selector);
     // Click subscribe link again.
     $this->clickLink('Anonymous Subscribe');
     $assert_session->assertWaitOnAjaxRequest();
