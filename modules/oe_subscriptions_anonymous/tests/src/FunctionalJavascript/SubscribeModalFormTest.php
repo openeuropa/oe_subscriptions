@@ -18,6 +18,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
+    'system',
     'node',
     'flag',
     'oe_subscriptions',
@@ -65,40 +66,54 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $session = $this->getSession();
     $page = $session->getPage();
     $assert_session = $this->assertSession();
-    $form_selector = "form.oe-subscriptions-anonymous-subscribe-form";
+    // Using ui-dialog parent of modal-form,
+    // Submit buttons and close in siblings.
+    $modal_select = '.ui-dialog';
     // Got to node page with subscription.
     $this->drupalGet('node/' . $node->id());
     // Click subscribe link.
     $this->clickLink($flag->label());
     $assert_session->assertWaitOnAjaxRequest();
-    // The form is shown.
-    $assert_session->elementExists('css', $form_selector);
-    // E-mail.
-    $email = $assert_session->fieldEnabled('email');
-    $this->assertTrue($email->isVisible());
-    $this->assertTrue($email->hasAttribute('required'));
-    // Terms and conditions.
-    $terms = $assert_session->fieldEnabled('accept_terms');
-    $this->assertTrue($terms->isVisible());
-    $this->assertTrue($terms->hasAttribute('required'));
-    // Suscribe.
-    $subscribe = $page->find('css', 'button.button.form-submit');
-    $this->assertTrue($subscribe->isVisible());
-    // No thanks.
-    $cancel = $page->find('css', 'button.button.dialog-cancel');
-    $this->assertTrue($cancel->isVisible());
-    // Close modal.
-    $close = $page->find('css', 'button.ui-dialog-titlebar-close');
-    $close->click();
-    $assert_session->assertWaitOnAjaxRequest();
-    $assert_session->elementNotExists('css', $form_selector);
-    // Click subscribe link again.
+    // The modal wrapper.
+    $modal = $page->find('css', $modal_select);
+    // Find all elements.
+    $mail_label = 'Your e-mail';
+    $terms_label = 'I have read and agree with the data protection terms.';
+    // Using xpath, findButton get input (hidden) instead button tags.
+    $mail_field = $modal->findField($mail_label);
+    $terms_field = $modal->findField($terms_label);
+    // Using xpath, findButton get input (hidden) instead button tags.
+    // Submit has no specific class to select thourgh CSS.
+    $subscribe = $modal->find('xpath', '//button[contains(text(),"Subscribe")]');
+    $cancel = $modal->find('xpath', '//button[contains(text(),"No thanks")]');
+    $close = $modal->find('css', 'button.ui-dialog-titlebar-close');
+    // Try to submit, empty form.
+    $this->disableNativeBrowserRequiredFieldValidation();
+    $subscribe->press();
+    $this->assertSession()->pageTextContains("$mail_label field is required.");
+    $this->assertSession()->pageTextContains("$terms_label field is required.");
+    // Test Close modal button.
+    $this->drupalGet('node/' . $node->id());
     $this->clickLink($flag->label());
     $assert_session->assertWaitOnAjaxRequest();
-    // No thanks cancel.
-    $cancel->click();
+    $close->press();
+    $assert_session->elementNotExists('css', $modal_select);
+    // Test cancel button, filled data.
+    $this->clickLink($flag->label());
     $assert_session->assertWaitOnAjaxRequest();
-    $assert_session->elementNotExists('css', $form_selector);
+    $mail_field->setValue('test@test.com');
+    $terms_field->check();
+    $cancel->press();
+    $assert_session->elementNotExists('css', $modal_select);
+    // No message no submit.
+    $assert_session->statusMessageNotExists();
+  }
+
+  /**
+   * Disables the native browser validation for required fields.
+   */
+  protected function disableNativeBrowserRequiredFieldValidation() {
+    $this->getSession()->executeScript("jQuery(':input[required]').prop('required', false);");
   }
 
 }
