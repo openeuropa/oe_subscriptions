@@ -54,11 +54,9 @@ class AnonymousLinkTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * {@inheritdoc}
+   * Tests that the created flag is related to a content type 'article'.
    */
-  protected function setUp(): void {
-    parent::setUp();
-    // Create an article content type.
+  public function testAnonymousLink(): void {
     $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
@@ -69,7 +67,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       'name' => 'Page',
     ]);
     // Create a flag.
-    $this->flag = $this->createFlagFromArray([
+    $flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
       'label' => 'Subscribe article',
       'entity_type' => 'node',
@@ -78,7 +76,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       'global' => FALSE,
     ]);
     // Create a admin user.
-    $this->adminUser = $this->createUser([
+    $adminUser = $this->createUser([
       'administer flags',
       'administer flagging display',
       'administer flagging fields',
@@ -90,7 +88,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       'delete any article content',
     ]);
     // Create the node.
-    $this->node = Node::create([
+    $node = Node::create([
       'body' => [
         [
           'value' => $this->randomMachineName(32),
@@ -99,28 +97,22 @@ class AnonymousLinkTest extends BrowserTestBase {
       ],
       'type' => 'article',
       'title' => $this->randomMachineName(8),
-      'uid' => $this->adminUser->id(),
+      'uid' => $adminUser->id(),
       'status' => 1,
       'promote' => 0,
       'sticky' => 0,
     ]);
-    $this->node->save();
-  }
-
-  /**
-   * Tests that the created flag is related to a content type 'article'.
-   */
-  public function testAnonymousLink(): void {
+    $node->save();
     // Created flag is related to articles.
-    $this->assertEquals('node', $this->flag->getFlaggableEntityTypeId());
-    $this->assertContains('article', $this->flag->getBundles());
+    $this->assertEquals('node', $flag->getFlaggableEntityTypeId());
+    $this->assertContains('article', $flag->getBundles());
     // Link is present for anonymous.
-    $this->drupalGet('node/' . $this->node->id());
-    $this->assertSession()->linkExists('Anonymous Subscribe');
+    $this->drupalGet('node/' . $node->id());
+    $this->assertSession()->linkExists($flag->label());
     // Link is not displayed for admin.
-    $this->drupalLogin($this->adminUser);
-    $this->drupalGet('node/' . $this->node->id());
-    $this->assertSession()->linkNotExists('Anonymous Subscribe');
+    $this->drupalLogin($adminUser);
+    $this->drupalGet('node/' . $node->id());
+    $this->assertSession()->linkNotExists($flag->label());
     // Go to page content type display.
     $this->drupalGet('admin/structure/types/manage/page/display/teaser');
     // No extra field.

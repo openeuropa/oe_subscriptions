@@ -26,36 +26,21 @@ class SubscribeModalFormTest extends WebDriverTestBase {
   ];
 
   /**
-   * The flag.
-   *
-   * @var \Drupal\flag\FlagInterface
-   */
-  protected $flag;
-
-  /**
-   * The node.
-   *
-   * @var \Drupal\node\NodeInterface
-   */
-  protected $node;
-
-  /**
    * {@inheritdoc}
    */
   protected $defaultTheme = 'stark';
 
   /**
-   * {@inheritdoc}
+   * Tests that subscribe link open a modal.
    */
-  protected function setUp(): void {
-    parent::setUp();
+  public function testModalForm(): void {
     // Create an article content type.
     $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
     ]);
     // Create a flag.
-    $this->flag = $this->createFlagFromArray([
+    $flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
       'label' => 'Subscribe article',
       'entity_type' => 'node',
@@ -64,7 +49,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'global' => FALSE,
     ]);
     // Create the node.
-    $this->node = Node::create([
+    $node = Node::create([
       'body' => [
         [
           'value' => $this->randomMachineName(32),
@@ -78,21 +63,16 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'promote' => 0,
       'sticky' => 0,
     ]);
-    $this->node->save();
-  }
+    $node->save();
 
-  /**
-   * Tests that subscribe link open a modal.
-   */
-  public function testModalForm(): void {
     $session = $this->getSession();
     $page = $session->getPage();
     $assert_session = $this->assertSession();
     $form_selector = "form.oe-subscriptions-anonymous-subscribe-form";
     // Got to node page with subscription.
-    $this->drupalGet('node/' . $this->node->id());
+    $this->drupalGet('node/' . $node->id());
     // Click subscribe link.
-    $this->clickLink('Anonymous Subscribe');
+    $this->clickLink($flag->label());
     $assert_session->assertWaitOnAjaxRequest();
     // The form is shown.
     $assert_session->elementExists('css', $form_selector);
@@ -116,7 +96,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->assertWaitOnAjaxRequest();
     $assert_session->elementNotExists('css', $form_selector);
     // Click subscribe link again.
-    $this->clickLink('Anonymous Subscribe');
+    $this->clickLink($flag->label());
     $assert_session->assertWaitOnAjaxRequest();
     // No thanks cancel.
     $cancel->click();
