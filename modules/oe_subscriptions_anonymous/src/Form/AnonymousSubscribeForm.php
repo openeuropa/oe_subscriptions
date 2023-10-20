@@ -106,6 +106,8 @@ class AnonymousSubscribeForm extends FormBase {
         '#value' => $this->t('Subscribe me'),
       ],
     ];
+    // Module library.
+    $form['#attached']['library'][] = 'core/drupal.ajax';
 
     return $form;
   }

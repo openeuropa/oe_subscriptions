@@ -90,7 +90,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
       ],
       '#attached' => [
         'library' => [
-          'oe_subscriptions_anonymous/oe_subscriptions_anonymous',
+          'core/drupal.ajax',
         ],
       ],
     ];
