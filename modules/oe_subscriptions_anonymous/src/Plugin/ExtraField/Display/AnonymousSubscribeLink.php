@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous\Plugin\ExtraField\Display;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -59,29 +60,32 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
    */
   public function view(ContentEntityInterface $entity) {
     $build = [];
-    $entity_type = $entity->getEntityTypeId();
-    // Based on entity available flags.
-    $flags = $this->flag->getAllFlags($entity_type, $entity->bundle);
-    // No flaggings to subscribe through.
-    if (empty($flags)) {
+    $cache = new CacheableMetadata();
+    // Based on derivative id.
+    $flag = $this->flag->getFlagById($this->getDerivativeId());
+    // No flag empty return.
+    if (empty($flag)) {
+      $cache->applyTo($build);
       return $build;
     }
-    // Get 'Susbscribe to' controller method.
+    // Get link to form.
     $url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
       'subscription_id' => implode(':', [
-        'subscribe_node',
+        $flag->id(),
         $entity->id(),
       ]),
     ]);
+    // Cache based on flag.
+    $cache->addCacheableDependency($flag);
     // No access.
     if (!$url->access()) {
-      // @todo Handle caching.
+      $cache->applyTo($build);
       return $build;
     }
     // Link.
     $build = [
       '#type' => 'link',
-      '#title' => $this->t('Anonymous Subscribe'),
+      '#title' => $flag->label(),
       '#url' => $url,
       '#attributes' => [
         'class' => ['use-ajax', 'button', 'button--small'],
@@ -93,6 +97,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
         ],
       ],
     ];
+    $cache->applyTo($build);
 
     return $build;
   }
