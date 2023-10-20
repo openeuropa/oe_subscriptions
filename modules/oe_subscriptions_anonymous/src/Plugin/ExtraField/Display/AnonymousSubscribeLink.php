@@ -70,7 +70,6 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     $url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
       'subscription_id' => implode(':', [
         'subscribe_node',
-        $entity_type,
         $entity->id(),
       ]),
     ]);
