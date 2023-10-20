@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
-use Drupal\node\Entity\Node;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
 /**
@@ -49,7 +48,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'global' => FALSE,
     ]);
     // Create the node.
-    $node = Node::create([
+    $node = $this->drupalCreateNode([
       'body' => [
         [
           'value' => $this->randomMachineName(32),
