@@ -71,8 +71,6 @@ class AnonymousLinkTest extends BrowserTestBase {
       'label' => 'Subscribe article',
       'entity_type' => 'node',
       'bundles' => ['article'],
-      'link_type' => 'reload',
-      'global' => FALSE,
     ]);
     // Create a admin user.
     $adminUser = $this->createUser([

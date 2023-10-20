@@ -44,8 +44,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'label' => 'Subscribe article',
       'entity_type' => 'node',
       'bundles' => ['article'],
-      'link_type' => 'reload',
-      'global' => FALSE,
     ]);
     // Create the node.
     $node = $this->drupalCreateNode([
