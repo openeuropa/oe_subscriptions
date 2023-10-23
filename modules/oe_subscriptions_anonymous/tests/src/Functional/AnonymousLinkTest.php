@@ -56,6 +56,8 @@ class AnonymousLinkTest extends BrowserTestBase {
    * Tests that the created flag is related to a content type 'article'.
    */
   public function testAnonymousLink(): void {
+    $session = $this->getSession();
+    $page_session = $session->getPage();
     $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
@@ -85,7 +87,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       'delete any article content',
     ]);
     // Create the node.
-    $node = $this->drupalCreateNode([
+    $article = $this->drupalCreateNode([
       'body' => [
         [
           'value' => $this->randomMachineName(32),
@@ -99,25 +101,42 @@ class AnonymousLinkTest extends BrowserTestBase {
       'promote' => 0,
       'sticky' => 0,
     ]);
-    $node->save();
-    // Created flag is related to articles.
-    $this->assertEquals('node', $flag->getFlaggableEntityTypeId());
-    $this->assertContains('article', $flag->getBundles());
+    $article->save();
+    // Create the node.
+    $page = $this->drupalCreateNode([
+      'body' => [
+        [
+          'value' => $this->randomMachineName(32),
+          'format' => filter_default_format(),
+        ],
+      ],
+      'type' => 'page',
+      'title' => $this->randomMachineName(8),
+      'uid' => $adminUser->id(),
+      'status' => 1,
+      'promote' => 0,
+      'sticky' => 0,
+    ]);
+    $page->save();
     // Link is present for anonymous.
-    $this->drupalGet('node/' . $node->id());
-    $this->assertSession()->linkExists($flag->label());
+    $this->drupalGet('node/' . $article->id());
+    $href = '/subscribe/' . $flag->id() . urlencode(':') . $article->id();
+    $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
+    // Link is present is not present in page for anonymous.
+    $this->drupalGet('node/' . $page->id());
+    $this->assertFalse($page_session->hasLink($flag->label()));
+    // Link is present after adding page to bundles in flag.
+    $flag->set('bundles', [
+      'article',
+      'page',
+    ])->save();
+    $this->drupalGet('node/' . $page->id());
+    $href = '/subscribe/' . $flag->id() . urlencode(':') . $page->id();
+    $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
     // Link is not displayed for admin.
     $this->drupalLogin($adminUser);
-    $this->drupalGet('node/' . $node->id());
-    $this->assertSession()->linkNotExists($flag->label());
-    // Go to page content type display.
-    $this->drupalGet('admin/structure/types/manage/page/display/teaser');
-    // No extra field.
-    $this->assertSession()->responseNotContains('Anonymous subscribe link');
-    // Go to article content type display.
-    $this->drupalGet('admin/structure/types/manage/article/display/teaser');
-    // Extra field on this one.
-    $this->assertSession()->responseContains('Anonymous subscribe link');
+    $this->drupalGet('node/' . $article->id());
+    $this->assertFalse($page_session->hasLink($flag->label()));
   }
 
 }

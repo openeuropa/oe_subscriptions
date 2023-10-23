@@ -11,7 +11,7 @@ use Drupal\node\Entity\Node;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
 /**
- * Tests the extra field.
+ * Tests the access checker.
  */
 class AccessCheckTest extends KernelTestBase {
 
@@ -29,12 +29,12 @@ class AccessCheckTest extends KernelTestBase {
     'message',
     'message_notify',
     'message_subscribe',
+    'node',
     'oe_subscriptions',
     'oe_subscriptions_anonymous',
     'system',
     'text',
     'user',
-    'node',
   ];
 
   /**
@@ -52,16 +52,14 @@ class AccessCheckTest extends KernelTestBase {
     $this->installEntitySchema('message');
 
     // Create a test bundle to use as referenced bundle.
-    EntityTestBundle::create(['id' => 'page'])->save();
     EntityTestBundle::create(['id' => 'article'])->save();
-    EntityTestBundle::create(['id' => 'news'])->save();
   }
 
   /**
-   * Tests the extra field dynamic association on entities.
+   * Tests the access to the link based on subscription_id parameters.
    */
   public function testAnonymousLink(): void {
-    // Create a flag.
+    // Services a variables.
     $access_checker = \Drupal::service('oe_subscriptions_anonymous.access_checker');
     $route_provider = \Drupal::service('router.route_provider');
     $route_name = 'oe_subscriptions_anonymous.anonymous_subscribe';
