@@ -51,25 +51,36 @@ class SubscriptionAccessCheck implements AccessInterface {
    */
   public function access(RouteMatchInterface $route_match): AccessResultInterface {
     $subscription_id = $route_match->getParameter('subscription_id');
+    // No value.
     if (empty($subscription_id)) {
       return AccessResult::forbidden();
     }
     // Get values.
-    [$flag_id, $entity_id] = explode(':', $subscription_id);
+    $values = explode(':', $subscription_id);
+    // Check expected number of values, and not empty.
+    if (count($values) !== 2 || in_array('', $values, TRUE)) {
+      return AccessResult::forbidden();
+    }
+    // Assignment.
+    [$flag_id, $entity_id] = $values;
     // Try to load flag.
     $flag = $this->flagService->getFlagById($flag_id);
     if (empty($flag)) {
       return AccessResult::forbidden();
+    }
+    // Disabled flag or not starting with.
+    if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
+      return AccessResult::forbidden()->addCacheableDependency($flag);
     }
     // Get data from flag to load entity.
     $entity_type = $flag->getFlaggableEntityTypeId();
     $entity_storage = $this->entityTypeManager->getStorage($entity_type);
     $entity = $entity_storage->load($entity_id);
     if (empty($entity)) {
-      return AccessResult::forbidden();
+      return AccessResult::forbidden()->addCacheableDependency($flag);
     }
     // We have met all the conditions.
-    return AccessResult::allowed();
+    return AccessResult::allowed()->addCacheableDependency($flag);
   }
 
 }
