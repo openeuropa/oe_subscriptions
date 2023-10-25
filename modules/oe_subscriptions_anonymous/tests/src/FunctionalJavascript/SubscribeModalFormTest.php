@@ -63,8 +63,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     ]);
     $node->save();
 
-    $session = $this->getSession();
-    $page = $session->getPage();
+    $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
     // Using ui-dialog parent of modal-form,
     // Submit buttons and close in siblings.
