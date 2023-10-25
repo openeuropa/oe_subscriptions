@@ -18,7 +18,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'system',
     'node',
     'flag',
     'oe_subscriptions',
