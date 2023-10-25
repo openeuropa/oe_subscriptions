@@ -95,6 +95,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->assertWaitOnAjaxRequest();
     $modal->find('css', 'button.ui-dialog-titlebar-close')->press();
     $assert_session->elementNotExists('css', $modal_selector);
+    $assert_session->statusMessageNotExists();
     // Test cancel button, filled data.
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
