@@ -9,4 +9,4 @@ services:
     class: Drupal\oe_subscriptions_anonymous\Access\SubscriptionAccessCheck
     arguments: ['@entity_type.manager', '@flag']
     tags:
-      - { name: access_check, applies_to: _subscription_access_check }
+      - { name: access_check, applies_to: _anonymous_subscription_access }

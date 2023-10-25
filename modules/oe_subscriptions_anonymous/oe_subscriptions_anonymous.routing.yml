@@ -5,4 +5,4 @@ oe_subscriptions_anonymous.anonymous_subscribe:
     _form: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm'
   requirements:
     _user_is_logged_in: 'FALSE'
-    _subscription_access_check: 'TRUE'
+    _anonymous_subscription_access: 'TRUE'
