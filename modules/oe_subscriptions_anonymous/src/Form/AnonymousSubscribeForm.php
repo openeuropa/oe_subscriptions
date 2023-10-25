@@ -106,6 +106,7 @@ class AnonymousSubscribeForm extends FormBase {
       ],
       'submit' => [
         '#type' => 'submit',
+        '#button_type' => 'primary',
         '#value' => $this->t('Subscribe me'),
       ],
     ];
