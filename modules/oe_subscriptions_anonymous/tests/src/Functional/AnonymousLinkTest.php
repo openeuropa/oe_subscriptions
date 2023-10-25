@@ -70,7 +70,8 @@ class AnonymousLinkTest extends BrowserTestBase {
     // Create a flag.
     $flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
-      'label' => 'Subscribe article',
+      'label' => 'Subscribe to article',
+      'flag_short' => 'Subscribe article',
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
@@ -120,11 +121,12 @@ class AnonymousLinkTest extends BrowserTestBase {
     $page->save();
     // Link is present for anonymous.
     $this->drupalGet('node/' . $article->id());
+    $link_text = $flag->getShortText('flag');
     $href = '/subscribe/' . $flag->id() . '/' . $article->id();
-    $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
+    $this->assertTrue($page_session->findLink($link_text)->hasAttribute('href', $href));
     // Link is present is not present in page for anonymous.
     $this->drupalGet('node/' . $page->id());
-    $this->assertFalse($page_session->hasLink($flag->label()));
+    $this->assertFalse($page_session->hasLink($flag->getShortText('flag')));
     // Link is present after adding page to bundles in flag.
     $flag->set('bundles', [
       'article',
@@ -132,11 +134,11 @@ class AnonymousLinkTest extends BrowserTestBase {
     ])->save();
     $this->drupalGet('node/' . $page->id());
     $href = '/subscribe/' . $flag->id() . '/' . $page->id();
-    $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
+    $this->assertTrue($page_session->findLink($link_text)->hasAttribute('href', $href));
     // Link is not displayed for admin.
     $this->drupalLogin($adminUser);
     $this->drupalGet('node/' . $article->id());
-    $this->assertFalse($page_session->hasLink($flag->label()));
+    $this->assertFalse($page_session->hasLink($link_text));
   }
 
 }

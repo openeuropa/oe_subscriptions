@@ -82,7 +82,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     // Link.
     $build = [
       '#type' => 'link',
-      '#title' => $flag->label(),
+      '#title' => $flag->getShortText('flag'),
       '#url' => $url,
       '#attributes' => [
         'class' => ['use-ajax', 'button', 'button--small'],

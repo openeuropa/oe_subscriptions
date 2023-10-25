@@ -42,7 +42,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Create a flag.
     $flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
-      'label' => 'Subscribe article',
+      'label' => 'Subscribe to article',
+      'short_text' => 'Subscribe article',
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
@@ -72,7 +73,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Got to node page with subscription.
     $this->drupalGet('node/' . $node->id());
     // Click subscribe link.
-    $this->clickLink($flag->label());
+    $link_text = $flag->getShortText('flag');
+    $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     // The modal wrapper.
     $modal = $page->find('css', $modal_select);
@@ -94,12 +96,12 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->assertSession()->pageTextContains("$terms_label field is required.");
     // Test Close modal button.
     $this->drupalGet('node/' . $node->id());
-    $this->clickLink($flag->label());
+    $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     $close->press();
     $assert_session->elementNotExists('css', $modal_select);
     // Test cancel button, filled data.
-    $this->clickLink($flag->label());
+    $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     $mail_field->setValue('test@test.com');
     $terms_field->check();
