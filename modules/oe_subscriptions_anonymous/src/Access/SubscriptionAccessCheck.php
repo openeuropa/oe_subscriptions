@@ -6,22 +6,16 @@ namespace Drupal\oe_subscriptions_anonymous\Access;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 
 /**
  * Checks access for a given subscription id.
  */
 class SubscriptionAccessCheck implements AccessInterface {
-
-  /**
-   * Entity type manager.
-   *
-   * @var \Drupal\flag\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * Flag service.
@@ -34,10 +28,8 @@ class SubscriptionAccessCheck implements AccessInterface {
    * {@inheritdoc}
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
     FlagServiceInterface $flagService) {
     $this->flagService = $flagService;
-    $this->entityTypeManager = $entityTypeManager;
   }
 
   /**
@@ -45,20 +37,18 @@ class SubscriptionAccessCheck implements AccessInterface {
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The route matched.
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag to subscribe to.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The user account.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
-  public function access(RouteMatchInterface $route_match): AccessResultInterface {
-    $flag_id = $route_match->getParameter('flag');
+  public function access(RouteMatchInterface $route_match, FlagInterface $flag = NULL, AccountInterface $account): AccessResultInterface {
     $entity_id = $route_match->getParameter('entity_id');
     // No value.
-    if (empty($flag_id) || empty($entity_id)) {
-      return AccessResult::forbidden();
-    }
-    // Try to load flag.
-    $flag = $this->flagService->getFlagById($flag_id);
-    if (empty($flag)) {
+    if (empty($flag) || empty($entity_id)) {
       return AccessResult::forbidden();
     }
     // Disabled flag or not starting with.
@@ -66,10 +56,12 @@ class SubscriptionAccessCheck implements AccessInterface {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
     // Get data from flag to load entity.
-    $entity_type = $flag->getFlaggableEntityTypeId();
-    $entity_storage = $this->entityTypeManager->getStorage($entity_type);
-    $entity = $entity_storage->load($entity_id);
-    if (empty($entity)) {
+    $flaggable = $this->flagService->getFlaggableById($flag, $entity_id);
+    if (empty($flaggable)) {
+      return AccessResult::forbidden()->addCacheableDependency($flag);
+    }
+    // User can't view the entity.
+    if (!$flaggable->access('view', $account)) {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
     // We have met all the conditions.
