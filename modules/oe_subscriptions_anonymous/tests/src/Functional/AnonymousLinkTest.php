@@ -97,10 +97,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       ],
       'type' => 'article',
       'title' => $this->randomMachineName(8),
-      'uid' => $adminUser->id(),
       'status' => 1,
-      'promote' => 0,
-      'sticky' => 0,
     ]);
     $article->save();
     // Create the node.
@@ -113,10 +110,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       ],
       'type' => 'page',
       'title' => $this->randomMachineName(8),
-      'uid' => $adminUser->id(),
       'status' => 1,
-      'promote' => 0,
-      'sticky' => 0,
     ]);
     $page->save();
     // Link is present for anonymous.
