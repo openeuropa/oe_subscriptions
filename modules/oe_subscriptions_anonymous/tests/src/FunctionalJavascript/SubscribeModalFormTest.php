@@ -69,7 +69,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Submit buttons and close in siblings.
     $modal_select = '.ui-dialog';
     // Got to node page with subscription.
-    $this->drupalGet($page->toUrl());
+    $this->drupalGet($node->toUrl());
     // Click subscribe link.
     $link_text = $flag->getShortText('flag');
     $this->clickLink($link_text);
@@ -79,6 +79,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Find all elements.
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
+    $mail_field = $assert_session->fieldExists($mail_label, $modal);
+    $terms_field = $assert_session->fieldExists($terms_label, $modal);
     // Using xpath, findButton get input (hidden) instead button tags.
     // Submit has no specific class to select thourgh CSS.
     $button_pane = $assert_session->elementExists('css', '.ui-dialog-buttonpane', $modal);
@@ -88,7 +90,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->assertSession()->pageTextContains("$mail_label field is required.");
     $this->assertSession()->pageTextContains("$terms_label field is required.");
     // Test Close modal button.
-    $this->drupalGet($page->toUrl());
+    $this->drupalGet($node->toUrl());
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     $modal->find('css', 'button.ui-dialog-titlebar-close')->press();
@@ -96,12 +98,20 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Test cancel button, filled data.
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
-    $modal->findField($mail_label)->setValue('test@test.com');
-    $modal->findField($terms_label)->check();
+    $mail_field->setValue('test@test.com');
+    $terms_field->check();
     $assert_session->buttonExists('No thanks', $button_pane)->press();
     $assert_session->elementNotExists('css', $modal_select);
     // No message no submit.
     $assert_session->statusMessageNotExists();
+    // Test submit.
+    $this->clickLink($link_text);
+    $assert_session->assertWaitOnAjaxRequest();
+    $mail_field->setValue('test@test.com');
+    $terms_field->check();
+    $assert_session->buttonExists('Subscribe me', $button_pane)->press();
+    $assert_session->elementNotExists('css', $modal_select);
+    $assert_session->statusMessageExists();
   }
 
   /**
