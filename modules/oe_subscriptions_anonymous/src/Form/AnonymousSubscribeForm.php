@@ -9,6 +9,8 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Render\RendererInterface;
+use Drupal\flag\FlagInterface;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -77,8 +79,8 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, string $flag = NULL, int $entity_id = NULL) {
-    $form_state->set('flag_id', $flag);
+  public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, $entity_id = NULL) {
+    $form_state->set('flag', $flag);
     $form_state->set('entity_id', $entity_id);
     // Default Text without link.
     $title = $this->t('I have read and agree with the data protection terms.');
