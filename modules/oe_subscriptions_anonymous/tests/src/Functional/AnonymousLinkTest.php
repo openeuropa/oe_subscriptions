@@ -120,7 +120,7 @@ class AnonymousLinkTest extends BrowserTestBase {
     $page->save();
     // Link is present for anonymous.
     $this->drupalGet('node/' . $article->id());
-    $href = '/subscribe/' . $flag->id() . urlencode(':') . $article->id();
+    $href = '/subscribe/' . $flag->id() . '/' . $article->id();
     $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
     // Link is present is not present in page for anonymous.
     $this->drupalGet('node/' . $page->id());
@@ -131,7 +131,7 @@ class AnonymousLinkTest extends BrowserTestBase {
       'page',
     ])->save();
     $this->drupalGet('node/' . $page->id());
-    $href = '/subscribe/' . $flag->id() . urlencode(':') . $page->id();
+    $href = '/subscribe/' . $flag->id() . '/' . $page->id();
     $this->assertTrue($page_session->findLink($flag->label())->hasAttribute('href', $href));
     // Link is not displayed for admin.
     $this->drupalLogin($adminUser);

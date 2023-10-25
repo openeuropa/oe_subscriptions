@@ -77,8 +77,9 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, string $subscription_id = NULL) {
-    $form_state->set('subscription_id', $subscription_id);
+  public function buildForm(array $form, FormStateInterface $form_state, string $flag = NULL, int $entity_id = NULL) {
+    $form_state->set('flag_id', $flag);
+    $form_state->set('entity_id', $entity_id);
     // Default Text without link.
     $title = $this->t('I have read and agree with the data protection terms.');
     $form['email'] = [

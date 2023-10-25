@@ -103,32 +103,13 @@ class AccessCheckTest extends KernelTestBase {
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
 
-    // Random parameter.
-    $route_match = new RouteMatch(
-      $route_name,
-      $route,
-      [
-        'subscription_id' => $this->randomMachineName(8),
-      ]
-    );
-    $this->assertFalse($access_checker->access($route_match)->isAllowed());
-
-    // Number of parameters.
-    $route_match = new RouteMatch(
-      $route_name,
-      $route,
-      [
-        'subscription_id' => "$flag_id:a:1",
-      ]
-    );
-    $this->assertFalse($access_checker->access($route_match)->isAllowed());
-
     // Empty.
     $route_match = new RouteMatch(
       $route_name,
       $route,
       [
-        'subscription_id' => "$flag_id:",
+        'flag' => '',
+        'entity_id' => '',
       ]
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
@@ -138,7 +119,8 @@ class AccessCheckTest extends KernelTestBase {
       $route_name,
       $route,
       [
-        'subscription_id' => "subscribe_events:$nid",
+        'flag' => 'subscribe_events',
+        'entity_id' => $nid,
       ]
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
@@ -148,7 +130,8 @@ class AccessCheckTest extends KernelTestBase {
       $route_name,
       $route,
       [
-        'subscription_id' => "another_flag:$nid",
+        'flag' => 'another_flag',
+        'entity_id' => $nid,
       ]
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
@@ -160,7 +143,8 @@ class AccessCheckTest extends KernelTestBase {
       $route_name,
       $route,
       [
-        'subscription_id' => "$flag_id:$nid",
+        'flag' => $flag_id,
+        'entity_id' => $nid,
       ]
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
@@ -172,7 +156,8 @@ class AccessCheckTest extends KernelTestBase {
       $route_name,
       $route,
       [
-        'subscription_id' => "$flag_id:1234",
+        'flag' => $flag_id,
+        'entity_id' => 1234,
       ]
     );
     $this->assertFalse($access_checker->access($route_match)->isAllowed());
@@ -182,7 +167,8 @@ class AccessCheckTest extends KernelTestBase {
       $route_name,
       $route,
       [
-        'subscription_id' => "$flag_id:$nid",
+        'flag' => $flag_id,
+        'entity_id' => $nid,
       ]
     );
     $this->assertTrue($access_checker->access($route_match)->isAllowed());

@@ -69,10 +69,8 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     }
     // Get link to form.
     $url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
-      'subscription_id' => implode(':', [
-        $flag->id(),
-        $entity->id(),
-      ]),
+      'flag' => $flag->id(),
+      'entity_id' => $entity->id(),
     ]);
     // Cache based on flag.
     $cache->addCacheableDependency($flag);

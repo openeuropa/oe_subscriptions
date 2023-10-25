@@ -50,19 +50,12 @@ class SubscriptionAccessCheck implements AccessInterface {
    *   The access result.
    */
   public function access(RouteMatchInterface $route_match): AccessResultInterface {
-    $subscription_id = $route_match->getParameter('subscription_id');
+    $flag_id = $route_match->getParameter('flag');
+    $entity_id = $route_match->getParameter('entity_id');
     // No value.
-    if (empty($subscription_id)) {
+    if (empty($flag_id) || empty($entity_id)) {
       return AccessResult::forbidden();
     }
-    // Get values.
-    $values = explode(':', $subscription_id);
-    // Check expected number of values, and not empty.
-    if (count($values) !== 2 || in_array('', $values, TRUE)) {
-      return AccessResult::forbidden();
-    }
-    // Assignment.
-    [$flag_id, $entity_id] = $values;
     // Try to load flag.
     $flag = $this->flagService->getFlagById($flag_id);
     if (empty($flag)) {

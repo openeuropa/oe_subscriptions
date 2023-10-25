@@ -1,5 +1,5 @@
 oe_subscriptions_anonymous.anonymous_subscribe:
-  path: '/subscribe/{subscription_id}'
+  path: '/subscribe/{flag}/{entity_id}'
   defaults:
     _title: 'Subscribe'
     _form: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm'
