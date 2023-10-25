@@ -65,7 +65,6 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     $flag = $this->flag->getFlagById($this->getDerivativeId());
     // No flag empty return.
     if (empty($flag)) {
-      $cache->applyTo($build);
       return $build;
     }
     // Get link to form.
