@@ -67,7 +67,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session = $this->assertSession();
     // Using ui-dialog parent of modal-form,
     // Submit buttons and close in siblings.
-    $modal_select = '.ui-dialog';
+    $modal_selector = '.ui-dialog';
     // Got to node page with subscription.
     $this->drupalGet($node->toUrl());
     // Click subscribe link.
@@ -75,7 +75,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     // The modal wrapper.
-    $modal = $page->find('css', $modal_select);
+    $modal = $page->find('css', $modal_selector);
     // Find all elements.
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
@@ -94,14 +94,14 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     $modal->find('css', 'button.ui-dialog-titlebar-close')->press();
-    $assert_session->elementNotExists('css', $modal_select);
+    $assert_session->elementNotExists('css', $modal_selector);
     // Test cancel button, filled data.
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('No thanks', $button_pane)->press();
-    $assert_session->elementNotExists('css', $modal_select);
+    $assert_session->elementNotExists('css', $modal_selector);
     // No message no submit.
     $assert_session->statusMessageNotExists();
     // Test submit.
@@ -110,7 +110,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
-    $assert_session->elementNotExists('css', $modal_select);
+    $assert_session->elementNotExists('css', $modal_selector);
     $assert_session->statusMessageExists();
   }
 
