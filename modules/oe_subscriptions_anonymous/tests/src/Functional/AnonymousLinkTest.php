@@ -89,27 +89,13 @@ class AnonymousLinkTest extends BrowserTestBase {
     ]);
     // Create the node.
     $article = $this->drupalCreateNode([
-      'body' => [
-        [
-          'value' => $this->randomMachineName(32),
-          'format' => filter_default_format(),
-        ],
-      ],
       'type' => 'article',
-      'title' => $this->randomMachineName(8),
       'status' => 1,
     ]);
     $article->save();
     // Create the node.
     $page = $this->drupalCreateNode([
-      'body' => [
-        [
-          'value' => $this->randomMachineName(32),
-          'format' => filter_default_format(),
-        ],
-      ],
       'type' => 'page',
-      'title' => $this->randomMachineName(8),
       'status' => 1,
     ]);
     $page->save();
