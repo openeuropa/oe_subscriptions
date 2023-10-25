@@ -7,6 +7,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.1",
+        "cweagans/composer-patches": "^1.7",
         "drupal/core": "^9.5 || ^10",
         "drupal/extra_field": "^2.3",
         "drupal/flag": "^4.0@beta",
@@ -52,6 +53,11 @@
             "build/profiles/contrib/{$name}": ["type:drupal-profile"],
             "build/modules/contrib/{$name}": ["type:drupal-module"],
             "build/themes/contrib/{$name}": ["type:drupal-theme"]
+        },
+        "patches": {
+            "drupal/core": {
+                "https://www.drupal.org/project/drupal/issues/3158130": "https://www.drupal.org/files/issues/2022-12-11/3158130-26.patch"
+            }
         },
         "drupal-scaffold": {
             "locations": {
