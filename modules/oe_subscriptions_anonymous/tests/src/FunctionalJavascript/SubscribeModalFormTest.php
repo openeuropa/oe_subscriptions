@@ -68,12 +68,14 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Using ui-dialog parent of modal-form,
     // Submit buttons and close in siblings.
     $modal_selector = '.ui-dialog';
+
     // Got to node page with subscription.
     $this->drupalGet($node->toUrl());
     // Click subscribe link.
     $link_text = $flag->getShortText('flag');
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
+
     // The modal wrapper.
     $modal = $page->find('css', $modal_selector);
     // Find all elements.
@@ -81,14 +83,15 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $terms_label = 'I have read and agree with the data protection terms.';
     $mail_field = $assert_session->fieldExists($mail_label, $modal);
     $terms_field = $assert_session->fieldExists($terms_label, $modal);
-    // Using xpath, findButton get input (hidden) instead button tags.
-    // Submit has no specific class to select thourgh CSS.
+    // Get button pane with submit buttons.
     $button_pane = $assert_session->elementExists('css', '.ui-dialog-buttonpane', $modal);
+
     // Try to submit, empty form.
     $this->disableNativeBrowserRequiredFieldValidation();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
     $this->assertSession()->pageTextContains("$mail_label field is required.");
     $this->assertSession()->pageTextContains("$terms_label field is required.");
+
     // Test Close modal button.
     $this->drupalGet($node->toUrl());
     $this->clickLink($link_text);
@@ -96,6 +99,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $modal->find('css', 'button.ui-dialog-titlebar-close')->press();
     $assert_session->elementNotExists('css', $modal_selector);
     $assert_session->statusMessageNotExists();
+
     // Test cancel button, filled data.
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
@@ -103,8 +107,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $terms_field->check();
     $assert_session->buttonExists('No thanks', $button_pane)->press();
     $assert_session->elementNotExists('css', $modal_selector);
-    // No message no submit.
     $assert_session->statusMessageNotExists();
+
     // Test submit.
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
