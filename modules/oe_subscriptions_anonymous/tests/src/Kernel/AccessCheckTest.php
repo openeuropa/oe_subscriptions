@@ -82,8 +82,10 @@ class AccessCheckTest extends KernelTestBase {
       'status' => 1,
     ]);
     $node->save();
+
     $nid = $node->id();
     $access_manager = $this->container->get('access_manager');
+
     // Empty.
     $this->assertFalse($access_manager->checkNamedRoute($route_name,
       [
@@ -91,6 +93,7 @@ class AccessCheckTest extends KernelTestBase {
         'entity_id' => '',
       ]
     ));
+
     // No matching flag.
     $this->assertFalse($access_manager->checkNamedRoute($route_name,
       [
@@ -98,6 +101,7 @@ class AccessCheckTest extends KernelTestBase {
         'entity_id' => $nid,
       ]
     ));
+
     // Flag doesn't starts with 'subscribe_'.
     $this->assertFalse($access_manager->checkNamedRoute($route_name,
       [
@@ -105,6 +109,7 @@ class AccessCheckTest extends KernelTestBase {
         'entity_id' => $nid,
       ]
     ));
+
     // Disabled flag.
     $flag->disable();
     $flag->save();
@@ -116,6 +121,7 @@ class AccessCheckTest extends KernelTestBase {
     ));
     $flag->enable();
     $flag->save();
+
     // Not existing node.
     $this->assertFalse($access_manager->checkNamedRoute($route_name,
       [
@@ -123,6 +129,7 @@ class AccessCheckTest extends KernelTestBase {
         'entity_id' => '1234',
       ]
     ));
+
     // Finally a subscribe parameters matching all conditions.
     $this->assertFalse($access_manager->checkNamedRoute($route_name,
       [
@@ -130,6 +137,7 @@ class AccessCheckTest extends KernelTestBase {
         'entity_id' => $nid,
       ]
     ));
+
   }
 
 }
