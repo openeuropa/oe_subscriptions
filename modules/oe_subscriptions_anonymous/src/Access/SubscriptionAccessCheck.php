@@ -58,7 +58,6 @@ class SubscriptionAccessCheck implements AccessInterface {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
     $view_access = $flaggable->access('view', NULL, TRUE);
-    print_r($view_access);
     // We rely in entity view access adding flag cacheability.
     return $view_access->addCacheableDependency($flag);
   }
