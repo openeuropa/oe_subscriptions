@@ -4,13 +4,12 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
+use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\node\Entity\Node;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Core\Session\AnonymousUserSession;
 
 /**
  * Tests the access checker.
@@ -52,7 +51,7 @@ class AccessCheckTest extends KernelTestBase {
     $this->installEntitySchema('flagging');
     $this->installEntitySchema('message');
     $this->installSchema('system', ['sequences']);
-     $this->installSchema('node', ['node_access']);
+    $this->installSchema('node', ['node_access']);
     $this->installSchema('flag', ['flag_counts']);
     $this->installConfig(['filter', 'flag', 'message_subscribe']);
 
