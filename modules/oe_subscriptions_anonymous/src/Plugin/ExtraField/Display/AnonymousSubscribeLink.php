@@ -74,8 +74,11 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     ]);
     // Cache based on flag.
     $cache->addCacheableDependency($flag);
-    // No access.
-    if (!$url->access()) {
+    // Cache based on access.
+    $access = $url->access(NULL, TRUE);
+    $cache->addCacheableDependency($access);
+    // No explicit access.
+    if (!$access->isAllowed()) {
       $cache->applyTo($build);
       return $build;
     }
