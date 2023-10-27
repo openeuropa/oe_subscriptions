@@ -10,6 +10,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
+use Drupal\user\Entity\Role;
 
 /**
  * Tests the access checker.
@@ -53,7 +54,7 @@ class AccessCheckTest extends KernelTestBase {
     $this->installSchema('system', ['sequences']);
     $this->installSchema('node', ['node_access']);
     $this->installSchema('flag', ['flag_counts']);
-    $this->installConfig(['filter', 'flag', 'message_subscribe']);
+    $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);
 
     // Create a test bundle to use as referenced bundle.
     EntityTestBundle::create(['id' => 'article'])->save();
@@ -62,7 +63,7 @@ class AccessCheckTest extends KernelTestBase {
   /**
    * Tests the access to the link based on subscription_id parameters.
    */
-  public function testAnonymousLink(): void {
+  public function testAnonymousLinkAccess(): void {
     // Services a variables.
     $route_name = 'oe_subscriptions_anonymous.anonymous_subscribe';
     // Create a flag.
@@ -88,9 +89,9 @@ class AccessCheckTest extends KernelTestBase {
     $node->save();
     $nid = $node->id();
     $access_manager = $this->container->get('access_manager');
-    // We store a anonymous account, passing NULL will take current.
-    $anonymous = new AnonymousUserSession();
-
+    // Give access content permission to anonymous.
+    $this->grantPermissions(Role::load('anonymous'), ['access content']);
+    $this->setCurrentUser(new AnonymousUserSession());
     // Empty.
     $access = $access_manager->checkNamedRoute(
       $route_name,
@@ -98,7 +99,7 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => '',
         'entity_id' => '',
       ],
-      $anonymous,
+      NULL,
       TRUE,
     );
     $this->assertFalse($access->isAllowed());
@@ -110,7 +111,7 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => 'subscribe_events',
         'entity_id' => $nid,
       ],
-      $anonymous,
+      NULL,
       TRUE,
     );
     $this->assertFalse($access->isAllowed());
@@ -122,7 +123,7 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => 'another_flag',
         'entity_id' => $nid,
       ],
-      $anonymous,
+      NULL,
       TRUE,
     );
     $this->assertFalse($access->isAllowed());
@@ -136,7 +137,7 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => $flag_id,
         'entity_id' => $nid,
       ],
-      $anonymous,
+      NULL,
       TRUE,
     );
     $this->assertFalse($access->isAllowed());
@@ -150,20 +151,7 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => $flag_id,
         'entity_id' => '1234',
       ],
-      $anonymous,
-      TRUE,
-    );
-    $this->assertFalse($access->isAllowed());
-
-    // Route is not allowed for logged users.
-    $user = $this->createUser([], 'user_1');
-    $access = $access_manager->checkNamedRoute(
-      $route_name,
-      [
-        'flag' => $flag_id,
-        'entity_id' => $nid,
-      ],
-      $this->createUser([], 'logged_user'),
+      NULL,
       TRUE,
     );
     $this->assertFalse($access->isAllowed());
@@ -175,10 +163,22 @@ class AccessCheckTest extends KernelTestBase {
         'flag' => $flag_id,
         'entity_id' => $nid,
       ],
-      $anonymous,
+      NULL,
       TRUE,
     );
     $this->assertTrue($access->isAllowed());
+
+    // Route is not allowed for logged users.
+    $access = $access_manager->checkNamedRoute(
+      $route_name,
+      [
+        'flag' => $flag_id,
+        'entity_id' => $nid,
+      ],
+      $this->createUser([], 'logged_user'),
+      TRUE,
+    );
+    $this->assertFalse($access->isAllowed());
 
   }
 

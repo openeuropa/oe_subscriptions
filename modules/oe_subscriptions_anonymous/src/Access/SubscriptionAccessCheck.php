@@ -8,7 +8,6 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 
@@ -39,13 +38,11 @@ class SubscriptionAccessCheck implements AccessInterface {
    *   The route matched.
    * @param \Drupal\flag\FlagInterface $flag
    *   The flag to subscribe to.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   The user account.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
-  public function access(RouteMatchInterface $route_match, FlagInterface $flag = NULL, AccountInterface $account): AccessResultInterface {
+  public function access(RouteMatchInterface $route_match, FlagInterface $flag = NULL): AccessResultInterface {
     $entity_id = $route_match->getParameter('entity_id');
     // No value.
     if (empty($flag) || empty($entity_id)) {
@@ -60,12 +57,10 @@ class SubscriptionAccessCheck implements AccessInterface {
     if (empty($flaggable)) {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
-    // User can't view the entity.
-    if (!$flaggable->access('view', $account)) {
-      return AccessResult::forbidden()->addCacheableDependency($flag);
-    }
-    // We have met all the conditions.
-    return AccessResult::allowed()->addCacheableDependency($flag);
+    $view_access = $flaggable->access('view', NULL, TRUE);
+    print_r($view_access);
+    // We rely in entity view access adding flag cacheability.
+    return $view_access->addCacheableDependency($flag);
   }
 
 }
