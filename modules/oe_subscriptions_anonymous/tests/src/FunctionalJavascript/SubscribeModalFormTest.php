@@ -41,25 +41,14 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Create a flag.
     $flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
-      'label' => 'Subscribe to article',
       'short_text' => 'Subscribe article',
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
     // Create the node.
     $node = $this->drupalCreateNode([
-      'body' => [
-        [
-          'value' => $this->randomMachineName(32),
-          'format' => filter_default_format(),
-        ],
-      ],
       'type' => 'article',
-      'title' => $this->randomMachineName(8),
-      'uid' => 0,
       'status' => 1,
-      'promote' => 0,
-      'sticky' => 0,
     ]);
     $node->save();
 
