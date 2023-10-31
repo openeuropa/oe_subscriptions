@@ -157,7 +157,7 @@ class AccessCheckTest extends KernelTestBase {
     );
     $this->assertFalse($access->isAllowed());
 
-    // Finally a subscribe parameters matching all conditions.
+    // Finally, subscription parameters matching all conditions.
     $access = $access_manager->checkNamedRoute(
       $route_name,
       [
