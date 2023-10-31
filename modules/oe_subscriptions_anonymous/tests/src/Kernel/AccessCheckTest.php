@@ -109,12 +109,32 @@ class AccessCheckTest extends KernelTestBase {
     // Access is allowed when parameters match all conditions.
     $this->assertTrue($this->checkSubscribeRouteAccess($flag_id, $article->id()));
 
+    // Access is not allowed if the entity to be flagged cannot be viewed by
+    // the user.
+    $forbidden_access = EntityTestWithBundle::create([
+      'type' => 'article',
+      // @see \Drupal\entity_test\EntityTestAccessControlHandler::checkAccess()
+      'name' => 'forbid_access',
+    ]);
+    $forbidden_access->save();
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $forbidden_access->id()));
+
     // Route is not allowed for logged users.
     $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $article->id(), $this->createUser([], 'logged_user')));
 
     // Disabled flag.
     $flag->disable()->save();
     $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $article->id()));
+
+    // Create a flag that allows to subscribe to all bundles.
+    $this->createFlagFromArray([
+      'id' => 'subscribe_all_bundles',
+      'flag_type' => $this->getFlagType('entity_test_with_bundle'),
+      'entity_type' => 'entity_test_with_bundle',
+      'bundles' => [],
+    ]);
+    $this->assertTrue($this->checkSubscribeRouteAccess('subscribe_all_bundles', $article->id()));
+    $this->assertTrue($this->checkSubscribeRouteAccess('subscribe_all_bundles', $page->id()));
   }
 
   /**
