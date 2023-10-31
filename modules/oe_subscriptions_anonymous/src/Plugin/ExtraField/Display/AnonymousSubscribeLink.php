@@ -63,7 +63,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     $cache = new CacheableMetadata();
     // Based on derivative id.
     $flag = $this->flag->getFlagById($this->getDerivativeId());
-    // No flag empty return.
+    // Bail out if the flag cannot be loaded.
     if (empty($flag)) {
       return $build;
     }
