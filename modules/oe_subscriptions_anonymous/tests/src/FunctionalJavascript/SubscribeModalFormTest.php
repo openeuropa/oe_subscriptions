@@ -101,7 +101,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
     $assert_session->elementNotExists('css', $modal_selector);
-    $assert_session->statusMessageExists();
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
   }
 
   /**
