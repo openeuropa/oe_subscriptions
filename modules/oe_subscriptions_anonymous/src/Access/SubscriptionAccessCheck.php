@@ -41,7 +41,7 @@ class SubscriptionAccessCheck implements AccessInterface {
    * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
-  public function access(RouteMatchInterface $route_match, FlagInterface $flag = NULL): AccessResultInterface {
+  public function access(RouteMatchInterface $route_match, FlagInterface $flag): AccessResultInterface {
     $entity_id = $route_match->getParameter('entity_id');
     // No value.
     if (empty($flag) || empty($entity_id)) {
