@@ -55,6 +55,7 @@ class AccessCheckTest extends KernelTestBase {
     $this->installEntitySchema('entity_test_with_bundle');
 
     EntityTestBundle::create(['id' => 'article'])->save();
+    EntityTestBundle::create(['id' => 'page'])->save();
 
     // Give access content permission to anonymous.
     $this->grantPermissions(Role::load('anonymous'), ['view test entity']);
@@ -85,6 +86,10 @@ class AccessCheckTest extends KernelTestBase {
       'type' => 'article',
     ]);
     $article->save();
+    $page = EntityTestWithBundle::create([
+      'type' => 'page',
+    ]);
+    $page->save();
 
     // Empty parameter values.
     $this->assertFalse($this->checkSubscribeRouteAccess('', ''));
@@ -97,6 +102,9 @@ class AccessCheckTest extends KernelTestBase {
 
     // Access is allowed only for existing entities.
     $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, '1234'));
+
+    // Access is not allowed if the entity is not flaggable.
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $page->id()));
 
     // Access is allowed when parameters match all conditions.
     $this->assertTrue($this->checkSubscribeRouteAccess($flag_id, $article->id()));
