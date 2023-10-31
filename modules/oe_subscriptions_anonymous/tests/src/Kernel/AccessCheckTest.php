@@ -92,6 +92,7 @@ class AccessCheckTest extends KernelTestBase {
     // Give access content permission to anonymous.
     $this->grantPermissions(Role::load('anonymous'), ['access content']);
     $this->setCurrentUser(new AnonymousUserSession());
+
     // Empty.
     $access = $access_manager->checkNamedRoute(
       $route_name,
