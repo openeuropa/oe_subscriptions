@@ -52,7 +52,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'status' => 1,
     ]);
 
-    $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
     // Using ui-dialog parent of modal-form,
     // Submit buttons and close in siblings.
@@ -64,7 +63,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->assertWaitOnAjaxRequest();
 
     // The modal wrapper.
-    $modal = $page->find('css', $modal_selector);
+    $modal = $assert_session->elementExists('css', $modal_selector);
     // Find all elements.
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
