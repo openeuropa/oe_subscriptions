@@ -77,7 +77,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->assertSession()->pageTextContains("$mail_label field is required.");
     $this->assertSession()->pageTextContains("$terms_label field is required.");
 
-    // Test Close modal button.
+    // Test close modal button.
     $this->drupalGet($node->toUrl());
     $this->clickLink($link_text);
     $assert_session->waitForElement('css', $modal_selector);
