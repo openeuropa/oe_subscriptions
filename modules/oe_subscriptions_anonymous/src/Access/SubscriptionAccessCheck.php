@@ -26,8 +26,7 @@ class SubscriptionAccessCheck implements AccessInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(
-    FlagServiceInterface $flagService) {
+  public function __construct(FlagServiceInterface $flagService) {
     $this->flagService = $flagService;
   }
 
