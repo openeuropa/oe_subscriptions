@@ -93,7 +93,7 @@ class AccessCheckTest extends KernelTestBase {
     $this->grantPermissions(Role::load('anonymous'), ['access content']);
     $this->setCurrentUser(new AnonymousUserSession());
 
-    // Empty.
+    // Empty parameter values.
     $access = $access_manager->checkNamedRoute(
       $route_name,
       [
