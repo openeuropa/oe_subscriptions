@@ -26,8 +26,7 @@ class AnonymousSubscribeForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, $entity_id = NULL) {
     $form_state->set('flag', $flag);
     $form_state->set('entity_id', $entity_id);
-    // Default Text without link.
-    $title = $this->t('I have read and agree with the data protection terms.');
+
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
@@ -35,7 +34,7 @@ class AnonymousSubscribeForm extends FormBase {
     ];
     $form['accept_terms'] = [
       '#type' => 'checkbox',
-      '#title' => $title,
+      '#title' => $this->t('I have read and agree with the data protection terms.'),
       '#required' => TRUE,
     ];
     // This button will is used to close the modal, no submit callback.
