@@ -58,7 +58,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Submit buttons and close in siblings.
     $modal_selector = '.ui-dialog';
 
-    // Got to node page with subscription.
     $this->drupalGet($node->toUrl());
     // Click subscribe link.
     $link_text = $flag->getShortText('flag');
