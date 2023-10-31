@@ -7,9 +7,9 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\entity_test\Entity\EntityTestBundle;
+use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
-use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
 
@@ -20,7 +20,6 @@ class AccessCheckTest extends KernelTestBase {
 
   use FlagCreateTrait;
   use UserCreationTrait;
-  use NodeCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -34,7 +33,6 @@ class AccessCheckTest extends KernelTestBase {
     'message',
     'message_notify',
     'message_subscribe',
-    'node',
     'oe_subscriptions',
     'oe_subscriptions_anonymous',
     'system',
@@ -43,31 +41,24 @@ class AccessCheckTest extends KernelTestBase {
   ];
 
   /**
-   * The access manager service.
-   *
-   * @var \Drupal\Core\Access\AccessManagerInterface
-   */
-  protected $accessManager;
-
-  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
 
     $this->installEntitySchema('user');
-    $this->installEntitySchema('node');
     $this->installEntitySchema('flagging');
     $this->installEntitySchema('message');
     $this->installSchema('system', ['sequences']);
-    $this->installSchema('node', ['node_access']);
     $this->installSchema('flag', ['flag_counts']);
     $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);
+    $this->installEntitySchema('entity_test_with_bundle');
 
-    // Create a test bundle to use as referenced bundle.
     EntityTestBundle::create(['id' => 'article'])->save();
-    // Get access manager service.
-    $this->accessManager = $this->container->get('access_manager');
+
+    // Give access content permission to anonymous.
+    $this->grantPermissions(Role::load('anonymous'), ['view test entity']);
+    $this->setCurrentUser(new AnonymousUserSession());
   }
 
   /**
@@ -78,8 +69,8 @@ class AccessCheckTest extends KernelTestBase {
     $flag_id = 'subscribe_article';
     $flag = $this->createFlagFromArray([
       'id' => $flag_id,
-      'flag_type' => $this->getFlagType('node'),
-      'entity_type' => 'node',
+      'flag_type' => $this->getFlagType('entity_test_with_bundle'),
+      'entity_type' => 'entity_test_with_bundle',
       'bundles' => ['article'],
     ]);
     // A flag that applies to all bundles.
@@ -89,37 +80,33 @@ class AccessCheckTest extends KernelTestBase {
       'entity_type' => 'entity_test_with_bundle',
       'bundles' => [],
     ]);
-    // Node.
-    $node = $this->createNode([
+
+    $article = EntityTestWithBundle::create([
       'type' => 'article',
-      'status' => 1,
     ]);
-    $nid = $node->id();
-    // Give access content permission to anonymous.
-    $this->grantPermissions(Role::load('anonymous'), ['access content']);
-    $this->setCurrentUser(new AnonymousUserSession());
+    $article->save();
 
     // Empty parameter values.
     $this->assertFalse($this->checkSubscribeRouteAccess('', ''));
 
     // Access is denied for non-existing flags.
-    $this->assertFalse($this->checkSubscribeRouteAccess('subscribe_events', $nid));
+    $this->assertFalse($this->checkSubscribeRouteAccess('subscribe_events', $article->id()));
 
     // Access should be allowed only for flags that start with 'subscribe_'.
-    $this->assertFalse($this->checkSubscribeRouteAccess('another_flag', $nid));
+    $this->assertFalse($this->checkSubscribeRouteAccess('another_flag', $article->id()));
 
-    // Access is allowed only for existing nodes.
+    // Access is allowed only for existing entities.
     $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, '1234'));
 
     // Access is allowed when parameters match all conditions.
-    $this->assertTrue($this->checkSubscribeRouteAccess($flag_id, $nid));
+    $this->assertTrue($this->checkSubscribeRouteAccess($flag_id, $article->id()));
 
     // Route is not allowed for logged users.
-    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $nid, $this->createUser([], 'logged_user')));
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $article->id(), $this->createUser([], 'logged_user')));
 
     // Disabled flag.
     $flag->disable()->save();
-    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $nid));
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $article->id()));
   }
 
   /**
