@@ -39,9 +39,10 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'name' => 'Article',
     ]);
     // Create a flag.
-    $flag = $this->createFlagFromArray([
+    $link_text = 'Subscribe to this article';
+    $this->createFlagFromArray([
       'id' => 'subscribe_article',
-      'short_text' => 'Subscribe article',
+      'flag_short' => $link_text,
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
@@ -50,7 +51,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
       'type' => 'article',
       'status' => 1,
     ]);
-    $node->save();
 
     $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
@@ -60,7 +60,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
 
     $this->drupalGet($node->toUrl());
     // Click subscribe link.
-    $link_text = $flag->getShortText('flag');
     $this->clickLink($link_text);
     $assert_session->assertWaitOnAjaxRequest();
 
