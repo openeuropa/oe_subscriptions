@@ -60,8 +60,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->drupalGet($node->toUrl());
     // Click subscribe link.
     $this->clickLink($link_text);
-    $assert_session->assertWaitOnAjaxRequest();
-
+    $assert_session->waitForElement('css', $modal_selector);
     // The modal wrapper.
     $modal = $assert_session->elementExists('css', $modal_selector);
     // Find all elements.
@@ -81,14 +80,14 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Test Close modal button.
     $this->drupalGet($node->toUrl());
     $this->clickLink($link_text);
-    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->waitForElement('css', $modal_selector);
     $modal->find('css', 'button.ui-dialog-titlebar-close')->press();
     $assert_session->elementNotExists('css', $modal_selector);
     $assert_session->statusMessageNotExists();
 
     // Test cancel button, filled data.
     $this->clickLink($link_text);
-    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->waitForElement('css', $modal_selector);
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('No thanks', $button_pane)->press();
@@ -97,7 +96,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
 
     // Test submit.
     $this->clickLink($link_text);
-    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->waitForElement('css', $modal_selector);
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
