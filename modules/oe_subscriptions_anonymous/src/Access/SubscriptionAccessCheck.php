@@ -7,7 +7,6 @@ namespace Drupal\oe_subscriptions_anonymous\Access;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
-use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 
@@ -33,20 +32,15 @@ class SubscriptionAccessCheck implements AccessInterface {
   /**
    * Anonymous subscription access check.
    *
-   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
-   *   The route matched.
    * @param \Drupal\flag\FlagInterface $flag
    *   The flag to subscribe to.
+   * @param string $entity_id
+   *   The flaggable entity ID.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
-  public function access(RouteMatchInterface $route_match, FlagInterface $flag): AccessResultInterface {
-    $entity_id = $route_match->getParameter('entity_id');
-    // No value.
-    if (empty($flag) || empty($entity_id)) {
-      return AccessResult::forbidden();
-    }
+  public function access(FlagInterface $flag, string $entity_id): AccessResultInterface {
     // Disabled flag or not starting with.
     if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
       return AccessResult::forbidden()->addCacheableDependency($flag);
