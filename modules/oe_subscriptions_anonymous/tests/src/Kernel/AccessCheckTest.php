@@ -100,38 +100,44 @@ class AccessCheckTest extends KernelTestBase {
     $this->setCurrentUser(new AnonymousUserSession());
 
     // Empty parameter values.
-    $this->assertFalse($this->assertRouteAccess('', ''));
+    $this->assertFalse($this->checkSubscribeRouteAccess('', ''));
 
-    // No matching flag.
-    $this->assertFalse($this->assertRouteAccess('subscribe_events', $nid));
+    // Access is denied for non-existing flags.
+    $this->assertFalse($this->checkSubscribeRouteAccess('subscribe_events', $nid));
 
-    // Flag doesn't starts with 'subscribe_'.
-    $this->assertFalse($this->assertRouteAccess('another_flag', $nid));
+    // Access should be allowed only for flags that start with 'subscribe_'.
+    $this->assertFalse($this->checkSubscribeRouteAccess('another_flag', $nid));
 
-    // Disabled flag.
-    $flag->disable();
-    $flag->save();
-    $this->assertFalse($this->assertRouteAccess($flag_id, $nid));
-    $flag->enable();
-    $flag->save();
+    // Access is allowed only for existing nodes.
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, '1234'));
 
-    // Not existing node.
-    $this->assertFalse($this->assertRouteAccess($flag_id, '1234'));
-
-    // Finally, subscription parameters matching all conditions.
-    $this->assertTrue($this->assertRouteAccess($flag_id, $nid));
+    // Access is allowed when parameters match all conditions.
+    $this->assertTrue($this->checkSubscribeRouteAccess($flag_id, $nid));
 
     // Route is not allowed for logged users.
-    $this->assertFalse($this->assertRouteAccess($flag_id, $nid, $this->createUser([], 'logged_user')));
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $nid, $this->createUser([], 'logged_user')));
 
+    // Disabled flag.
+    $flag->disable()->save();
+    $this->assertFalse($this->checkSubscribeRouteAccess($flag_id, $nid));
   }
 
   /**
-   * Helper function to perform checks with access_manager service.
+   * Returns access to the anonymous subscribe route with a set of parameters.
+   *
+   * @param string $flag_id
+   *   The ID of the flag.
+   * @param string $entity_id
+   *   The entity ID.
+   * @param \Drupal\Core\Session\AccountInterface|null $user
+   *   A user account to use for the check. Null to use anonymous.
+   *
+   * @return bool
+   *   True if access is allowed, false otherwise.
    */
-  protected function assertRouteAccess(string $flag_id, string $entity_id, AccountInterface $user = NULL) {
+  protected function checkSubscribeRouteAccess(string $flag_id, string $entity_id, AccountInterface $user = NULL): bool {
     $route_name = 'oe_subscriptions_anonymous.anonymous_subscribe';
-    $access_check = $this->accessManager->checkNamedRoute(
+    $access_check = $this->container->get('access_manager')->checkNamedRoute(
       $route_name,
       [
         'flag' => $flag_id,
