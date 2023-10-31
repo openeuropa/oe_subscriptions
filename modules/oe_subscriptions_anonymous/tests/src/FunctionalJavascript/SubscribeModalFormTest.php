@@ -71,7 +71,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Get button pane with submit buttons.
     $button_pane = $assert_session->elementExists('css', '.ui-dialog-buttonpane', $modal);
 
-    // Try to submit, empty form.
+    // Verify that mail and terms field are marked as required.
     $this->disableNativeBrowserRequiredFieldValidation();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
     $this->assertSession()->pageTextContains("$mail_label field is required.");
