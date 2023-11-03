@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous\Plugin\ExtraField\Display;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -59,36 +60,44 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
    */
   public function view(ContentEntityInterface $entity) {
     $build = [];
-    $entity_type = $entity->getEntityTypeId();
-    // Based on entity available flags.
-    $flags = $this->flag->getAllFlags($entity_type, $entity->bundle);
-    // No flaggings to subscribe through.
-    if (empty($flags)) {
+    $cache = new CacheableMetadata();
+    // Based on derivative id.
+    $flag = $this->flag->getFlagById($this->getDerivativeId());
+    // Bail out if the flag cannot be loaded.
+    if (empty($flag)) {
       return $build;
     }
-    // Get 'Susbscribe to' controller method.
+    // Get link to form.
     $url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
-      'subscription_id' => implode(':', [
-        'subscribe_node',
-        $entity_type,
-        $entity->id(),
-      ]),
+      'flag' => $flag->id(),
+      'entity_id' => $entity->id(),
     ]);
-    // No access.
-    if (!$url->access()) {
-      // @todo Handle caching.
+    // Cache based on flag.
+    $cache->addCacheableDependency($flag);
+    // Cache based on access.
+    $access = $url->access(NULL, TRUE);
+    $cache->addCacheableDependency($access);
+    // No explicit access.
+    if (!$access->isAllowed()) {
+      $cache->applyTo($build);
       return $build;
     }
     // Link.
     $build = [
       '#type' => 'link',
-      '#title' => $this->t('Anonymous Subscribe'),
+      '#title' => $flag->getShortText('flag'),
       '#url' => $url,
       '#attributes' => [
         'class' => ['use-ajax', 'button', 'button--small'],
         'data-dialog-type' => 'modal',
       ],
+      '#attached' => [
+        'library' => [
+          'core/drupal.ajax',
+        ],
+      ],
     ];
+    $cache->applyTo($build);
 
     return $build;
   }

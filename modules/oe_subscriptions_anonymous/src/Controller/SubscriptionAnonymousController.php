@@ -4,8 +4,6 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous\Controller;
 
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\AlertCommand;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\flag\FlagServiceInterface;
@@ -41,15 +39,6 @@ class SubscriptionAnonymousController extends ControllerBase {
       $container->get('entity_type.manager'),
       $container->get('flag')
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function subscribeAnonymous(string $subscription_id) {
-    $response = new AjaxResponse();
-    $response->addCommand(new AlertCommand("Subscription ID: $subscription_id"));
-    return $response;
   }
 
 }

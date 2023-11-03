@@ -1,8 +1,8 @@
 oe_subscriptions_anonymous.anonymous_subscribe:
-  path: '/subscribe/{subscription_id}'
+  path: '/subscribe/{flag}/{entity_id}'
   defaults:
     _title: 'Subscribe'
-    _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController::subscribeAnonymous'
+    _form: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm'
   requirements:
     _user_is_logged_in: 'FALSE'
-    _access: 'TRUE'
+    _anonymous_subscription_access: 'TRUE'
