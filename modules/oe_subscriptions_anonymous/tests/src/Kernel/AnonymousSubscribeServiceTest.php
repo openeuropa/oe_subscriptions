@@ -81,33 +81,32 @@ class AnonymousSubscribeServiceTest extends KernelTestBase {
 
     // Create subscription.
     $token = hash('sha512', "oe_subscriptions_anonymous:$mail:$flag_id:$entity_id");
-    $generated_token = $anonymous_subscribe_service->createSubscription($mail, $flag_id, $entity_id);
+    $generated_token = $anonymous_subscribe_service->createSubscription($mail, $flag, $entity_id);
     $this->assertEquals($token, $generated_token);
-    $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag_id, $entity_id));
+    $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
 
     // Validate subscription.
-    $anonymous_subscribe_service->validateSubscription($mail, $flag_id, $entity_id, $generated_token);
+    $anonymous_subscribe_service->validateSubscription($mail, $flag, $entity_id, $generated_token);
     // No subscription.
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag_id, $entity_id));
+    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
     // Flag with the user to the entity.
     $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
 
     // Cancel subscription.
-    $anonymous_subscribe_service->cancelSubscription($mail, $flag_id, $entity_id, $generated_token);
+    $anonymous_subscribe_service->cancelSubscription($mail, $flag, $entity_id, $generated_token);
     // No subscription.
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag_id, $entity_id));
+    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
     // No flag with the user to the entity.
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
 
     // Create subscription and cancel before validate.
-    $token = hash('sha512', "oe_subscriptions_anonymous:$mail:$flag_id:$entity_id");
-    $generated_token = $anonymous_subscribe_service->createSubscription($mail, $flag_id, $entity_id);
+    $generated_token = $anonymous_subscribe_service->createSubscription($mail, $flag, $entity_id);
     $this->assertEquals($token, $generated_token);
-    $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag_id, $entity_id));
+    $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
     // Trigger cancel.
-    $anonymous_subscribe_service->cancelSubscription($mail, $flag_id, $entity_id, $generated_token);
+    $anonymous_subscribe_service->cancelSubscription($mail, $flag, $entity_id, $generated_token);
     // No subscription.
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag_id, $entity_id));
+    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
     // No flag with the user to the entity.
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
 
