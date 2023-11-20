@@ -10,3 +10,7 @@ services:
     arguments: ['@flag']
     tags:
       - { name: access_check, applies_to: _anonymous_subscription_access }
+
+  oe_subscriptions_anonymous.subscription_manager:
+    class: Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager
+    arguments: ['@database', '@flag', '@entity_type.manager']
