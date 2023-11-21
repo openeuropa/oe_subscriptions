@@ -11,9 +11,9 @@ use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
- * Tests the anonymous subscribe service.
+ * Tests the anonymous subscribe manager.
  */
-class AnonymousSubscribeServiceTest extends KernelTestBase {
+class AnonymousSubscriptionManagerTest extends KernelTestBase {
 
   use FlagCreateTrait;
   use UserCreationTrait;
@@ -86,7 +86,7 @@ class AnonymousSubscribeServiceTest extends KernelTestBase {
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
 
     // Validate subscription.
-    $anonymous_subscribe_service->validateSubscription($mail, $flag, $entity_id, $generated_token);
+    $anonymous_subscribe_service->confirmSubscription($mail, $flag, $entity_id, $generated_token);
     // No subscription.
     $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $entity_id));
     // Flag with the user to the entity.

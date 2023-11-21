@@ -13,7 +13,7 @@ use Drupal\user\Entity\User;
 /**
  * Class to manage anonymous subscriptions.
  */
-class AnonymousSubscriptionManager {
+class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterface {
 
   /**
    * Database connection.
@@ -84,17 +84,17 @@ class AnonymousSubscriptionManager {
   /**
    * {@inheritdoc}
    */
-  public function validateSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): void {
+  public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): bool {
     // Check parameters.
     if (!$this->checkSubscription($mail, $flag, $entity_id, $token)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
     // Load entity.
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     if (empty($entity)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
     // Try to load user.
     $account = user_load_by_mail($mail);
@@ -105,39 +105,43 @@ class AnonymousSubscriptionManager {
     }
     if (empty($account)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
     // Do flag.
-    $this->flagService->flag($flag, $entity, $account);
+    $flagging = $this->flagService->flag($flag, $entity, $account);
+    if (empty($flagging)) {
+      return FALSE;
+    }
     // Delete anonymous sub.
-    $this->deleteSubscription($mail, $flag, $entity_id);
+    return $this->deleteSubscription($mail, $flag, $entity_id);
+
   }
 
   /**
    * {@inheritdoc}
    */
-  public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): void {
+  public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): bool {
     // Check the subscription exist and has a valid token.
     if ($this->checkSubscription($mail, $flag, $entity_id, $token)) {
-      $this->deleteSubscription($mail, $flag, $entity_id);
       // If exists has not been validated, bail out.
-      return;
+      return $this->deleteSubscription($mail, $flag, $entity_id);
     }
     // Try to load user.
     $account = user_load_by_mail($mail);
     if (empty($account)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
     // Load entity.
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
-    // Do unflag.
-    $this->flagService->unflag($flag, $entity, $account);
     if (empty($entity)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
+    // Do unflag.
+    $this->flagService->unflag($flag, $entity, $account);
     // @todo cleanup user without flaggins.
+    return TRUE;
   }
 
   /**
@@ -151,18 +155,19 @@ class AnonymousSubscriptionManager {
   /**
    * {@inheritdoc}
    */
-  private function deleteSubscription(string $mail, FlagInterface $flag, string $entity_id): void {
+  private function deleteSubscription(string $mail, FlagInterface $flag, string $entity_id): bool {
     // Check that exists.
     if (!$this->checkSubscription($mail, $flag, $entity_id)) {
       // @todo Add messaging/logging.
-      return;
+      return FALSE;
     }
     // Delete entry.
-    $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
+    $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
       ->condition('mail', $mail)
       ->condition('flag_id', $flag->id())
-      ->condition('entity_id', $entity_id)
-      ->execute();
+      ->condition('entity_id', $entity_id);
+
+    return (!empty($query->execute()));
   }
 
   /**
