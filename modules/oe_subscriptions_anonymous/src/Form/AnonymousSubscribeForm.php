@@ -14,8 +14,12 @@ use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,18 +31,45 @@ class AnonymousSubscribeForm extends FormBase {
   use AjaxFormHelperTrait;
 
   /**
-   * Creates a new instance of this class.
+   * Anonymous subscribe manager service.
    *
-   * @param \Drupal\flag\FlagServiceInterface $flagService
-   *   The flag service.
+   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface
    */
-  public function __construct(protected FlagServiceInterface $flagService) {}
+  protected AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager;
+
+  /**
+   * Mail manager service.
+   *
+   * @var \Drupal\Core\Mail\MailManagerInterface
+   */
+  protected MailManagerInterface $emailManager;
+
+  /**
+   * Flag service.
+   *
+   * @var \Drupal\flag\FlagServiceInterface
+   */
+  protected FlagServiceInterface $flagService;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(
+    AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager,
+    MailManagerInterface $emailManager,
+    FlagServiceInterface $flagService) {
+    $this->anonymousSubscriptionManager = $anonymousSubscriptionManager;
+    $this->mailManager = $emailManager;
+    $this->flagService = $flagService;
+  }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     $instance = new static(
+      $container->get('oe_subscriptions_anonymous.subscription_manager'),
+      $container->get('plugin.manager.mail'),
       $container->get('flag')
     );
     $instance->setMessenger($container->get('messenger'));
@@ -121,9 +152,59 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // @todo Send the email.
-    // If the form was rendered in an AJAX call, we don't need to do anything
-    // else.
+    // Get parameters.
+    $email = $form_state->getValue('email');
+    $flag = $form_state->get('flag');
+    $entity_id = $form_state->get('entity_id');
+    // Create a new subscription.
+    $hash = $this->anonymousSubscriptionManager->createSubscription($email, $flag, $entity_id);
+    // No has we can't validate.
+    if (empty($hash)) {
+      $this->messenger()->addMessage($this->t('Confirmation hash could not be generated.'), MessengerInterface::TYPE_ERROR);
+      return;
+    }
+    // Generate mail links: entity, confirm and cancel.
+    $flag_id = $flag->id();
+    $confirm_url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_confirm',
+      [
+        'flag' => $flag_id,
+        'entity_id' => $entity_id,
+        'email' => $email,
+        'hash' => $hash,
+      ],
+      [
+        'absolute' => TRUE,
+      ])->toString();
+    $cancel_url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_cancel',
+      [
+        'flag' => $flag_id,
+        'entity_id' => $entity_id,
+        'email' => $email,
+        'hash' => $hash,
+      ],
+      [
+        'absolute' => TRUE,
+      ])->toString();
+    $entity_url = $this->flagService->getFlaggableById($flag, $entity_id)->toUrl('canonical', ['absolute' => TRUE])->toString();
+
+    // Send mail with parameters.
+    $result = $this->mailManager->mail(
+      'oe_subscriptions_anonymous',
+      "oe_subscriptions_anonymous:subscription_create",
+      $email,
+      // @todo current language.
+      'en',
+      [
+        'entity_link' => $entity_url,
+        'confirm_link' => $confirm_url,
+        'cancel_link' => $cancel_url,
+      ]);
+
+    if (!$result) {
+      $this->messenger()->addMessage($this->t('Confimartion mail could not be sent.'), MessengerInterface::TYPE_ERROR);
+      return;
+    }
+
     if ($this->isAjax()) {
       return;
     }

@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous;
 
+use Drupal\Component\Utility\EmailValidatorInterface;
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\user\Entity\User;
@@ -30,23 +30,19 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   protected $flagService;
 
   /**
-   * Entity type manager.
+   * Mail validator service.
    *
-   * @var \Drupal\flag\EntityTypeManagerInterface
+   * @var \Drupal\Component\Utility\EmailValidatorInterface
    */
-  protected EntityTypeManagerInterface $entityTypeManager;
+  protected $mailValidatorService;
 
   /**
    * Constructs a Anonymous Subscription manager.
    */
-  public function __construct(
-    Connection $connection,
-    FlagServiceInterface $flagService,
-    EntityTypeManagerInterface $entityTypeManager
-    ) {
+  public function __construct(Connection $connection, FlagServiceInterface $flagService, EmailValidatorInterface $mailValidatorService) {
     $this->connection = $connection;
     $this->flagService = $flagService;
-    $this->entityTypeManager = $entityTypeManager;
+    $this->mailValidatorService = $mailValidatorService;
   }
 
   /**
@@ -56,7 +52,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     return new self(
       $container->get('database'),
       $container->get('flag'),
-      $container->get('entity_type.manager'),
+      $container->get('email.validator')
     );
   }
 
@@ -64,29 +60,49 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   public function createSubscription(string $mail, FlagInterface $flag, string $entity_id): string {
-    $exists = $this->subscriptionExists($mail, $flag, $entity_id);
-    if ($exists) {
+    // Validate mail.
+    if (!$this->mailValidatorService->isValid($mail)) {
       // @todo Add messaging/logging.
       return '';
     }
+
     $flag_id = $flag->id();
-    $token = hash('sha512', "oe_subscriptions_anonymous:$mail:$flag_id:$entity_id");
+    $hash = bin2hex(random_bytes(16));
+
+    // In case we have an existing unconfirmed, we update hash.
+    if ($this->subscriptionExists($mail, $flag, $entity_id)) {
+      $this->connection->update('oe_subscriptions_anonymous_subscriptions')
+        ->fields(['hash' => $hash])
+        ->condition('mail', $mail)
+        ->condition('flag_id', $flag_id)
+        ->condition('entity_id', $entity_id)
+        ->execute();
+
+      return $hash;
+    }
+
+    // Create new entry.
     $this->connection->insert('oe_subscriptions_anonymous_subscriptions')
       ->fields([
         'mail' => $mail,
         'flag_id' => $flag_id,
         'entity_id' => $entity_id,
-        'token' => $token,
+        'hash' => $hash,
       ])->execute();
-    return $token;
+
+    return $hash;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): bool {
+  public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
+    if (!$this->mailValidatorService->isValid($mail)) {
+      // @todo Add messaging/logging.
+      return FALSE;
+    }
     // Check parameters.
-    if (!$this->checkSubscription($mail, $flag, $entity_id, $token)) {
+    if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       // @todo Add messaging/logging.
       return FALSE;
     }
@@ -112,7 +128,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     if (empty($flagging)) {
       return FALSE;
     }
-    // Delete anonymous sub.
+    // Clean validated subscriptions.
     return $this->deleteSubscription($mail, $flag, $entity_id);
 
   }
@@ -120,9 +136,13 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   /**
    * {@inheritdoc}
    */
-  public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token): bool {
-    // Check the subscription exist and has a valid token.
-    if ($this->checkSubscription($mail, $flag, $entity_id, $token)) {
+  public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
+    if (!$this->mailValidatorService->isValid($mail)) {
+      // @todo Add messaging/logging.
+      return FALSE;
+    }
+    // Check the subscription exist and has a valid hash.
+    if ($this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       // If exists has not been validated, bail out.
       return $this->deleteSubscription($mail, $flag, $entity_id);
     }
@@ -140,7 +160,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     }
     // Do unflag.
     $this->flagService->unflag($flag, $entity, $account);
-    // @todo cleanup user without flaggins.
+    // @todo delete user without flaggins.
     return TRUE;
   }
 
@@ -148,7 +168,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   public function subscriptionExists(string $mail, FlagInterface $flag, string $entity_id): bool {
-    // The subscription exists, no need of token.
+    // The subscription exists, no need of hash.
     return $this->checkSubscription($mail, $flag, $entity_id);
   }
 
@@ -173,7 +193,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   /**
    * {@inheritdoc}
    */
-  private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $token = ''): bool {
+  private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash = ''): bool {
     // @todo Add checks, validate mail, flag and entity.
     // Query to check values, all parameters need to match.
     $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
@@ -181,9 +201,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       ->condition('s.mail', $mail)
       ->condition('s.flag_id', $flag->id())
       ->condition('s.entity_id', $entity_id);
-    // We will use token depending on the check.
-    if (!empty($token)) {
-      $query->condition('s.token', $token);
+    // We will use hash depending on the check.
+    if (!empty($hash)) {
+      $query->condition('s.hash', $hash);
     }
     // If there is a result.
     return (!empty($query->execute()->fetchAll()));

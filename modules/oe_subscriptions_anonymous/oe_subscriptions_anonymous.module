@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Mail\MailFormatHelper;
 
 /**
  * Implements hook_ENTITY_insert().
@@ -35,4 +36,24 @@ function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) 
   if (str_starts_with($entity->id(), 'subscribe_')) {
     \Drupal::service('plugin.manager.extra_field_display')->clearCachedDefinitions();
   }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function oe_subscriptions_anonymous_mail($key, &$message, $params) {
+  if ($key !== 'oe_subscriptions_anonymous:subscription_create') {
+    return;
+  }
+  // Links for subscription management.
+  $variables = [
+    '%entity_link' => $params['entity_link'],
+    '%confirm_link' => $params['confirm_link'],
+    '%cancel_link' => $params['cancel_link'],
+  ];
+
+  $body = strtr(t("Entity: %entity_link \r\n Confirm: %confirm_link \r\n Cancel: %cancel_link"), $variables);
+  $message['subject'] .= t('Anonymous subscription');
+  $message['body'][] = MailFormatHelper::htmlToText($body);
+
 }

@@ -6,3 +6,21 @@ oe_subscriptions_anonymous.anonymous_subscribe:
   requirements:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
+
+oe_subscriptions_anonymous.anonymous_confirm:
+  path: '/confirm/{flag}/{entity_id}/{email}/{hash}'
+  defaults:
+    _title: 'Confirm subscription'
+    _form: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:confirmSubscription'
+  requirements:
+    _user_is_logged_in: 'FALSE'
+    _anonymous_subscription_access: 'TRUE'
+
+oe_subscriptions_anonymous.anonymous_cancel:
+  path: '/cancel/{flag}/{entity_id}/{email}/{hash}'
+  defaults:
+    _title: 'Confirm subscription'
+    _form: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:cancelSubscription'
+  requirements:
+    _user_is_logged_in: 'FALSE'
+    _anonymous_subscription_access: 'TRUE'

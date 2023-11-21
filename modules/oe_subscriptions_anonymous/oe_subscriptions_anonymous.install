@@ -19,21 +19,24 @@ function oe_subscriptions_anonymous_schema() {
         'length' => 255,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
+        'default' => '',
       ],
       'flag_id' => [
         'description' => 'Flag used to subscribe to the entity.',
         'length' => '32',
         'type' => 'varchar_ascii',
         'not null' => TRUE,
+        'default' => '',
       ],
       'entity_id' => [
         'description' => 'The entity to subscribe to.',
         'type' => 'varchar_ascii',
         'length' => ConfigEntityStorage::MAX_ID_LENGTH,
         'not null' => TRUE,
+        'default' => '',
       ],
-      'token' => [
-        'description' => 'Temporary validation token.',
+      'hash' => [
+        'description' => 'Temporary validation hash.',
         'length' => 255,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
@@ -41,11 +44,8 @@ function oe_subscriptions_anonymous_schema() {
     ],
     'primary key' => [
       'mail',
-    ],
-    'unique keys' => [
-      'mail' => [
-        'mail',
-      ],
+      'flag_id',
+      'entity_id',
     ],
   ];
   return $schema;
