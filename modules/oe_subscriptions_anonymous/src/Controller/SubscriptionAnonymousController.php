@@ -56,35 +56,31 @@ class SubscriptionAnonymousController extends ControllerBase {
   /**
    * {@inheritdoc}
    */
-  public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash) {
+  public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
-    $hash = $this->anonymousSubscriptionManager->createSubscription($mail, $flag, $entity_id, $hash);
+    if ($this->anonymousSubscriptionManager->confirmSubscription($email, $flag, $entity_id, $hash)) {
+      $this->messenger()->addMessage($this->t('Subscription confirmed.'));
+      $entity = $this->flagService->getFlaggableById($flag, $entity_id);
 
-    if (!$result) {
-      return new RedirectResponse(Url::fromRoute('<front>'));
+      return new RedirectResponse($entity->toUrl()->toString());
     }
 
-    $this->messenger()->addMessage($this->t("Subscription confirmed."));
-    $entity = $this->flag->getFlaggableById($flag, $entity_id);
-
-    return new RedirectResponse($entity->toUrl()->toString());
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
   /**
    * {@inheritdoc}
    */
-  public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash) {
+  public function cancelSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
-    $result = $this->anonymousSubscriptionManager->cancelSubscription($mail, $flag, $entity_id, $hash);
+    if ($this->anonymousSubscriptionManager->cancelSubscription($email, $flag, $entity_id, $hash)) {
+      $this->messenger()->addMessage($this->t('Subscription canceled.'));
+      $entity = $this->flagService->getFlaggableById($flag, $entity_id);
 
-    if (!$result) {
-      return new RedirectResponse(Url::fromRoute('<front>'));
+      return new RedirectResponse($entity->toUrl()->toString());
     }
 
-    $this->messenger()->addMessage($this->t("Subscription canceled."));
-    $entity = $this->flag->getFlaggableById($flag, $entity_id);
-
-    return new RedirectResponse($entity->toUrl()->toString());
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
 }

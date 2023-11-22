@@ -125,13 +125,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       return FALSE;
     }
     // Do flag.
-    $flagging = $this->flagService->flag($flag, $entity, $account);
-    if (empty($flagging)) {
-      return FALSE;
-    }
-    // Clean validated subscriptions.
-    return $this->deleteSubscription($mail, $flag, $entity_id);
-
+    $this->flagService->flag($flag, $entity, $account);
+    // Return result.
+    return $flag->isFlagged($entity, $account);
   }
 
   /**
@@ -142,31 +138,20 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       // @todo Add messaging/logging.
       return FALSE;
     }
-    // Delete if unconfirmed.
-    if ($this->checkSubscription($mail, $flag, $entity_id, $hash)) {
-      // If exists has not been validated, bail out.
-      return $this->deleteSubscription($mail, $flag, $entity_id);
+    // Subscription doesn't exist.
+    if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
+      return FALSE;
     }
-    // Delete confirmed.
+    // Load elemets to unflag.
     $account = user_load_by_mail($mail);
-    if (empty($account)) {
-      // @todo Add messaging/logging.
-      return FALSE;
-    }
-    // Load entity.
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
-    if (empty($entity)) {
-      // @todo Add messaging/logging.
-      return FALSE;
+    // In case there the flag is done.
+    if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
+      $this->flagService->unflag($flag, $entity, $account);
     }
-    // No flagging.
-    if (empty($this->flagService->getFlagging($flag, $entity, $account))) {
-      return FALSE;
-    }
-    // Do unflag.
-    $this->flagService->unflag($flag, $entity, $account);
     // @todo delete user without flaggins.
-    return TRUE;
+    // After performing operations, we clean the entry.
+    return $this->deleteSubscription($mail, $flag, $entity_id);
   }
 
   /**

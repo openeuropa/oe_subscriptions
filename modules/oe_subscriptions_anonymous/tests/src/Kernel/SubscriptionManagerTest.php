@@ -13,7 +13,7 @@ use Drupal\Tests\user\Traits\UserCreationTrait;
 /**
  * Tests the anonymous subscribe manager.
  */
-class AnonymousSubscriptionManagerTest extends KernelTestBase {
+class SubscriptionManagerTest extends KernelTestBase {
 
   use FlagCreateTrait;
   use UserCreationTrait;
@@ -96,8 +96,6 @@ class AnonymousSubscriptionManagerTest extends KernelTestBase {
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     // Validate subscription.
     $anonymous_subscribe_service->confirmSubscription($mail, $flag, $article_id, $hash);
-    // No subscription.
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     // Flag with the user to the entity.
     $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
     // Cancel subscription.
@@ -174,9 +172,6 @@ class AnonymousSubscriptionManagerTest extends KernelTestBase {
     $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
     $this->assertTrue($another_flag->isFlagged($article, user_load_by_mail($mail)));
     $this->assertTrue($another_flag->isFlagged($page, user_load_by_mail($mail)));
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $another_flag, $article_id));
-    $this->assertFalse($anonymous_subscribe_service->subscriptionExists($mail, $another_flag, $page_id));
     // Cancel all.
     $anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $hash_flag_article);
     $anonymous_subscribe_service->cancelSubscription($mail, $another_flag, $article_id, $hash_another_article);

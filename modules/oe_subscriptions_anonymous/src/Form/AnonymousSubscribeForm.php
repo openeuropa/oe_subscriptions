@@ -14,9 +14,9 @@ use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Link;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface;
@@ -156,6 +156,7 @@ class AnonymousSubscribeForm extends FormBase {
     $email = $form_state->getValue('email');
     $flag = $form_state->get('flag');
     $entity_id = $form_state->get('entity_id');
+    $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     // Create a new subscription.
     $hash = $this->anonymousSubscriptionManager->createSubscription($email, $flag, $entity_id);
     // No has we can't validate.
@@ -163,11 +164,10 @@ class AnonymousSubscribeForm extends FormBase {
       $this->messenger()->addMessage($this->t('Confirmation hash could not be generated.'), MessengerInterface::TYPE_ERROR);
       return;
     }
-    // Generate mail links: entity, confirm and cancel.
-    $flag_id = $flag->id();
-    $confirm_url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_confirm',
+    // Generate mail links: confirm, cancel and entity.
+    $confirm_link = Link::createFromRoute($this->t('Confirm subscription'), 'oe_subscriptions_anonymous.anonymous_confirm',
       [
-        'flag' => $flag_id,
+        'flag' => $flag->id(),
         'entity_id' => $entity_id,
         'email' => $email,
         'hash' => $hash,
@@ -175,9 +175,10 @@ class AnonymousSubscribeForm extends FormBase {
       [
         'absolute' => TRUE,
       ])->toString();
-    $cancel_url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_cancel',
+
+    $cancel_link = Link::createFromRoute($this->t('Cancel subscription'), 'oe_subscriptions_anonymous.anonymous_cancel',
       [
-        'flag' => $flag_id,
+        'flag' => $flag->id(),
         'entity_id' => $entity_id,
         'email' => $email,
         'hash' => $hash,
@@ -185,7 +186,8 @@ class AnonymousSubscribeForm extends FormBase {
       [
         'absolute' => TRUE,
       ])->toString();
-    $entity_url = $this->flagService->getFlaggableById($flag, $entity_id)->toUrl('canonical', ['absolute' => TRUE])->toString();
+
+    $entity_link = Link::fromTextAndUrl($entity->label(), $entity->toUrl('canonical', ['absolute' => TRUE]))->toString();
 
     // Send mail with parameters.
     $result = $this->mailManager->mail(
@@ -195,9 +197,9 @@ class AnonymousSubscribeForm extends FormBase {
       // @todo current language.
       'en',
       [
-        'entity_link' => $entity_url,
-        'confirm_link' => $confirm_url,
-        'cancel_link' => $cancel_url,
+        'entity_link' => $entity_link,
+        'confirm_link' => $confirm_link,
+        'cancel_link' => $cancel_link,
       ]);
 
     if (!$result) {
