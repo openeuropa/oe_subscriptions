@@ -75,6 +75,9 @@ class AnonymousSubscribeForm extends FormBase {
         '#attributes' => [
           'class' => ['dialog-cancel'],
         ],
+        // The cancel button will be shown only if the form is rendered in an
+        // AJAX request.
+        '#access' => FALSE,
       ],
       'submit' => [
         '#type' => 'submit',
@@ -95,6 +98,7 @@ class AnonymousSubscribeForm extends FormBase {
       $form['actions']['submit']['#ajax'] = [
         'callback' => '::ajaxSubmit',
       ];
+      $form['actions']['cancel']['#access'] = TRUE;
     }
 
     return $form;
