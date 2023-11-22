@@ -151,7 +151,13 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     }
     // @todo delete user without flaggins.
     // After performing operations, we clean the entry.
-    return $this->deleteSubscription($mail, $flag, $entity_id);
+    $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
+      ->condition('mail', $mail)
+      ->condition('flag_id', $flag->id())
+      ->condition('entity_id', $entity_id)
+      ->condition('hash', $hash);
+
+    return (!empty($query->execute()));
   }
 
   /**
@@ -165,26 +171,11 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   /**
    * {@inheritdoc}
    */
-  private function deleteSubscription(string $mail, FlagInterface $flag, string $entity_id): bool {
-    // Check that exists.
-    if (!$this->checkSubscription($mail, $flag, $entity_id)) {
+  private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash = ''): bool {
+    if (!$this->mailValidatorService->isValid($mail)) {
       // @todo Add messaging/logging.
       return FALSE;
     }
-    // Delete entry.
-    $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
-      ->condition('mail', $mail)
-      ->condition('flag_id', $flag->id())
-      ->condition('entity_id', $entity_id);
-
-    return (!empty($query->execute()));
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash = ''): bool {
-    // @todo Add checks, validate mail, flag and entity.
     // Query to check values, all parameters need to match.
     $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
       ->fields('s', ['mail'])
