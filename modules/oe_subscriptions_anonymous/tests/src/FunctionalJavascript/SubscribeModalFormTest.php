@@ -63,6 +63,10 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->waitForElement('css', $modal_selector);
     // The modal wrapper.
     $modal = $assert_session->elementExists('css', $modal_selector);
+    $this->assertEquals(
+      sprintf('Subscribe to %s', $node->label()),
+      $assert_session->elementExists('css', '.ui-dialog-title', $modal)->getText()
+    );
     // Assert the fields of the modal.
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';

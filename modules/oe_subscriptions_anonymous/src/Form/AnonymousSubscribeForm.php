@@ -13,6 +13,7 @@ use Drupal\Core\Ajax\MessageCommand;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -53,9 +54,21 @@ class AnonymousSubscribeForm extends FormBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Creates the form.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   * @param \Drupal\flag\FlagInterface|null $flag
+   *   The flag entity.
+   * @param string|null $entity_id
+   *   The entity ID to which to subscribe.
+   *
+   * @return array
+   *   The form structure.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, $entity_id = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
@@ -138,6 +151,28 @@ class AnonymousSubscribeForm extends FormBase {
     $response->addCommand(new MessageCommand($this->t('A confirmation e-email has been sent to your e-mail address.')));
 
     return $response;
+  }
+
+  /**
+   * Returns the title for the subscribe route.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag entity.
+   * @param string $entity_id
+   *   The entity ID.
+   *
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup
+   *   The title.
+   */
+  public function getTitle(FlagInterface $flag, string $entity_id): TranslatableMarkup {
+    $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+    if (!$entity) {
+      return $this->t('Subscribe');
+    }
+
+    return $this->t('Subscribe to @label', [
+      '@label' => $entity->label(),
+    ]);
   }
 
 }

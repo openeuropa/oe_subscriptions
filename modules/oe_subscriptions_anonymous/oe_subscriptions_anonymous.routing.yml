@@ -1,7 +1,7 @@
 oe_subscriptions_anonymous.anonymous_subscribe:
   path: '/subscribe/{flag}/{entity_id}'
   defaults:
-    _title: 'Subscribe'
+    _title_callback: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm::getTitle'
     _form: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm'
   requirements:
     _user_is_logged_in: 'FALSE'
