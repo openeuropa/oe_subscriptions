@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous;
 
+use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\EmailValidatorInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\flag\FlagInterface;
@@ -67,7 +68,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     }
 
     $flag_id = $flag->id();
-    $hash = bin2hex(random_bytes(16));
+    $hash = Crypt::randomBytesBase64();
 
     // In case we have an existing unconfirmed, we update hash.
     if ($this->subscriptionExists($mail, $flag, $entity_id)) {
