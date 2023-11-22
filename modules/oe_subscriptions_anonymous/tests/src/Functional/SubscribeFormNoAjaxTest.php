@@ -61,6 +61,7 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
       'flag' => 'subscribe_article',
       'entity_id' => $node->id(),
     ])->setAbsolute()->toString());
+    $assert_session->titleEquals(sprintf('Subscribe to %s | Drupal', $node->label()));
 
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
