@@ -10,6 +10,7 @@ use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CloseModalDialogCommand;
 use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\flag\FlagInterface;
@@ -55,9 +56,6 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, $entity_id = NULL) {
-    $form_state->set('flag', $flag);
-    $form_state->set('entity_id', $entity_id);
-
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
@@ -114,6 +112,16 @@ class AnonymousSubscribeForm extends FormBase {
     }
 
     $this->messenger()->addMessage($this->t('A confirmation e-email has been sent to your e-mail address.'));
+    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
+    $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+    try {
+      // Redirect to the canonical page of the entity.
+      $form_state->setRedirectUrl($entity->toUrl());
+    }
+    catch (UndefinedLinkTemplateException $exception) {
+      // Catch scenarios where no caonical link template or uri_callback are
+      // defined.
+    }
   }
 
   /**
