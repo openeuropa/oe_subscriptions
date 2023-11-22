@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
+namespace Drupal\Tests\oe_subscriptions_anonymous\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
@@ -74,8 +74,10 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     // Verify that mail and terms field are marked as required.
     $this->disableNativeBrowserRequiredFieldValidation();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
-    $this->assertSession()->pageTextContains("$mail_label field is required.");
-    $this->assertSession()->pageTextContains("$terms_label field is required.");
+    $assert_session->assertWaitOnAjaxRequest();
+    // The modal was not closed, and the errors are rendered inside it.
+    $assert_session->elementTextContains('css', $modal_selector, "$mail_label field is required.");
+    $assert_session->elementTextContains('css', $modal_selector, "$terms_label field is required.");
 
     // Test close modal button.
     $this->drupalGet($node->toUrl());
@@ -100,9 +102,9 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
+    $assert_session->assertWaitOnAjaxRequest();
     $assert_session->elementNotExists('css', $modal_selector);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
+    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
   }
 
   /**
