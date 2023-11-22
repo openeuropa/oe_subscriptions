@@ -141,12 +141,12 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       // @todo Add messaging/logging.
       return FALSE;
     }
-    // Check the subscription exist and has a valid hash.
+    // Delete if unconfirmed.
     if ($this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       // If exists has not been validated, bail out.
       return $this->deleteSubscription($mail, $flag, $entity_id);
     }
-    // Try to load user.
+    // Delete confirmed.
     $account = user_load_by_mail($mail);
     if (empty($account)) {
       // @todo Add messaging/logging.
@@ -156,6 +156,10 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     if (empty($entity)) {
       // @todo Add messaging/logging.
+      return FALSE;
+    }
+    // No flagging.
+    if (empty($this->flagService->getFlagging($flag, $entity, $account))) {
       return FALSE;
     }
     // Do unflag.
