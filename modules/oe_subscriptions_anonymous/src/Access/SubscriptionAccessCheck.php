@@ -16,18 +16,12 @@ use Drupal\flag\FlagServiceInterface;
 class SubscriptionAccessCheck implements AccessInterface {
 
   /**
-   * Flag service.
+   * Creates a new instance of this class.
    *
-   * @var \Drupal\flag\FlagServiceInterface
+   * @param \Drupal\flag\FlagServiceInterface $flagService
+   *   The flag service.
    */
-  protected FlagServiceInterface $flagService;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(FlagServiceInterface $flagService) {
-    $this->flagService = $flagService;
-  }
+  public function __construct(protected FlagServiceInterface $flagService) {}
 
   /**
    * Anonymous subscription access check.
