@@ -157,7 +157,6 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     // In case where the flag was done.
     if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
       $this->flagService->unflag($flag, $entity, $account);
-
     }
 
     // After performing operations, we clean the entry.

@@ -14,10 +14,7 @@ interface AnonymousSubscriptionManagerInterface {
    *
    * The function is aimed to be used with anonymous users.
    *
-   * Given Flag module requires a user to do the flag,
-   * a decoupled user is created on the fly.
-   *
-   * Access check it is done throu routing and AccessCheck service.
+   * Access check it is done through routing, not at this level.
    *
    * @param string $mail
    *   Subscribing mail.
@@ -33,6 +30,9 @@ interface AnonymousSubscriptionManagerInterface {
 
   /**
    * Validates an unconfirmed subscription with a given hash.
+   *
+   * Given Flag module requires a user to do the flag,
+   * a decoupled user is created on the fly and flag action is done after.
    *
    * @param string $mail
    *   Subscribing mail.
@@ -51,7 +51,8 @@ interface AnonymousSubscriptionManagerInterface {
   /**
    * Cancels a subscription with a given hash.
    *
-   * Deletes the database entry for unconfirmed, and the flagging for confirmed.
+   * Deletes the database entry for all subscriptions.
+   * In case the subscription was confirmed, it deletes the flagging too.
    *
    * @param string $mail
    *   Subscribing mail.
@@ -70,7 +71,7 @@ interface AnonymousSubscriptionManagerInterface {
   /**
    * Checks wether a subscription exists.
    *
-   * This function looks for unconfirmed subscriptions.
+   * This function looks for subscriptions matching the parameters.
    *
    * @param string $mail
    *   Subscribing mail.
