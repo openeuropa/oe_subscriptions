@@ -57,12 +57,6 @@ class SubscribeTest extends BrowserTestBase {
       'entity_type' => 'node',
       'bundles' => ['page'],
     ]);
-    // A flag that applies to all bundles.
-    $another_flag = $this->createFlagFromArray([
-      'id' => 'another_flag',
-      'entity_type' => 'node',
-      'bundles' => [],
-    ]);
     // Create the node.
     $article = $this->drupalCreateNode([
       'type' => 'article',
@@ -89,9 +83,8 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail fields.
+    // Assert mail field.
     $this->assertMail('to', 'test1@mail.com');
-    // Get sent mails.
     // Search URLs in body.
     $mails = $this->getMails();
     $mail = end($mails);
@@ -118,7 +111,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail fields.
+    // Assert mail field.
     $this->assertMail('to', 'test2@mail.com');
     // Search URLs in body.
     $mails = $this->getMails();
@@ -146,7 +139,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail fields.
+    // Assert mail field.
     $this->assertMail('to', 'test3@mail.com');
     // Search URLs in body.
     $mails = $this->getMails();
@@ -178,7 +171,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail fields.
+    // Assert mail field.
     $this->assertMail('to', 'test4@mail.com');
     // Search URLs in body.
     $mails = $this->getMails();
@@ -197,7 +190,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail fields.
+    // Assert mail field.
     $this->assertMail('to', 'test4@mail.com');
     // Search URLs in body.
     $mails = $this->getMails();

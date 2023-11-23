@@ -159,12 +159,12 @@ class AnonymousSubscribeForm extends FormBase {
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     // Create a new subscription.
     $hash = $this->anonymousSubscriptionManager->createSubscription($email, $flag, $entity_id);
-    // No has we can't validate.
+    // No hash, we can't validate.
     if (empty($hash)) {
       $this->messenger()->addMessage($this->t('Confirmation hash could not be generated.'), MessengerInterface::TYPE_ERROR);
       return;
     }
-    // Generate mail links: confirm, cancel and entity.
+    // Generate mail links confirm and cancel.
     $confirm_link = Link::createFromRoute($this->t('Confirm subscription'), 'oe_subscriptions_anonymous.anonymous_confirm',
       [
         'flag' => $flag->id(),

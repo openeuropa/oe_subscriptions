@@ -19,6 +19,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
    */
   protected static $modules = [
     'node',
+    'flag',
+    'oe_subscriptions',
     'oe_subscriptions_anonymous',
   ];
 

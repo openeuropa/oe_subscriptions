@@ -22,6 +22,7 @@ class SubscriptionManagerTest extends KernelTestBase {
   protected static $modules = [
     'entity_test',
     'extra_field',
+    'decoupled_auth',
     'field',
     'filter',
     'flag',
@@ -33,7 +34,6 @@ class SubscriptionManagerTest extends KernelTestBase {
     'system',
     'text',
     'user',
-    'decoupled_auth',
   ];
 
   /**
@@ -130,12 +130,12 @@ class SubscriptionManagerTest extends KernelTestBase {
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     // Confirm with wrong hash.
     $anonymous_subscribe_service->confirmSubscription($mail, $flag, $article_id, $wrong_hash);
-    // After confirming with wrong hash exists, and is not flagged.
+    // After confirming with wrong hash, subscription exists and is not flagged.
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
     // Cancel wrong hash.
     $this->assertFalse($anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $wrong_hash));
-    // After canceling with wrong hash exists, and is not flagged.
+    // After canceling with wrong hash exists, subscription exists and is not flagged.
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
     // We remove it at the end.
@@ -163,8 +163,6 @@ class SubscriptionManagerTest extends KernelTestBase {
     $this->assertNotEquals($first_hash, $second_hash);
     $this->assertNotEquals($first_hash, $third_hash);
     $this->assertNotEquals($second_hash, $third_hash);
-
-    $anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $hash);
 
     // Multiple subscriptions, same mail different flags and entities.
     $hash_flag_article = $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
