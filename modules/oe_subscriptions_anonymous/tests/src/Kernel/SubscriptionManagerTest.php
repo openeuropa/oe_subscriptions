@@ -130,12 +130,12 @@ class SubscriptionManagerTest extends KernelTestBase {
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     // Confirm with wrong hash.
     $anonymous_subscribe_service->confirmSubscription($mail, $flag, $article_id, $wrong_hash);
-    // After confirming with wrong hash, subscription exists and is not flagged.
+    // Confirm with wrong hash, subscription exists and is not flagged.
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
     // Cancel wrong hash.
     $this->assertFalse($anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $wrong_hash));
-    // After canceling with wrong hash exists, subscription exists and is not flagged.
+    // Cancel with wrong hash exists, subscription exists and is not flagged.
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
     $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
     // We remove it at the end.
