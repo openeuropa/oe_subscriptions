@@ -12,7 +12,7 @@ use Drupal\Core\Config\Entity\ConfigEntityStorage;
  */
 function oe_subscriptions_anonymous_schema() {
   $schema['oe_subscriptions_anonymous_subscriptions'] = [
-    'description' => 'Stores anonymous subscription in order no manage validation',
+    'description' => 'Stores anonymous subscription in order to manage validation',
     'fields' => [
       'mail' => [
         'description' => 'Subscription mail.',
