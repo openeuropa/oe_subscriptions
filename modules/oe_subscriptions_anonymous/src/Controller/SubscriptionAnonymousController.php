@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\oe_subscriptions_anonymous\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
@@ -59,12 +60,15 @@ class SubscriptionAnonymousController extends ControllerBase {
   public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
     if ($this->anonymousSubscriptionManager->confirmSubscription($email, $flag, $entity_id, $hash)) {
+      // Success message and redirection to entity.
       $this->messenger()->addMessage($this->t('Subscription confirmed.'));
       $entity = $this->flagService->getFlaggableById($flag, $entity_id);
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
 
+    // Error message and redirection to home.
+    $this->messenger()->addMessage($this->t('The subscription could not be confirmed.'), MessengerInterface::TYPE_ERROR);
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
@@ -74,12 +78,15 @@ class SubscriptionAnonymousController extends ControllerBase {
   public function cancelSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
     if ($this->anonymousSubscriptionManager->cancelSubscription($email, $flag, $entity_id, $hash)) {
+      // Success message and redirection to entity.
       $this->messenger()->addMessage($this->t('Subscription canceled.'));
       $entity = $this->flagService->getFlaggableById($flag, $entity_id);
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
 
+    // Error message and redirection to home.
+    $this->messenger()->addMessage($this->t('The subscription could not be canceled.'), MessengerInterface::TYPE_ERROR);
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 

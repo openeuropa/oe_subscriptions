@@ -63,11 +63,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   public function createSubscription(string $mail, FlagInterface $flag, string $entity_id): string {
     // Validate mail.
     if (!$this->mailValidatorService->isValid($mail)) {
-      // @todo Add messaging/logging.
       return '';
     }
 
-    $flag_id = $flag->id();
     $hash = Crypt::randomBytesBase64();
 
     // In case we have an existing unconfirmed, we update hash.
@@ -75,7 +73,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       $this->connection->update('oe_subscriptions_anonymous_subscriptions')
         ->fields(['hash' => $hash])
         ->condition('mail', $mail)
-        ->condition('flag_id', $flag_id)
+        ->condition('flag_id', $flag->id())
         ->condition('entity_id', $entity_id)
         ->execute();
 
@@ -86,7 +84,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     $this->connection->insert('oe_subscriptions_anonymous_subscriptions')
       ->fields([
         'mail' => $mail,
-        'flag_id' => $flag_id,
+        'flag_id' => $flag->id(),
         'entity_id' => $entity_id,
         'hash' => $hash,
       ])->execute();
@@ -99,33 +97,42 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    */
   public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
     if (!$this->mailValidatorService->isValid($mail)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
     // Check parameters.
     if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
     // Load entity.
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+
     if (empty($entity)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
     // Try to load user.
     $account = user_load_by_mail($mail);
+
     // Create decoupled user.
     if ($account === FALSE) {
       $user = User::create(['mail' => $mail])->save();
       $account = User::load($user);
     }
+
     if (empty($account)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
+    // Already flagged.
+    if ($flag->isFlagged($entity, $account)) {
+      return TRUE;
+    }
+
     // Do flag.
     $this->flagService->flag($flag, $entity, $account);
+
     // Return result.
     return $flag->isFlagged($entity, $account);
   }
@@ -135,20 +142,23 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    */
   public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
     if (!$this->mailValidatorService->isValid($mail)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
     // Subscription doesn't exist.
     if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       return FALSE;
     }
+
     // Load elemets to unflag.
     $account = user_load_by_mail($mail);
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
-    // In case there the flag is done.
+
+    // In case where the flag was done.
     if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
       $this->flagService->unflag($flag, $entity, $account);
     }
+
     // @todo delete user without flaggins.
     // After performing operations, we clean the entry.
     $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
@@ -173,19 +183,21 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    */
   private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash = ''): bool {
     if (!$this->mailValidatorService->isValid($mail)) {
-      // @todo Add messaging/logging.
       return FALSE;
     }
+
     // Query to check values, all parameters need to match.
     $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
       ->fields('s', ['mail'])
       ->condition('s.mail', $mail)
       ->condition('s.flag_id', $flag->id())
       ->condition('s.entity_id', $entity_id);
+
     // We will use hash depending on the check.
     if (!empty($hash)) {
       $query->condition('s.hash', $hash);
     }
+
     // If there is a result.
     return (!empty($query->execute()->fetchAll()));
   }

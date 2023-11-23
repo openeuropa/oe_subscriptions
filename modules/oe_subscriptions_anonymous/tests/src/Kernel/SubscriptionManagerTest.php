@@ -8,7 +8,6 @@ use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
-use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
  * Tests the anonymous subscribe manager.
@@ -16,7 +15,6 @@ use Drupal\Tests\user\Traits\UserCreationTrait;
 class SubscriptionManagerTest extends KernelTestBase {
 
   use FlagCreateTrait;
-  use UserCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -144,12 +142,28 @@ class SubscriptionManagerTest extends KernelTestBase {
     $anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $hash);
 
     // Multiple creation request with the same parameters.
-    $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
+    $first_hash = $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
-    $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
+    $second_hash = $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
-    $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
+    // Then we confirm with last.
+    $anonymous_subscribe_service->confirmSubscription($mail, $flag, $article_id, $second_hash);
+    $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
+    // We request a subscription again.
+    $third_hash = $anonymous_subscribe_service->createSubscription($mail, $flag, $article_id);
     $this->assertTrue($anonymous_subscribe_service->subscriptionExists($mail, $flag, $article_id));
+    $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
+    // Then we confirm with last.
+    $anonymous_subscribe_service->confirmSubscription($mail, $flag, $article_id, $third_hash);
+    $this->assertTrue($flag->isFlagged($article, user_load_by_mail($mail)));
+    // And cancel.
+    $anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $third_hash);
+    $this->assertFalse($flag->isFlagged($article, user_load_by_mail($mail)));
+    // None of them are equal.
+    $this->assertNotEquals($first_hash, $second_hash);
+    $this->assertNotEquals($first_hash, $third_hash);
+    $this->assertNotEquals($second_hash, $third_hash);
+
     $anonymous_subscribe_service->cancelSubscription($mail, $flag, $article_id, $hash);
 
     // Multiple subscriptions, same mail different flags and entities.
