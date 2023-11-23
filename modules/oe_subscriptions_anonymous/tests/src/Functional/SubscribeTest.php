@@ -6,6 +6,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Test\AssertMailTrait;
 use Drupal\Core\Url;
+use Drupal\flag\FlagInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
@@ -212,6 +213,35 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('Subscription canceled.');
 
+    // Test expired subscription hash.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
+      [
+        'flag' => $articles_flag->id(),
+        'entity_id' => $article->id(),
+      ]));
+    // Set values again with same mail.
+    $assert_session->fieldExists($mail_label)->setValue('test5@mail.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
+    // Assert mail field.
+    $this->assertMail('to', 'test5@mail.com');
+    // Search URLs in body.
+    $mails = $this->getMails();
+    $mail = end($mails);
+    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
+    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
+    // Set the changed more than a day ago.
+    $this->setSubscriptionChanged('test5@mail.com', $articles_flag, $article->id(), time() - 90000);
+    // User can' confirm.
+    $this->drupalGet($confirm_url);
+    $assert_session->statusMessageExists('error');
+    $this->assertSession()->pageTextContains('The confirmation link has expired, request the subscription again please.');
+    // But can cancel.
+    $this->drupalGet($cancel_url);
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('Subscription canceled.');
   }
 
   /**
@@ -235,6 +265,34 @@ class SubscribeTest extends BrowserTestBase {
       }
     }
     return $link;
+  }
+
+  /**
+   * Sets a subscription as changed.
+   *
+   * @param string $mail
+   *   Subscribing mail.
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag used for subscribing.
+   * @param string $entity_id
+   *   The entity to subscribe to.
+   * @param string $changed
+   *   The value we want to set as changed.
+   *
+   * @return void
+   *   No return value.
+   */
+  private function setSubscriptionChanged(string $mail, FlagInterface $flag, string $entity_id, $changed): void {
+    $connection = $this->container->get('database');
+    // Update changed setting the changed older than a day ago.
+    $connection->update('oe_subscriptions_anonymous_subscriptions')
+      ->fields([
+        'changed' => $changed,
+      ])
+      ->condition('mail', $mail)
+      ->condition('flag_id', $flag->id())
+      ->condition('entity_id', $entity_id)
+      ->execute();
   }
 
 }

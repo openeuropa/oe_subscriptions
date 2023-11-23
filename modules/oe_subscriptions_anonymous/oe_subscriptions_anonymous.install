@@ -41,6 +41,12 @@ function oe_subscriptions_anonymous_schema() {
         'type' => 'varchar_ascii',
         'not null' => TRUE,
       ],
+      'changed' => [
+        'description' => 'Last time the subscription was changed.',
+        'length' => 255,
+        'type' => 'varchar',
+        'not null' => TRUE,
+      ],
     ],
     'primary key' => [
       'mail',

@@ -58,6 +58,14 @@ class SubscriptionAnonymousController extends ControllerBase {
    * {@inheritdoc}
    */
   public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
+    // Get changed value.
+    $changed = $this->anonymousSubscriptionManager->getSubscriptionChanged($email, $flag, $entity_id);
+
+    // More than a day is a expired hash.
+    if ($changed !== '' && (time() - $changed) >= 86400) {
+      $this->messenger()->addMessage($this->t('The confirmation link has expired, request the subscription again please.'), MessengerInterface::TYPE_ERROR);
+      return new RedirectResponse(Url::fromRoute('<front>')->toString());
+    }
 
     if ($this->anonymousSubscriptionManager->confirmSubscription($email, $flag, $entity_id, $hash)) {
       // Success message and redirection to entity.

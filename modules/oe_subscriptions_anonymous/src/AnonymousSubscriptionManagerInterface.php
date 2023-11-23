@@ -85,4 +85,21 @@ interface AnonymousSubscriptionManagerInterface {
    */
   public function subscriptionExists(string $mail, FlagInterface $flag, string $entity_id);
 
+  /**
+   * Retrieves the last time the subscription was changed.
+   *
+   * Created time is considered as a change.
+   *
+   * @param string $mail
+   *   Subscribing mail.
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag used for subscribing.
+   * @param string $entity_id
+   *   The entity to subscribe to.
+   *
+   * @return string
+   *   The time the subscription was changed in Unix format.
+   */
+  public function getSubscriptionChanged(string $mail, FlagInterface $flag, string $entity_id);
+
 }

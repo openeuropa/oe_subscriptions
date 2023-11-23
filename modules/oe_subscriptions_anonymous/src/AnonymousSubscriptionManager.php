@@ -71,7 +71,10 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     // In case we have an existing unconfirmed, we update hash.
     if ($this->subscriptionExists($mail, $flag, $entity_id)) {
       $this->connection->update('oe_subscriptions_anonymous_subscriptions')
-        ->fields(['hash' => $hash])
+        ->fields([
+          'hash' => $hash,
+          'changed' => time(),
+        ])
         ->condition('mail', $mail)
         ->condition('flag_id', $flag->id())
         ->condition('entity_id', $entity_id)
@@ -87,6 +90,7 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
         'flag_id' => $flag->id(),
         'entity_id' => $entity_id,
         'hash' => $hash,
+        'changed' => time(),
       ])->execute();
 
     return $hash;
@@ -133,8 +137,18 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     // Do flag.
     $this->flagService->flag($flag, $entity, $account);
 
+    // Update changed.
+    $this->connection->update('oe_subscriptions_anonymous_subscriptions')
+      ->fields([
+        'changed' => time(),
+      ])
+      ->condition('mail', $mail)
+      ->condition('flag_id', $flag->id())
+      ->condition('entity_id', $entity_id)
+      ->execute();
+
     // Return result.
-    return $flag->isFlagged($entity, $account);
+    return TRUE;
   }
 
   /**
@@ -167,6 +181,35 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       ->condition('hash', $hash);
 
     return (!empty($query->execute()));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSubscriptionChanged(string $mail, FlagInterface $flag, string $entity_id): string {
+    if (!$this->mailValidatorService->isValid($mail)) {
+      return '';
+    }
+
+    // Subscription doesn't exist.
+    if (!$this->checkSubscription($mail, $flag, $entity_id)) {
+      return '';
+    }
+
+    // Query to check values, all parameters need to match.
+    $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
+      ->fields('s', ['changed'])
+      ->condition('s.mail', $mail)
+      ->condition('s.flag_id', $flag->id())
+      ->condition('s.entity_id', $entity_id);
+
+    $results = $query->execute()->fetchAll();
+
+    if (empty($results)) {
+      return '';
+    }
+    // If there is a result.
+    return (reset($results)->changed);
   }
 
   /**
