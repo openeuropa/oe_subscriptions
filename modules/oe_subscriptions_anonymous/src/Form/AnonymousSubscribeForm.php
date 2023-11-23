@@ -187,17 +187,14 @@ class AnonymousSubscribeForm extends FormBase {
         'absolute' => TRUE,
       ])->toString();
 
-    $entity_link = Link::fromTextAndUrl($entity->label(), $entity->toUrl('canonical', ['absolute' => TRUE]))->toString();
-
     // Send mail with parameters.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
       "oe_subscriptions_anonymous:subscription_create",
       $email,
-      // @todo current language.
-      'en',
+      \Drupal::languageManager()->getCurrentLanguage()->getId(),
       [
-        'entity_link' => $entity_link,
+        'entity_link' => $entity->toLink()->toString(),
         'confirm_link' => $confirm_link,
         'cancel_link' => $cancel_link,
       ]);

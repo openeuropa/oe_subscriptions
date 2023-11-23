@@ -38,23 +38,23 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   protected $mailValidatorService;
 
   /**
-   * Constructs a Anonymous Subscription manager.
+   * Constructor.
+   *
+   * @param Drupal\Core\Database\Connection $connection
+   *   The current user.
+   * @param Drupal\flag\FlagServiceInterface $flagService
+   *   The flag service.
+   * @param Drupal\Component\Utility\EmailValidatorInterface $mailValidatorService
+   *   The email validator.
    */
-  public function __construct(Connection $connection, FlagServiceInterface $flagService, EmailValidatorInterface $mailValidatorService) {
+  public function __construct(
+    Connection $connection,
+    FlagServiceInterface $flagService,
+    EmailValidatorInterface $mailValidatorService,
+    ) {
     $this->connection = $connection;
     $this->flagService = $flagService;
     $this->mailValidatorService = $mailValidatorService;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new self(
-      $container->get('database'),
-      $container->get('flag'),
-      $container->get('email.validator')
-    );
   }
 
   /**
@@ -157,9 +157,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     // In case where the flag was done.
     if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
       $this->flagService->unflag($flag, $entity, $account);
+
     }
 
-    // @todo delete user without flaggins.
     // After performing operations, we clean the entry.
     $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
       ->condition('mail', $mail)
