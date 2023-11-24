@@ -198,14 +198,14 @@ class SubscribeTest extends BrowserTestBase {
     $second_mail = end($mails);
     $second_confirm_url = $this->firstUrlByText('confirm', $second_mail['body']);
     $second_cancel_url = $this->firstUrlByText('cancel', $second_mail['body']);
-    // We try to confirm/cancel with URLs from the oldest.
+    // We try to confirm/cancel with URLs from the oldest mail.
     $this->drupalGet($first_confirm_url);
     $assert_session->statusMessageExists('error');
     $this->assertSession()->pageTextContains('The subscription could not be confirmed.');
     $this->drupalGet($first_cancel_url);
     $assert_session->statusMessageExists('error');
     $this->assertSession()->pageTextContains('The subscription could not be canceled.');
-    // Then we confirm and cancel with the latest.
+    // Then we confirm and cancel with the latest mail.
     $this->drupalGet($second_confirm_url);
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('Subscription confirmed.');
@@ -234,7 +234,7 @@ class SubscribeTest extends BrowserTestBase {
     $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
     // Set the changed more than a day ago.
     $this->setSubscriptionChanged('test5@mail.com', $articles_flag, $article->id(), time() - 90000);
-    // User can' confirm.
+    // User can't confirm.
     $this->drupalGet($confirm_url);
     $assert_session->statusMessageExists('error');
     $this->assertSession()->pageTextContains('The confirmation link has expired, request the subscription again please.');
@@ -242,6 +242,54 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($cancel_url);
     $assert_session->statusMessageExists('status');
     $this->assertSession()->pageTextContains('Subscription canceled.');
+
+    // Test expired subscription hash, request again and confirm.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
+      [
+        'flag' => $articles_flag->id(),
+        'entity_id' => $article->id(),
+      ]));
+    // Set values again with same mail.
+    $assert_session->fieldExists($mail_label)->setValue('test6@mail.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
+    // Assert mail field.
+    $this->assertMail('to', 'test6@mail.com');
+    // Search URLs in body.
+    $mails = $this->getMails();
+    $mail = end($mails);
+    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
+    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
+    // Set the changed more than a day ago.
+    $this->setSubscriptionChanged('test6@mail.com', $articles_flag, $article->id(), time() - 90000);
+    // User can't confirm.
+    $this->drupalGet($confirm_url);
+    $assert_session->statusMessageExists('error');
+    $this->assertSession()->pageTextContains('The confirmation link has expired, request the subscription again please.');
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
+      [
+        'flag' => $articles_flag->id(),
+        'entity_id' => $article->id(),
+      ]));
+    // Set values again with same mail.
+    $assert_session->fieldExists($mail_label)->setValue('test6@mail.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
+    // Assert mail field.
+    $this->assertMail('to', 'test6@mail.com');
+    // Search URLs in body.
+    $mails = $this->getMails();
+    $mail = end($mails);
+    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
+    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
+    // Confirm.
+    $this->drupalGet($confirm_url);
+    $assert_session->statusMessageExists('status');
+    $this->assertSession()->pageTextContains('Subscription confirmed.');
   }
 
   /**
