@@ -178,9 +178,10 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
       ->condition('mail', $mail)
       ->condition('flag_id', $flag->id())
       ->condition('entity_id', $entity_id)
-      ->condition('hash', $hash);
+      ->condition('hash', $hash)
+      ->execute();
 
-    return (!empty($query->execute()));
+    return TRUE;
   }
 
   /**

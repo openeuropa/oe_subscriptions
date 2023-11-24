@@ -34,10 +34,10 @@ class SubscribeTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests subscription process.
+   * Tests anonymous subscription process.
    */
   public function testSubscriptionProcess(): void {
-    // Create an article content type.
+    // Create content types.
     $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
@@ -46,19 +46,18 @@ class SubscribeTest extends BrowserTestBase {
       'type' => 'page',
       'name' => 'Page',
     ]);
-    // A flag that applies to articles.
+    // Create flags.
     $articles_flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
-    // A flag that applies to pages.
     $pages_flag = $this->createFlagFromArray([
       'id' => 'subscribe_page',
       'entity_type' => 'node',
       'bundles' => ['page'],
     ]);
-    // Create the node.
+    // Create nodes.
     $article = $this->drupalCreateNode([
       'type' => 'article',
       'status' => 1,
@@ -316,7 +315,7 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
-   * Sets a subscription as changed.
+   * Sets a subscription changed value.
    *
    * @param string $mail
    *   Subscribing mail.
