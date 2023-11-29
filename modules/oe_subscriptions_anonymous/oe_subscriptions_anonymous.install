@@ -42,7 +42,7 @@ function oe_subscriptions_anonymous_schema() {
       'changed' => [
         'description' => 'Last time the subscription was changed.',
         'length' => 255,
-        'type' => 'varchar',
+        'type' => 'int',
         'not null' => TRUE,
       ],
     ],
