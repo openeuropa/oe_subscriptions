@@ -19,7 +19,7 @@ use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface;
+use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,16 +33,16 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * Anonymous subscribe manager service.
    *
-   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface
+   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface
    */
-  protected AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager;
+  protected AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage;
 
   /**
    * Mail manager service.
    *
    * @var \Drupal\Core\Mail\MailManagerInterface
    */
-  protected MailManagerInterface $emailManager;
+  protected MailManagerInterface $mailManager;
 
   /**
    * Flag service.
@@ -55,11 +55,11 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function __construct(
-    AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager,
-    MailManagerInterface $emailManager,
+    AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage,
+    MailManagerInterface $mailManager,
     FlagServiceInterface $flagService) {
-    $this->anonymousSubscriptionManager = $anonymousSubscriptionManager;
-    $this->mailManager = $emailManager;
+    $this->anonymousSubscriptionStorage = $anonymousSubscriptionStorage;
+    $this->mailManager = $mailManager;
     $this->flagService = $flagService;
   }
 
@@ -68,7 +68,7 @@ class AnonymousSubscribeForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     $instance = new static(
-      $container->get('oe_subscriptions_anonymous.subscription_manager'),
+      $container->get('oe_subscriptions_anonymous.subscription_storage'),
       $container->get('plugin.manager.mail'),
       $container->get('flag')
     );
@@ -153,12 +153,18 @@ class AnonymousSubscribeForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Get parameters.
-    $email = $form_state->getValue('email');
+    $mail = $form_state->getValue('email');
     $flag = $form_state->get('flag');
     $entity_id = $form_state->get('entity_id');
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+    // Generate scope for subscribe.
+    $scope = $this->anonymousSubscriptionStorage->buildScope(
+      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+        $flag->id(),
+        $entity_id,
+      ]);
     // Create a new subscription.
-    $hash = $this->anonymousSubscriptionManager->createSubscription($email, $flag, $entity_id);
+    $hash = $this->anonymousSubscriptionStorage->get($mail, $scope);
     // No hash, we can't validate.
     if (empty($hash)) {
       $this->messenger()->addMessage($this->t('Confirmation hash could not be generated.'), MessengerInterface::TYPE_ERROR);
@@ -169,7 +175,7 @@ class AnonymousSubscribeForm extends FormBase {
       [
         'flag' => $flag->id(),
         'entity_id' => $entity_id,
-        'email' => $email,
+        'email' => $mail,
         'hash' => $hash,
       ],
       [
@@ -180,7 +186,7 @@ class AnonymousSubscribeForm extends FormBase {
       [
         'flag' => $flag->id(),
         'entity_id' => $entity_id,
-        'email' => $email,
+        'email' => $mail,
         'hash' => $hash,
       ],
       [
@@ -191,7 +197,7 @@ class AnonymousSubscribeForm extends FormBase {
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
       "oe_subscriptions_anonymous:subscription_create",
-      $email,
+      $mail,
       \Drupal::languageManager()->getCurrentLanguage()->getId(),
       [
         'entity_link' => $entity->toLink()->toString(),

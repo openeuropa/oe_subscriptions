@@ -9,7 +9,8 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface;
+use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager;
+use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -30,18 +31,28 @@ class SubscriptionAnonymousController extends ControllerBase {
   /**
    * Anonymous subscribe manager service.
    *
-   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManagerInterface
+   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager
    */
-  protected AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager;
+  protected AnonymousSubscriptionManager $subscriptionManager;
+
+  /**
+   * Anonymous subscribe manager service.
+   *
+   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface
+   */
+  protected AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage;
 
   /**
    * {@inheritdoc}
    */
   public function __construct(
     FlagServiceInterface $flagService,
-    AnonymousSubscriptionManagerInterface $anonymousSubscriptionManager) {
+    AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage,
+    AnonymousSubscriptionManager $subscriptionManager,
+    ) {
     $this->flagService = $flagService;
-    $this->anonymousSubscriptionManager = $anonymousSubscriptionManager;
+    $this->anonymousSubscriptionStorage = $anonymousSubscriptionStorage;
+    $this->subscriptionManager = $subscriptionManager;
   }
 
   /**
@@ -50,6 +61,7 @@ class SubscriptionAnonymousController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('flag'),
+      $container->get('oe_subscriptions_anonymous.subscription_storage'),
       $container->get('oe_subscriptions_anonymous.subscription_manager'),
     );
   }
@@ -58,19 +70,19 @@ class SubscriptionAnonymousController extends ControllerBase {
    * {@inheritdoc}
    */
   public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
-    // Get changed value.
-    $changed = $this->anonymousSubscriptionManager->getSubscriptionChanged($email, $flag, $entity_id);
 
-    // More than a day is a expired hash.
-    if ($changed !== '' && (time() - $changed) >= 86400) {
-      $this->messenger()->addMessage($this->t('The confirmation link has expired, request the subscription again please.'), MessengerInterface::TYPE_ERROR);
-      return new RedirectResponse(Url::fromRoute('<front>')->toString());
-    }
+    $scope = $this->anonymousSubscriptionStorage->buildScope(
+      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+        $flag->id(),
+        $entity_id,
+      ]);
 
-    if ($this->anonymousSubscriptionManager->confirmSubscription($email, $flag, $entity_id, $hash)) {
+    if ($this->anonymousSubscriptionStorage->isValid($email, $scope, $hash)) {
+      // It's valid, so we create user if needed and do flag.
+      $this->subscriptionManager->subscribe($email, $flag, $entity_id);
       // Success message and redirection to entity.
       $this->messenger()->addMessage($this->t('Subscription confirmed.'));
-      $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
@@ -85,10 +97,26 @@ class SubscriptionAnonymousController extends ControllerBase {
    */
   public function cancelSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
-    if ($this->anonymousSubscriptionManager->cancelSubscription($email, $flag, $entity_id, $hash)) {
-      // Success message and redirection to entity.
+    $scope = $this->anonymousSubscriptionStorage->buildScope(
+      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+        $flag->id(),
+        $entity_id,
+      ]);
+
+    if ($this->anonymousSubscriptionStorage->isValid($email, $scope, $hash)) {
+      // Load elements to unflag.
+      $account = user_load_by_mail($email);
+      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
+      // In case where the flag was done.
+      if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
+        $this->flagService->unflag($flag, $entity, $account);
+      }
+      // Then delete entry.
+      $this->anonymousSubscriptionStorage->delete($email, $scope);
+      // Success message.
       $this->messenger()->addMessage($this->t('Subscription canceled.'));
-      $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+      // And redirection to entity.
+      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
@@ -96,6 +124,7 @@ class SubscriptionAnonymousController extends ControllerBase {
     // Error message and redirection to home.
     $this->messenger()->addMessage($this->t('The subscription could not be canceled.'), MessengerInterface::TYPE_ERROR);
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
+
   }
 
 }

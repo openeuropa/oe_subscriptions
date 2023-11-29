@@ -5,7 +5,6 @@
  * OE subscriptions anonymous module install.
  */
 
-use Drupal\Core\Config\Entity\ConfigEntityStorage;
 use Drupal\Core\Render\Element\Email;
 
 /**
@@ -21,16 +20,10 @@ function oe_subscriptions_anonymous_schema() {
         'type' => 'varchar_ascii',
         'not null' => TRUE,
       ],
-      'flag_id' => [
-        'description' => 'Flag used to subscribe to the entity.',
-        'length' => '32',
+      'scope' => [
+        'description' => 'Scope of the subscription: action is allowed to, and entities',
+        'length' => 255,
         'type' => 'varchar_ascii',
-        'not null' => TRUE,
-      ],
-      'entity_id' => [
-        'description' => 'The entity to subscribe to.',
-        'type' => 'varchar_ascii',
-        'length' => ConfigEntityStorage::MAX_ID_LENGTH,
         'not null' => TRUE,
       ],
       'hash' => [
@@ -48,8 +41,7 @@ function oe_subscriptions_anonymous_schema() {
     ],
     'primary key' => [
       'mail',
-      'flag_id',
-      'entity_id',
+      'scope',
     ],
   ];
   return $schema;
