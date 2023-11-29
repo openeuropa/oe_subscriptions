@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Drupal\oe_subscriptions_anonymous;
 
 use Drupal\Component\Utility\Crypt;
-use Drupal\Component\Utility\EmailValidatorInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
@@ -31,40 +30,25 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   protected $flagService;
 
   /**
-   * Mail validator service.
-   *
-   * @var \Drupal\Component\Utility\EmailValidatorInterface
-   */
-  protected $mailValidatorService;
-
-  /**
    * Constructor.
    *
    * @param Drupal\Core\Database\Connection $connection
    *   The current user.
    * @param Drupal\flag\FlagServiceInterface $flagService
    *   The flag service.
-   * @param Drupal\Component\Utility\EmailValidatorInterface $mailValidatorService
-   *   The email validator.
    */
   public function __construct(
     Connection $connection,
     FlagServiceInterface $flagService,
-    EmailValidatorInterface $mailValidatorService,
     ) {
     $this->connection = $connection;
     $this->flagService = $flagService;
-    $this->mailValidatorService = $mailValidatorService;
   }
 
   /**
    * {@inheritdoc}
    */
   public function createSubscription(string $mail, FlagInterface $flag, string $entity_id): string {
-    // Validate mail.
-    if (!$this->mailValidatorService->isValid($mail)) {
-      return '';
-    }
 
     $hash = Crypt::randomBytesBase64();
 
@@ -100,10 +84,6 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   public function confirmSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
-    if (!$this->mailValidatorService->isValid($mail)) {
-      return FALSE;
-    }
-
     // Check parameters.
     if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       return FALSE;
@@ -155,10 +135,6 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   public function cancelSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash): bool {
-    if (!$this->mailValidatorService->isValid($mail)) {
-      return FALSE;
-    }
-
     // Subscription doesn't exist.
     if (!$this->checkSubscription($mail, $flag, $entity_id, $hash)) {
       return FALSE;
@@ -188,10 +164,6 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   public function getSubscriptionChanged(string $mail, FlagInterface $flag, string $entity_id): string {
-    if (!$this->mailValidatorService->isValid($mail)) {
-      return '';
-    }
-
     // Subscription doesn't exist.
     if (!$this->checkSubscription($mail, $flag, $entity_id)) {
       return '';
@@ -225,10 +197,6 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * {@inheritdoc}
    */
   private function checkSubscription(string $mail, FlagInterface $flag, string $entity_id, string $hash = ''): bool {
-    if (!$this->mailValidatorService->isValid($mail)) {
-      return FALSE;
-    }
-
     // Query to check values, all parameters need to match.
     $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
       ->fields('s', ['mail'])
