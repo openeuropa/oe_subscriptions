@@ -13,4 +13,4 @@ services:
 
   oe_subscriptions_anonymous.subscription_manager:
     class: Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager
-    arguments: ['@database', '@flag']
+    arguments: ['@database', '@flag', '@entity_type.manager']

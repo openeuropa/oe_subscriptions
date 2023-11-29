@@ -6,9 +6,9 @@ namespace Drupal\oe_subscriptions_anonymous;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\user\Entity\User;
 
 /**
  * Class to manage anonymous subscriptions.
@@ -30,19 +30,30 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   protected $flagService;
 
   /**
+   * Entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructor.
    *
    * @param Drupal\Core\Database\Connection $connection
    *   The current user.
    * @param Drupal\flag\FlagServiceInterface $flagService
    *   The flag service.
+   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
   public function __construct(
     Connection $connection,
     FlagServiceInterface $flagService,
-    ) {
+    EntityTypeManagerInterface $entityTypeManager,
+  ) {
     $this->connection = $connection;
     $this->flagService = $flagService;
+    $this->entityTypeManager = $entityTypeManager;
   }
 
   /**
@@ -101,8 +112,8 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
 
     // Create decoupled user.
     if ($account === FALSE) {
-      $user = User::create(['mail' => $mail])->save();
-      $account = User::load($user);
+      $account = $this->entityTypeManager->getStorage('user')->create(['mail' => $mail]);
+      $account->save();
     }
 
     if (empty($account)) {
