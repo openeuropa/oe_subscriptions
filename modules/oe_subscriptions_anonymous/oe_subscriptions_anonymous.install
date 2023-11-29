@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Config\Entity\ConfigEntityStorage;
+use Drupal\Core\Render\Element\Email;
 
 /**
  * Implements function hook_schema().
@@ -16,7 +17,7 @@ function oe_subscriptions_anonymous_schema() {
     'fields' => [
       'mail' => [
         'description' => 'Subscription mail.',
-        'length' => 255,
+        'length' => Email::EMAIL_MAX_LENGTH,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
         'default' => '',
