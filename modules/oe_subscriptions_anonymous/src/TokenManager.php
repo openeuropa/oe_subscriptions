@@ -59,7 +59,6 @@ class TokenManager implements TokenManagerInterface {
    * {@inheritdoc}
    */
   public function delete(string $mail, string $scope): bool {
-
     $query = $this->connection->delete('oe_subscriptions_anonymous_tokens')
       ->condition('mail', $mail)
       ->condition('scope', $scope);
@@ -72,14 +71,13 @@ class TokenManager implements TokenManagerInterface {
    * {@inheritdoc}
    */
   private function exists(string $mail, string $scope): bool {
-    // The subscription exists and is active.
     $query = $this->connection->select('oe_subscriptions_anonymous_tokens', 's')
       ->fields('s', ['mail'])
       ->condition('s.mail', $mail)
-      ->condition('s.scope', $scope);
+      ->condition('s.scope', $scope)
+      ->countQuery();
 
-    // If there is a result.
-    return !empty($query->execute()->fetchAll());
+    return !empty((int) $query->countQuery()->execute()->fetchField());
   }
 
   /**
@@ -94,8 +92,7 @@ class TokenManager implements TokenManagerInterface {
       ->condition('s.hash', $hash)
       ->condition('s.changed', $this->time->getRequestTime() - TokenManagerInterface::EXPIRED_MAX_TIME, '>=');
 
-    // If there is a result.
-    return (!empty($query->execute()->fetchAll()));
+    return !empty((int) $query->countQuery()->execute()->fetchField());
   }
 
   /**
