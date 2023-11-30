@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Connection;
 
@@ -17,8 +18,10 @@ class TokenManager implements TokenManagerInterface {
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    */
-  public function __construct(protected Connection $connection) {}
+  public function __construct(protected Connection $connection, protected TimeInterface $time) {}
 
   /**
    * {@inheritdoc}
@@ -31,7 +34,7 @@ class TokenManager implements TokenManagerInterface {
       $this->connection->update('oe_subscriptions_anonymous_tokens')
         ->fields([
           'hash' => $hash,
-          'changed' => time(),
+          'changed' => $this->time->getRequestTime(),
         ])
         ->condition('mail', $mail)
         ->condition('scope', $scope)
@@ -46,7 +49,7 @@ class TokenManager implements TokenManagerInterface {
         'mail' => $mail,
         'scope' => $scope,
         'hash' => $hash,
-        'changed' => time(),
+        'changed' => $this->time->getRequestTime(),
       ])->execute();
 
     return $hash;
@@ -89,7 +92,7 @@ class TokenManager implements TokenManagerInterface {
       ->condition('s.mail', $mail)
       ->condition('s.scope', $scope)
       ->condition('s.hash', $hash)
-      ->condition('s.changed', time() - TokenManagerInterface::EXPIRED_MAX_TIME, '>=');
+      ->condition('s.changed', $this->time->getRequestTime() - TokenManagerInterface::EXPIRED_MAX_TIME, '>=');
 
     // If there is a result.
     return (!empty($query->execute()->fetchAll()));
@@ -101,7 +104,7 @@ class TokenManager implements TokenManagerInterface {
   public function deleteExpired(): void {
 
     $this->connection->delete('oe_subscriptions_anonymous_tokens')
-      ->condition('changed', time() - TokenManagerInterface::EXPIRED_MAX_TIME, '<')
+      ->condition('changed', $this->time->getRequestTime() - TokenManagerInterface::EXPIRED_MAX_TIME, '<')
       ->execute();
   }
 

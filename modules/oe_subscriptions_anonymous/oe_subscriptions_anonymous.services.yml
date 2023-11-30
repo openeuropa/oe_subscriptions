@@ -13,7 +13,7 @@ services:
 
   oe_subscriptions_anonymous.token_manager:
     class: Drupal\oe_subscriptions_anonymous\TokenManager
-    arguments: ['@database']
+    arguments: ['@database', '@datetime.time']
 
   oe_subscriptions_anonymous.subscription_manager:
     class: Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager
