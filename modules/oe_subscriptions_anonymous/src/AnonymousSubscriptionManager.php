@@ -7,25 +7,12 @@ namespace Drupal\oe_subscriptions_anonymous;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions_anonymous\Exception\RegisteredUserEmailException;
 
 /**
  * Class to manage anonymous subscriptions.
  */
 class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterface {
-
-  /**
-   * Flag service.
-   *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected $flagService;
-
-  /**
-   * Entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
 
   /**
    * Constructor.
@@ -35,41 +22,40 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
-  public function __construct(
-    FlagServiceInterface $flagService,
-    EntityTypeManagerInterface $entityTypeManager,
-  ) {
-    $this->flagService = $flagService;
-    $this->entityTypeManager = $entityTypeManager;
-  }
+  public function __construct(protected FlagServiceInterface $flagService, protected EntityTypeManagerInterface $entityTypeManager) {}
 
   /**
    * {@inheritdoc}
    */
-  public function subscribe(string $mail, FlagInterface $flag, string $entity_id): bool {
+  public function subscribe(string $mail, FlagInterface $flag, string|int $entity_id): bool {
     // Load entity.
     $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
     if (empty($entity)) {
       return FALSE;
     }
-    // Try to load user.
+
+    // Check if a user with this email already exists.
     $account = user_load_by_mail($mail);
-    // Create decoupled user.
+
+    // If no user is present, create a decoupled user.
     if ($account === FALSE) {
       $account = $this->entityTypeManager->getStorage('user')->create(['mail' => $mail]);
       $account->save();
     }
-    if (empty($account)) {
-      return FALSE;
+
+    /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $account */
+    if ($account->isCoupled()) {
+      throw new RegisteredUserEmailException(sprintf('The e-mail %s belongs to a fully registered user.', $mail));
     }
+
     // Already flagged.
     if ($flag->isFlagged($entity, $account)) {
       return TRUE;
     }
-    // Do flag.
+
     $this->flagService->flag($flag, $entity, $account);
-    // Return result.
-    return $flag->isFlagged($entity, $account);
+
+    return TRUE;
   }
 
 }

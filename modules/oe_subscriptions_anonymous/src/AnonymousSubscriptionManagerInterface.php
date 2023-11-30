@@ -14,10 +14,8 @@ interface AnonymousSubscriptionManagerInterface {
    *
    * The function is aimed to be used with anonymous users.
    *
-   * Access check it is done through routing, not at this level.
-   *
    * @param string $mail
-   *   Subscribing mail.
+   *   Subscribing e-mail.
    * @param \Drupal\flag\FlagInterface $flag
    *   The flag used for subscribing.
    * @param string $entity_id
@@ -25,7 +23,10 @@ interface AnonymousSubscriptionManagerInterface {
    *
    * @return bool
    *   The hash to do validation with.
+   *
+   * @throws \Drupal\oe_subscriptions_anonymous\Exception\RegisteredUserEmailException
+   *   Thrown when the e-mail belongs to a coupled user.
    */
-  public function subscribe(string $mail, FlagInterface $flag, string $entity_id);
+  public function subscribe(string $mail, FlagInterface $flag, string $entity_id): bool;
 
 }
