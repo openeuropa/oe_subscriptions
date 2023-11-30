@@ -8,7 +8,7 @@ use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Connection;
 
 /**
- * Class to manage anonymous subscriptions.
+ * Class to manage anonymous subscriptions storage.
  */
 class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterface {
 
@@ -22,8 +22,8 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
   /**
    * Constructor.
    *
-   * @param Drupal\Core\Database\Connection $connection
-   *   The current user.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The database connection.
    */
   public function __construct(Connection $connection) {
     $this->connection = $connection;
@@ -37,7 +37,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
     $hash = Crypt::randomBytesBase64();
 
     if ($this->exists($mail, $scope)) {
-      // In case we have an existing unconfirmed, we update hash.
+      // In case we have an existing subscription, we update changed and hash.
       $this->connection->update('oe_subscriptions_anonymous_subscriptions')
         ->fields([
           'hash' => $hash,
@@ -66,18 +66,13 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    * {@inheritdoc}
    */
   public function delete(string $mail, string $scope): bool {
-    // Subscription doesn't exist.
-    if (!$this->exists($mail, $scope)) {
-      return FALSE;
-    }
 
-    // After checking the entry exsits and is not expired we delete it.
-    $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
+    $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
       ->condition('mail', $mail)
-      ->condition('scope', $scope)
-      ->execute();
+      ->condition('scope', $scope);
 
-    return TRUE;
+    // If any rows were deleted.
+    return !empty($query->execute());
   }
 
   /**
@@ -90,15 +85,15 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
       ->condition('s.mail', $mail)
       ->condition('s.scope', $scope);
 
-    // If there isq a result.
-    return (!empty($query->execute()->fetchAll()));
+    // If there is a result.
+    return !empty($query->execute()->fetchAll());
   }
 
   /**
    * {@inheritdoc}
    */
   public function isValid(string $mail, string $scope, string $hash): bool {
-    // The subscription exists and is active.
+    // The subscription exists and is not expired.
     $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
       ->fields('s', ['mail'])
       ->condition('s.mail', $mail)
@@ -124,13 +119,13 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    * {@inheritdoc}
    */
   public static function buildScope(string $type, array $entity_ids = []): string {
-    // No other element than the action.
+    // No other elements than the type.
     if (empty($entity_ids)) {
       return $type;
     }
-    // Prepend the action.
+    // Prepend the type and return.
     array_unshift($entity_ids, $type);
-    // If there is a result.
+
     return implode(':', $entity_ids);
   }
 

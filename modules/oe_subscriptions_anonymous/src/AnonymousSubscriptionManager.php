@@ -30,9 +30,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
   /**
    * Constructor.
    *
-   * @param Drupal\flag\FlagServiceInterface $flagService
+   * @param \Drupal\flag\FlagServiceInterface $flagService
    *   The flag service.
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
   public function __construct(

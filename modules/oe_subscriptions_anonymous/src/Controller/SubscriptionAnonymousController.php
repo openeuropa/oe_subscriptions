@@ -78,17 +78,18 @@ class SubscriptionAnonymousController extends ControllerBase {
       ]);
 
     if ($this->anonymousSubscriptionStorage->isValid($email, $scope, $hash)) {
-      // It's valid, so we create user if needed and do flag.
+      // It's valid, so we call subscribe from subscription manager.
       $this->subscriptionManager->subscribe($email, $flag, $entity_id);
       // Success message and redirection to entity.
-      $this->messenger()->addMessage($this->t('Subscription confirmed.'));
       $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
+      $this->messenger()->addMessage($this->t('Subscription confirmed.'));
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
 
     // Error message and redirection to home.
     $this->messenger()->addMessage($this->t('The subscription could not be confirmed.'), MessengerInterface::TYPE_ERROR);
+
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
@@ -115,14 +116,13 @@ class SubscriptionAnonymousController extends ControllerBase {
       $this->anonymousSubscriptionStorage->delete($email, $scope);
       // Success message.
       $this->messenger()->addMessage($this->t('Subscription canceled.'));
-      // And redirection to entity.
-      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
 
       return new RedirectResponse($entity->toUrl()->toString());
     }
 
     // Error message and redirection to home.
     $this->messenger()->addMessage($this->t('The subscription could not be canceled.'), MessengerInterface::TYPE_ERROR);
+
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
 
   }

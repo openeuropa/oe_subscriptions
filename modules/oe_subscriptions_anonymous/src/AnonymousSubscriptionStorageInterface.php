@@ -3,7 +3,7 @@
 namespace Drupal\oe_subscriptions_anonymous;
 
 /**
- * Interface to manage anonymous subscriptions.
+ * Interface to manage anonymous subscriptions storage.
  */
 interface AnonymousSubscriptionStorageInterface {
 
@@ -18,14 +18,14 @@ interface AnonymousSubscriptionStorageInterface {
   const TYPE_SUBSCRIBE = 'subscribe';
 
   /**
-   * Creates an new subscription retrieving the hash.
+   * Creates an new subscription retrieving the validation hash.
    *
-   * If the entry exists updates it, and retrieves new hash.
+   * If the entry exists updates changed time, and retrieves new hash.
    *
    * @param string $mail
    *   Subscribing mail.
    * @param string $scope
-   *   The scope of the subscriptions.
+   *   The scope of the subscription.
    *
    * @return string
    *   The hash to do validation with.
@@ -38,7 +38,7 @@ interface AnonymousSubscriptionStorageInterface {
    * @param string $mail
    *   Subscribing mail.
    * @param string $scope
-   *   The scope of the subscriptions.
+   *   The scope of the subscription.
    * @param string $hash
    *   Hash to check agaisnt.
    *
@@ -53,7 +53,7 @@ interface AnonymousSubscriptionStorageInterface {
    * @param string $mail
    *   Subscribing mail.
    * @param string $scope
-   *   The scope of the subscriptions.
+   *   The scope of the subscription.
    *
    * @return bool
    *   Operation result.

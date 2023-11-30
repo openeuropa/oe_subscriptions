@@ -23,7 +23,7 @@ interface AnonymousSubscriptionManagerInterface {
    * @param string $entity_id
    *   The entity to subscribe to.
    *
-   * @return string
+   * @return bool
    *   The hash to do validation with.
    */
   public function subscribe(string $mail, FlagInterface $flag, string $entity_id);

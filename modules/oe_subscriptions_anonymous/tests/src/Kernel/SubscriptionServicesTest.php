@@ -115,10 +115,10 @@ class SubscriptionServicesTest extends KernelTestBase {
     // Only latest works.
     $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $new_hash));
     // Delete subscription.
-    $hash = $anonymous_storage_service->get($mail, $scope);
+    $hash = $anonymous_storage_service->delete($mail, $scope);
     // Not valid.
     $this->assertFalse($anonymous_storage_service->isValid($mail, $scope, $new_hash));
-    // Build again.
+    // Refresh.
     $hash = $anonymous_storage_service->get($mail, $scope);
     $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $hash));
     // Set an old date for changed and check expired.
@@ -129,7 +129,9 @@ class SubscriptionServicesTest extends KernelTestBase {
     $this->assertTrue($anonymous_storage_service->isValid('456@mail.com', $scope, $hash));
     $this->setSubscriptionChanged('456@mail.com', $scope, time() - 90000);
     $anonymous_storage_service->deleteExpired();
-    $this->assertFalse($anonymous_storage_service->isValid('456@mail.com', $scope, $hash));
+    // We can't rely on isValid() given performs two checks, exists and expired.
+    // The subscription could exist and be expired, we try to delete it.
+    $this->assertFalse($anonymous_storage_service->delete('456@mail.com', $scope));
   }
 
   /**
