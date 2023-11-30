@@ -7,7 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface;
+use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
 /**
@@ -103,10 +103,10 @@ class SubscriptionServicesTest extends KernelTestBase {
    * Tests the subscription storage service.
    */
   public function testAnonymousSubscriptionStorage(): void {
-    $anonymous_storage_service = $this->container->get('oe_subscriptions_anonymous.subscription_storage');
+    $anonymous_storage_service = $this->container->get('oe_subscriptions_anonymous.token_manager');
     $mail = '123@mail.com';
     // Build scope, get hash and check that is valid.
-    $scope = $anonymous_storage_service->buildScope(AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, ['1', '2']);
+    $scope = $anonymous_storage_service->buildScope(TokenManagerInterface::TYPE_SUBSCRIBE, ['1', '2']);
     $hash = $anonymous_storage_service->get($mail, $scope);
     $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $hash));
     // Try check with an outdated hash.

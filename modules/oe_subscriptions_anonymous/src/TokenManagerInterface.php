@@ -3,9 +3,9 @@
 namespace Drupal\oe_subscriptions_anonymous;
 
 /**
- * Interface to manage anonymous subscriptions storage.
+ * Interface for a token manager service.
  */
-interface AnonymousSubscriptionStorageInterface {
+interface TokenManagerInterface {
 
   /**
    * Defines the maximum time for an subscription to be active, one day.

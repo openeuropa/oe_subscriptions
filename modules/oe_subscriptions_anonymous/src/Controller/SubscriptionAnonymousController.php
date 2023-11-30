@@ -10,7 +10,7 @@ use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface;
+use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -38,16 +38,16 @@ class SubscriptionAnonymousController extends ControllerBase {
   /**
    * Anonymous subscribe manager service.
    *
-   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface
+   * @var \Drupal\oe_subscriptions_anonymous\TokenManagerInterface
    */
-  protected AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage;
+  protected TokenManagerInterface $anonymousSubscriptionStorage;
 
   /**
    * {@inheritdoc}
    */
   public function __construct(
     FlagServiceInterface $flagService,
-    AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage,
+    TokenManagerInterface $anonymousSubscriptionStorage,
     AnonymousSubscriptionManager $subscriptionManager,
     ) {
     $this->flagService = $flagService;
@@ -61,7 +61,7 @@ class SubscriptionAnonymousController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('flag'),
-      $container->get('oe_subscriptions_anonymous.subscription_storage'),
+      $container->get('oe_subscriptions_anonymous.token_manager'),
       $container->get('oe_subscriptions_anonymous.subscription_manager'),
     );
   }
@@ -72,7 +72,7 @@ class SubscriptionAnonymousController extends ControllerBase {
   public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
     $scope = $this->anonymousSubscriptionStorage->buildScope(
-      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+      TokenManagerInterface::TYPE_SUBSCRIBE, [
         $flag->id(),
         $entity_id,
       ]);
@@ -99,7 +99,7 @@ class SubscriptionAnonymousController extends ControllerBase {
   public function cancelSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
 
     $scope = $this->anonymousSubscriptionStorage->buildScope(
-      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+      TokenManagerInterface::TYPE_SUBSCRIBE, [
         $flag->id(),
         $entity_id,
       ]);

@@ -6,7 +6,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Test\AssertMailTrait;
 use Drupal\Core\Url;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorage;
+use Drupal\oe_subscriptions_anonymous\TokenManager;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
@@ -70,8 +70,8 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session = $this->assertSession();
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
-    $scope = AnonymousSubscriptionStorage::buildScope(
-      AnonymousSubscriptionStorage::TYPE_SUBSCRIBE,
+    $scope = TokenManager::buildScope(
+      TokenManager::TYPE_SUBSCRIBE,
       [
         $articles_flag->id(),
         $article->id(),

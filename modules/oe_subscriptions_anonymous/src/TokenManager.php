@@ -8,16 +8,9 @@ use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Connection;
 
 /**
- * Class to manage anonymous subscriptions storage.
+ * Manages tokens used to confirm e-mails from anonymous users.
  */
-class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterface {
-
-  /**
-   * Database connection.
-   *
-   * @var \Drupal\Core\Database\Connection
-   */
-  protected $connection;
+class TokenManager implements TokenManagerInterface {
 
   /**
    * Constructor.
@@ -25,15 +18,12 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection.
    */
-  public function __construct(Connection $connection) {
-    $this->connection = $connection;
-  }
+  public function __construct(protected Connection $connection) {}
 
   /**
    * {@inheritdoc}
    */
   public function get(string $mail, string $scope): string {
-
     $hash = Crypt::randomBytesBase64();
 
     if ($this->exists($mail, $scope)) {
@@ -99,7 +89,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
       ->condition('s.mail', $mail)
       ->condition('s.scope', $scope)
       ->condition('s.hash', $hash)
-      ->condition('s.changed', time() - AnonymousSubscriptionStorageInterface::EXPIRED_MAX_TIME, '>=');
+      ->condition('s.changed', time() - TokenManagerInterface::EXPIRED_MAX_TIME, '>=');
 
     // If there is a result.
     return (!empty($query->execute()->fetchAll()));
@@ -111,7 +101,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
   public function deleteExpired(): void {
 
     $this->connection->delete('oe_subscriptions_anonymous_tokens')
-      ->condition('changed', time() - AnonymousSubscriptionStorageInterface::EXPIRED_MAX_TIME, '<')
+      ->condition('changed', time() - TokenManagerInterface::EXPIRED_MAX_TIME, '<')
       ->execute();
   }
 

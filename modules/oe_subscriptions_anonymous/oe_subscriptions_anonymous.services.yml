@@ -11,8 +11,8 @@ services:
     tags:
       - { name: access_check, applies_to: _anonymous_subscription_access }
 
-  oe_subscriptions_anonymous.subscription_storage:
-    class: Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorage
+  oe_subscriptions_anonymous.token_manager:
+    class: Drupal\oe_subscriptions_anonymous\TokenManager
     arguments: ['@database']
 
   oe_subscriptions_anonymous.subscription_manager:

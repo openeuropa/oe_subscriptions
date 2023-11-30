@@ -19,7 +19,7 @@ use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface;
+use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,9 +33,9 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * Anonymous subscribe manager service.
    *
-   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionStorageInterface
+   * @var \Drupal\oe_subscriptions_anonymous\TokenManagerInterface
    */
-  protected AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage;
+  protected TokenManagerInterface $anonymousSubscriptionStorage;
 
   /**
    * Mail manager service.
@@ -55,7 +55,7 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function __construct(
-    AnonymousSubscriptionStorageInterface $anonymousSubscriptionStorage,
+    TokenManagerInterface $anonymousSubscriptionStorage,
     MailManagerInterface $mailManager,
     FlagServiceInterface $flagService) {
     $this->anonymousSubscriptionStorage = $anonymousSubscriptionStorage;
@@ -67,8 +67,8 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    $instance = new static(
-      $container->get('oe_subscriptions_anonymous.subscription_storage'),
+    return new static(
+      $container->get('oe_subscriptions_anonymous.token_manager'),
       $container->get('plugin.manager.mail'),
       $container->get('flag')
     );
@@ -159,7 +159,7 @@ class AnonymousSubscribeForm extends FormBase {
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     // Generate scope for subscribe.
     $scope = $this->anonymousSubscriptionStorage->buildScope(
-      AnonymousSubscriptionStorageInterface::TYPE_SUBSCRIBE, [
+      TokenManagerInterface::TYPE_SUBSCRIBE, [
         $flag->id(),
         $entity_id,
       ]);
