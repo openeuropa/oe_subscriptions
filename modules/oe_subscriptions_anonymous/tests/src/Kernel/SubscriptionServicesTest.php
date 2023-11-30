@@ -48,7 +48,7 @@ class SubscriptionServicesTest extends KernelTestBase {
     $this->installEntitySchema('message');
     $this->installSchema('system', ['sequences']);
     $this->installSchema('flag', ['flag_counts']);
-    $this->installSchema('oe_subscriptions_anonymous', ['oe_subscriptions_anonymous_subscriptions']);
+    $this->installSchema('oe_subscriptions_anonymous', ['oe_subscriptions_anonymous_tokens']);
     $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);
     $this->installEntitySchema('entity_test_with_bundle');
 
@@ -150,7 +150,7 @@ class SubscriptionServicesTest extends KernelTestBase {
   private function setSubscriptionChanged(string $mail, string $scope, $changed): void {
     $connection = $this->container->get('database');
     // Update changed setting the changed older than a day ago.
-    $connection->update('oe_subscriptions_anonymous_subscriptions')
+    $connection->update('oe_subscriptions_anonymous_tokens')
       ->fields([
         'changed' => $changed,
       ])

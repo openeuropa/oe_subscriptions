@@ -336,7 +336,7 @@ class SubscribeTest extends BrowserTestBase {
   private function setSubscriptionChanged(string $mail, string $scope, $changed): void {
     $connection = $this->container->get('database');
     // Update changed setting the changed older than a day ago.
-    $connection->update('oe_subscriptions_anonymous_subscriptions')
+    $connection->update('oe_subscriptions_anonymous_tokens')
       ->fields(['changed' => $changed])
       ->condition('mail', $mail)
       ->condition('scope', $scope)

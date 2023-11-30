@@ -11,30 +11,29 @@ use Drupal\Core\Render\Element\Email;
  * Implements function hook_schema().
  */
 function oe_subscriptions_anonymous_schema() {
-  $schema['oe_subscriptions_anonymous_subscriptions'] = [
-    'description' => 'Stores anonymous subscription in order to manage validation',
+  $schema['oe_subscriptions_anonymous_tokens'] = [
+    'description' => 'Stores tokens to validate e-mails from anonymous users.',
     'fields' => [
       'mail' => [
-        'description' => 'Subscription mail.',
+        'description' => 'The e-mail the token is generated for.',
         'length' => Email::EMAIL_MAX_LENGTH,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
       ],
       'scope' => [
-        'description' => 'Scope of the subscription: action is allowed to, and entities',
+        'description' => 'Scope of the token.',
         'length' => 255,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
       ],
       'hash' => [
-        'description' => 'Temporary validation hash.',
+        'description' => 'The token.',
         'length' => 255,
         'type' => 'varchar_ascii',
         'not null' => TRUE,
       ],
       'changed' => [
-        'description' => 'Last time the subscription was changed.',
-        'length' => 255,
+        'description' => 'Last time the token was changed.',
         'type' => 'int',
         'not null' => TRUE,
       ],

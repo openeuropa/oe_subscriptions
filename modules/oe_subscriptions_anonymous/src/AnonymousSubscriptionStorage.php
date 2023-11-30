@@ -38,7 +38,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
 
     if ($this->exists($mail, $scope)) {
       // In case we have an existing subscription, we update changed and hash.
-      $this->connection->update('oe_subscriptions_anonymous_subscriptions')
+      $this->connection->update('oe_subscriptions_anonymous_tokens')
         ->fields([
           'hash' => $hash,
           'changed' => time(),
@@ -51,7 +51,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
     }
 
     // Create new entry.
-    $this->connection->insert('oe_subscriptions_anonymous_subscriptions')
+    $this->connection->insert('oe_subscriptions_anonymous_tokens')
       ->fields([
         'mail' => $mail,
         'scope' => $scope,
@@ -67,7 +67,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    */
   public function delete(string $mail, string $scope): bool {
 
-    $query = $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
+    $query = $this->connection->delete('oe_subscriptions_anonymous_tokens')
       ->condition('mail', $mail)
       ->condition('scope', $scope);
 
@@ -80,7 +80,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    */
   private function exists(string $mail, string $scope): bool {
     // The subscription exists and is active.
-    $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
+    $query = $this->connection->select('oe_subscriptions_anonymous_tokens', 's')
       ->fields('s', ['mail'])
       ->condition('s.mail', $mail)
       ->condition('s.scope', $scope);
@@ -94,7 +94,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    */
   public function isValid(string $mail, string $scope, string $hash): bool {
     // The subscription exists and is not expired.
-    $query = $this->connection->select('oe_subscriptions_anonymous_subscriptions', 's')
+    $query = $this->connection->select('oe_subscriptions_anonymous_tokens', 's')
       ->fields('s', ['mail'])
       ->condition('s.mail', $mail)
       ->condition('s.scope', $scope)
@@ -110,7 +110,7 @@ class AnonymousSubscriptionStorage implements AnonymousSubscriptionStorageInterf
    */
   public function deleteExpired(): void {
 
-    $this->connection->delete('oe_subscriptions_anonymous_subscriptions')
+    $this->connection->delete('oe_subscriptions_anonymous_tokens')
       ->condition('changed', time() - AnonymousSubscriptionStorageInterface::EXPIRED_MAX_TIME, '<')
       ->execute();
   }
