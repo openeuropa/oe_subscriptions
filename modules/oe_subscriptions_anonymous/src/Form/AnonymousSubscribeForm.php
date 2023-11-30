@@ -13,10 +13,9 @@ use Drupal\Core\Ajax\MessageCommand;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\Core\Link;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
@@ -31,46 +30,33 @@ class AnonymousSubscribeForm extends FormBase {
   use AjaxFormHelperTrait;
 
   /**
-   * Anonymous subscribe manager service.
+   * Creates a new instance of this class.
    *
-   * @var \Drupal\oe_subscriptions_anonymous\TokenManagerInterface
-   */
-  protected TokenManagerInterface $anonymousSubscriptionStorage;
-
-  /**
-   * Mail manager service.
-   *
-   * @var \Drupal\Core\Mail\MailManagerInterface
-   */
-  protected MailManagerInterface $mailManager;
-
-  /**
-   * Flag service.
-   *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected FlagServiceInterface $flagService;
-
-  /**
-   * {@inheritdoc}
+   * @param \Drupal\oe_subscriptions_anonymous\TokenManagerInterface $tokenManager
+   *   The token manager.
+   * @param \Drupal\Core\Mail\MailManagerInterface $mailManager
+   *   The mail manager.
+   * @param \Drupal\flag\FlagServiceInterface $flagService
+   *   The flag service.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
+   *   The language manager.
    */
   public function __construct(
-    TokenManagerInterface $anonymousSubscriptionStorage,
-    MailManagerInterface $mailManager,
-    FlagServiceInterface $flagService) {
-    $this->anonymousSubscriptionStorage = $anonymousSubscriptionStorage;
-    $this->mailManager = $mailManager;
-    $this->flagService = $flagService;
-  }
+    protected TokenManagerInterface $tokenManager,
+    protected MailManagerInterface $mailManager,
+    protected FlagServiceInterface $flagService,
+    protected LanguageManagerInterface $languageManager
+  ) {}
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
+    $instance = new static(
       $container->get('oe_subscriptions_anonymous.token_manager'),
       $container->get('plugin.manager.mail'),
-      $container->get('flag')
+      $container->get('flag'),
+      $container->get('language_manager')
     );
     $instance->setMessenger($container->get('messenger'));
 
@@ -156,57 +142,20 @@ class AnonymousSubscribeForm extends FormBase {
     $mail = $form_state->getValue('email');
     $flag = $form_state->get('flag');
     $entity_id = $form_state->get('entity_id');
-    $entity = $this->flagService->getFlaggableById($flag, $entity_id);
-    // Generate scope for subscribe.
-    $scope = $this->anonymousSubscriptionStorage->buildScope(
-      TokenManagerInterface::TYPE_SUBSCRIBE, [
-        $flag->id(),
-        $entity_id,
-      ]);
-    // Create a new subscription.
-    $hash = $this->anonymousSubscriptionStorage->get($mail, $scope);
-    // No hash, we can't validate.
-    if (empty($hash)) {
-      $this->messenger()->addMessage($this->t('Confirmation hash could not be generated.'), MessengerInterface::TYPE_ERROR);
-      return;
-    }
-    // Generate mail links confirm and cancel.
-    $confirm_link = Link::createFromRoute($this->t('Confirm subscription'), 'oe_subscriptions_anonymous.anonymous_confirm',
-      [
-        'flag' => $flag->id(),
-        'entity_id' => $entity_id,
-        'email' => $mail,
-        'hash' => $hash,
-      ],
-      [
-        'absolute' => TRUE,
-      ])->toString();
 
-    $cancel_link = Link::createFromRoute($this->t('Cancel subscription'), 'oe_subscriptions_anonymous.anonymous_cancel',
-      [
-        'flag' => $flag->id(),
-        'entity_id' => $entity_id,
-        'email' => $mail,
-        'hash' => $hash,
-      ],
-      [
-        'absolute' => TRUE,
-      ])->toString();
-
-    // Send mail with parameters.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
-      "oe_subscriptions_anonymous:subscription_create",
+      "subscription_create",
       $mail,
-      \Drupal::languageManager()->getCurrentLanguage()->getId(),
+      $this->languageManager->getCurrentLanguage()->getId(),
       [
-        'entity_link' => $entity->toLink()->toString(),
-        'confirm_link' => $confirm_link,
-        'cancel_link' => $cancel_link,
+        'email' => $mail,
+        'flag' => $flag,
+        'entity_id' => $entity_id,
       ]);
 
     if (!$result) {
-      $this->messenger()->addMessage($this->t('Confimartion mail could not be sent.'), MessengerInterface::TYPE_ERROR);
+      $this->messenger()->addError($this->t('An error occurred when sending the confirmation e-mail. Please contact the administrator.'));
       return;
     }
 
