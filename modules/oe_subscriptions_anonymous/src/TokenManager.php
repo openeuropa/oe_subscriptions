@@ -108,7 +108,7 @@ class TokenManager implements TokenManagerInterface {
   /**
    * {@inheritdoc}
    */
-  public static function buildScope(string $type, array $entity_ids = []): string {
+  public static function buildScope(string $type, array $parts = []): string {
     // No other elements than the type.
     if (empty($entity_ids)) {
       return $type;

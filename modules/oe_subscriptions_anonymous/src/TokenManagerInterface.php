@@ -8,7 +8,7 @@ namespace Drupal\oe_subscriptions_anonymous;
 interface TokenManagerInterface {
 
   /**
-   * Defines the maximum time for an subscription to be active, one day.
+   * Defines the maximum time for a token to be valid, one day.
    */
   const EXPIRED_MAX_TIME = 86400;
 
@@ -18,67 +18,65 @@ interface TokenManagerInterface {
   const TYPE_SUBSCRIBE = 'subscribe';
 
   /**
-   * Creates an new subscription retrieving the validation hash.
+   * Creates a new token for the given e-mail and scope.
    *
-   * If the entry exists updates changed time, and retrieves new hash.
+   * If an entry already exists, it generates a new token and refreshed the
+   * duration.
    *
    * @param string $mail
-   *   Subscribing mail.
+   *   The e-mail.
    * @param string $scope
-   *   The scope of the subscription.
+   *   The token scope.
    *
    * @return string
-   *   The hash to do validation with.
+   *   The token.
    */
-  public function get(string $mail, string $scope);
+  public function get(string $mail, string $scope): string;
 
   /**
-   * Checks if a subscription exists and is not expired.
+   * Checks a token is valid for the given e-mail and scope.
    *
    * @param string $mail
-   *   Subscribing mail.
+   *   The e-mail.
    * @param string $scope
-   *   The scope of the subscription.
+   *   The token scope.
    * @param string $hash
-   *   Hash to check agaisnt.
+   *   The token to validate.
    *
-   * @return string
-   *   The time the subscription was changed in Unix format.
+   * @return bool
+   *   Whether the token is valid or not.
    */
-  public function isValid(string $mail, string $scope, string $hash);
+  public function isValid(string $mail, string $scope, string $hash): bool;
 
   /**
-   * Deletes a subscription.
+   * Deletes a token.
    *
    * @param string $mail
-   *   Subscribing mail.
+   *   The e-mail.
    * @param string $scope
-   *   The scope of the subscription.
+   *   The token scope.
    *
    * @return bool
    *   Operation result.
    */
-  public function delete(string $mail, string $scope);
+  public function delete(string $mail, string $scope): bool;
 
   /**
    * Delete all expired subscriptions.
-   *
-   * @return void
-   *   No return.
    */
-  public function deleteExpired();
+  public function deleteExpired(): void;
 
   /**
-   * Builds string with subscription scope information to be stored.
+   * Builds a token scope identifier.
    *
    * @param string $type
    *   The type of the scope.
-   * @param array $entity_ids
-   *   Entities related to the scope.
+   * @param array $parts
+   *   Additional scope parts.
    *
    * @return string
-   *   The scope of the subscription.
+   *   The scope identifier.
    */
-  public static function buildScope(string $type, array $entity_ids = []);
+  public static function buildScope(string $type, array $parts = []): string;
 
 }
