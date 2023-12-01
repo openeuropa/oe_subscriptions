@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Drupal\oe_subscriptions_anonymous\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
@@ -22,38 +21,20 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 class SubscriptionAnonymousController extends ControllerBase {
 
   /**
-   * Flag service.
+   * Creates a new instances of this class.
    *
-   * @var \Drupal\flag\FlagServiceInterface
-   */
-  protected FlagServiceInterface $flagService;
-
-  /**
-   * Anonymous subscribe manager service.
-   *
-   * @var \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager
-   */
-  protected AnonymousSubscriptionManager $subscriptionManager;
-
-  /**
-   * Anonymous subscribe manager service.
-   *
-   * @var \Drupal\oe_subscriptions_anonymous\TokenManagerInterface
-   */
-  protected TokenManagerInterface $anonymousSubscriptionStorage;
-
-  /**
-   * {@inheritdoc}
+   * @param \Drupal\flag\FlagServiceInterface $flagService
+   *   The flag service.
+   * @param \Drupal\oe_subscriptions_anonymous\TokenManagerInterface $tokenManager
+   *   The token manager.
+   * @param \Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager $subscriptionManager
+   *   The subscription manager.
    */
   public function __construct(
-    FlagServiceInterface $flagService,
-    TokenManagerInterface $anonymousSubscriptionStorage,
-    AnonymousSubscriptionManager $subscriptionManager,
-    ) {
-    $this->flagService = $flagService;
-    $this->anonymousSubscriptionStorage = $anonymousSubscriptionStorage;
-    $this->subscriptionManager = $subscriptionManager;
-  }
+    protected FlagServiceInterface $flagService,
+    protected TokenManagerInterface $tokenManager,
+    protected AnonymousSubscriptionManager $subscriptionManager,
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -67,30 +48,43 @@ class SubscriptionAnonymousController extends ControllerBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Confirms a subscription request.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag entity.
+   * @param string $entity_id
+   *   The ID of the entity to subscribe to.
+   * @param string $email
+   *   The e-mail address.
+   * @param string $hash
+   *   The token to validate the request.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *   The response.
    */
-  public function confirmSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
+  public function confirmSubscriptionRequest(FlagInterface $flag, string $entity_id, string $email, string $hash): RedirectResponse {
+    $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
+    $response = new RedirectResponse($entity->toUrl()->toString());
 
-    $scope = $this->anonymousSubscriptionStorage->buildScope(
-      TokenManagerInterface::TYPE_SUBSCRIBE, [
-        $flag->id(),
-        $entity_id,
-      ]);
+    $scope = $this->tokenManager->buildScope(TokenManagerInterface::TYPE_SUBSCRIBE, [
+      $flag->id(),
+      $entity_id,
+    ]);
 
-    if ($this->anonymousSubscriptionStorage->isValid($email, $scope, $hash)) {
-      // It's valid, so we call subscribe from subscription manager.
-      $this->subscriptionManager->subscribe($email, $flag, $entity_id);
-      // Success message and redirection to entity.
-      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
-      $this->messenger()->addMessage($this->t('Subscription confirmed.'));
+    if (!$this->tokenManager->isValid($email, $scope, $hash)) {
+      // The token could be expired or not existing. But to avoid disclosing
+      // information about users that actually requested to subscribe, we
+      // always use the same message.
+      $this->messenger()->addWarning($this->t('Your subscription request has expired. Please make a new request.'));
 
-      return new RedirectResponse($entity->toUrl()->toString());
+      return $response;
     }
 
-    // Error message and redirection to home.
-    $this->messenger()->addMessage($this->t('The subscription could not be confirmed.'), MessengerInterface::TYPE_ERROR);
+    $this->subscriptionManager->subscribe($email, $flag, $entity_id);
+    // Success message and redirection to entity.
+    $this->messenger()->addMessage($this->t('Your subscription request has been confirmed.'));
 
-    return new RedirectResponse(Url::fromRoute('<front>')->toString());
+    return $response;
   }
 
   /**

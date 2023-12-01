@@ -74,7 +74,7 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
     'email' => $mail,
     'hash' => $hash,
   ];
-  $confirm_link = Link::createFromRoute(t('Confirm subscription'), 'oe_subscriptions_anonymous.anonymous_confirm', $route_parameters, [
+  $confirm_link = Link::createFromRoute(t('Confirm subscription request'), 'oe_subscriptions_anonymous.anonymous_confirm', $route_parameters, [
     'absolute' => TRUE,
   ])->toString();
 
