@@ -8,8 +8,6 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
-use Drupal\KernelTests\KernelTestBase;
-use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
 
@@ -18,27 +16,7 @@ use Drupal\user\Entity\Role;
  */
 class AccessCheckTest extends KernelTestBase {
 
-  use FlagCreateTrait;
   use UserCreationTrait;
-
-  /**
-   * {@inheritdoc}
-   */
-  protected static $modules = [
-    'entity_test',
-    'extra_field',
-    'field',
-    'filter',
-    'flag',
-    'message',
-    'message_notify',
-    'message_subscribe',
-    'oe_subscriptions',
-    'oe_subscriptions_anonymous',
-    'system',
-    'text',
-    'user',
-  ];
 
   /**
    * {@inheritdoc}
@@ -46,12 +24,6 @@ class AccessCheckTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->installEntitySchema('user');
-    $this->installEntitySchema('flagging');
-    $this->installEntitySchema('message');
-    $this->installSchema('system', ['sequences']);
-    $this->installSchema('flag', ['flag_counts']);
-    $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);
     $this->installEntitySchema('entity_test_with_bundle');
 
     EntityTestBundle::create(['id' => 'article'])->save();

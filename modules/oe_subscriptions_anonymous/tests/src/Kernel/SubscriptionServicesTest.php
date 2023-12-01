@@ -6,35 +6,18 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
-use Drupal\KernelTests\KernelTestBase;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
-use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
 /**
  * Tests the anonymous subscribe module services.
  */
 class SubscriptionServicesTest extends KernelTestBase {
 
-  use FlagCreateTrait;
-
   /**
    * {@inheritdoc}
    */
   protected static $modules = [
-    'entity_test',
-    'extra_field',
     'decoupled_auth',
-    'field',
-    'filter',
-    'flag',
-    'message',
-    'message_notify',
-    'message_subscribe',
-    'oe_subscriptions',
-    'oe_subscriptions_anonymous',
-    'system',
-    'text',
-    'user',
   ];
 
   /**
@@ -43,13 +26,7 @@ class SubscriptionServicesTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->installEntitySchema('user');
-    $this->installEntitySchema('flagging');
-    $this->installEntitySchema('message');
-    $this->installSchema('system', ['sequences']);
-    $this->installSchema('flag', ['flag_counts']);
     $this->installSchema('oe_subscriptions_anonymous', ['oe_subscriptions_anonymous_tokens']);
-    $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);
     $this->installEntitySchema('entity_test_with_bundle');
 
     EntityTestBundle::create(['id' => 'article'])->save();
