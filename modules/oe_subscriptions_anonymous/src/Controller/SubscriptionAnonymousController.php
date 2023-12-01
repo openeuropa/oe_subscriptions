@@ -88,34 +88,35 @@ class SubscriptionAnonymousController extends ControllerBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Cancels a subscription request.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag entity.
+   * @param string $entity_id
+   *   The ID of the entity to subscribe to.
+   * @param string $email
+   *   The e-mail address.
+   * @param string $hash
+   *   The token to validate the request.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *   The response.
    */
-  public function cancelSubscription(FlagInterface $flag, string $entity_id, string $email, string $hash) {
-
-    $scope = $this->anonymousSubscriptionStorage->buildScope(
+  public function cancelSubscriptionRequest(FlagInterface $flag, string $entity_id, string $email, string $hash): RedirectResponse {
+    $scope = $this->tokenManager->buildScope(
       TokenManagerInterface::TYPE_SUBSCRIBE, [
         $flag->id(),
         $entity_id,
       ]);
 
-    if ($this->anonymousSubscriptionStorage->isValid($email, $scope, $hash)) {
-      // Load elements to unflag.
-      $account = user_load_by_mail($email);
-      $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
-      // In case where the flag was done.
-      if (!empty($entity) && !empty($account) && $flag->isFlagged($entity, $account)) {
-        $this->flagService->unflag($flag, $entity, $account);
-      }
-      // Then delete entry.
-      $this->anonymousSubscriptionStorage->delete($email, $scope);
-      // Success message.
-      $this->messenger()->addMessage($this->t('Subscription canceled.'));
-
-      return new RedirectResponse($entity->toUrl()->toString());
+    if ($this->tokenManager->isValid($email, $scope, $hash)) {
+      $this->tokenManager->delete($email, $scope);
     }
 
-    // Error message and redirection to home.
-    $this->messenger()->addMessage($this->t('The subscription could not be canceled.'), MessengerInterface::TYPE_ERROR);
+    // We delete the subscription request only if it exists, but we show a
+    // success message in any case, to avoid disclosing information about
+    // e-mails of pending requests.
+    $this->messenger()->addStatus($this->t('Your subscription request has been canceled.'));
 
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
 

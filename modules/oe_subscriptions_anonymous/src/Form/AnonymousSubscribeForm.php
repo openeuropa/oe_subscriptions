@@ -143,6 +143,7 @@ class AnonymousSubscribeForm extends FormBase {
     $flag = $form_state->get('flag');
     $entity_id = $form_state->get('entity_id');
 
+    // @todo Send a different e-mail when the user is already subscribed.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
       "subscription_create",

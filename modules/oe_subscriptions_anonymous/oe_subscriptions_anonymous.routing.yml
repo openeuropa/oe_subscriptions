@@ -18,7 +18,7 @@ oe_subscriptions_anonymous.anonymous_confirm:
 oe_subscriptions_anonymous.anonymous_cancel:
   path: '/subscribe/cancel/{flag}/{entity_id}/{email}/{hash}'
   defaults:
-    _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:cancelSubscription'
+    _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:cancelSubscriptionRequest'
   requirements:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'

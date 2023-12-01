@@ -78,7 +78,7 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
     'absolute' => TRUE,
   ])->toString();
 
-  $cancel_link = Link::createFromRoute(t('Cancel subscription'), 'oe_subscriptions_anonymous.anonymous_cancel', $route_parameters, [
+  $cancel_link = Link::createFromRoute(t('Cancel subscription request'), 'oe_subscriptions_anonymous.anonymous_cancel', $route_parameters, [
     'absolute' => TRUE,
   ])->toString();
 
