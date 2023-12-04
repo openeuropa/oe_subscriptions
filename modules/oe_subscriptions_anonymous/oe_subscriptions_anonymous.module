@@ -90,6 +90,8 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
   ];
 
   $body = strtr(t("%entity_link \r\n %confirm_link \r\n %cancel_link"), $variables);
-  $message['subject'] .= t('Anonymous subscription');
+  $message['subject'] .= t('Confirm your subscription to @label', [
+    '@label' => $entity->label(),
+  ]);
   $message['body'][] = MailFormatHelper::htmlToText($body);
 }

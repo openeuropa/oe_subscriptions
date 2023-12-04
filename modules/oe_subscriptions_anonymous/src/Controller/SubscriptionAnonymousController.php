@@ -75,12 +75,14 @@ class SubscriptionAnonymousController extends ControllerBase {
       // The token could be expired or not existing. But to avoid disclosing
       // information about users that actually requested to subscribe, we
       // always use the same message.
-      $this->messenger()->addWarning($this->t('Your subscription request has expired. Please make a new request.'));
+      $this->messenger()->addWarning($this->t('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.'));
 
       return $response;
     }
 
     $this->subscriptionManager->subscribe($email, $flag, $entity_id);
+    // The token has been used, so we need to invalidate it.
+    $this->tokenManager->delete($email, $scope);
     // Success message and redirection to entity.
     $this->messenger()->addMessage($this->t('Your subscription request has been confirmed.'));
 
@@ -111,12 +113,11 @@ class SubscriptionAnonymousController extends ControllerBase {
 
     if ($this->tokenManager->isValid($email, $scope, $hash)) {
       $this->tokenManager->delete($email, $scope);
+      $this->messenger()->addStatus($this->t('Your subscription request has been canceled.'));
     }
-
-    // We delete the subscription request only if it exists, but we show a
-    // success message in any case, to avoid disclosing information about
-    // e-mails of pending requests.
-    $this->messenger()->addStatus($this->t('Your subscription request has been canceled.'));
+    else {
+      $this->messenger()->addError($this->t('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.'));
+    }
 
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
 
