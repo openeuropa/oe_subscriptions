@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 
 /**
@@ -31,60 +32,68 @@ class TokenManagerTest extends KernelTestBase {
    * Tests the token manager service.
    */
   public function testTokenManager(): void {
-    $anonymous_storage_service = $this->container->get('oe_subscriptions_anonymous.token_manager');
+    $time = $this->createMock(TimeInterface::class);
+    $request_time = 1701471031;
+    $time->method('getRequestTime')
+      ->willReturnCallback(function () use (&$request_time) {
+        return $request_time;
+      });
+    $this->container->set('datetime.time', $time);
+    /** @var \Drupal\oe_subscriptions_anonymous\TokenManagerInterface $token_service */
+    $token_service = $this->container->get('oe_subscriptions_anonymous.token_manager');
+
     $mail = '123@mail.com';
     // Build scope, get hash and check that is valid.
-    $scope = $anonymous_storage_service->buildScope(TokenManagerInterface::TYPE_SUBSCRIBE, ['1', '2']);
-    $hash = $anonymous_storage_service->get($mail, $scope);
-    $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $hash));
-    // Try check with an outdated hash.
-    $new_hash = $anonymous_storage_service->get($mail, $scope);
-    $this->assertFalse($anonymous_storage_service->isValid($mail, $scope, $hash));
-    // Only latest works.
-    $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $new_hash));
-    // Delete subscription.
-    $hash = $anonymous_storage_service->delete($mail, $scope);
-    // Not valid.
-    $this->assertFalse($anonymous_storage_service->isValid($mail, $scope, $new_hash));
-    // Refresh.
-    $hash = $anonymous_storage_service->get($mail, $scope);
-    $this->assertTrue($anonymous_storage_service->isValid($mail, $scope, $hash));
-    // Set an old date for changed and check expired.
-    $this->setSubscriptionChanged($mail, $scope, time() - 90000);
-    $this->assertFalse($anonymous_storage_service->isValid($mail, $scope, $hash));
-    // Create new, set time again and delete expired.
-    $hash = $anonymous_storage_service->get('456@mail.com', $scope);
-    $this->assertTrue($anonymous_storage_service->isValid('456@mail.com', $scope, $hash));
-    $this->setSubscriptionChanged('456@mail.com', $scope, time() - 90000);
-    $anonymous_storage_service->deleteExpired();
-    // We can't rely on isValid() given performs two checks, exists and expired.
-    // The subscription could exist and be expired, we try to delete it.
-    $this->assertFalse($anonymous_storage_service->delete('456@mail.com', $scope));
-  }
+    $scope = $token_service->buildScope(TokenManagerInterface::TYPE_SUBSCRIBE, ['1', '2']);
+    $token = $token_service->get($mail, $scope);
+    $this->assertTrue($token_service->isValid($mail, $scope, $token));
 
-  /**
-   * Sets a subscription changed value.
-   *
-   * @param string $mail
-   *   Subscribing mail.
-   * @param string $scope
-   *   The entity to subscribe to.
-   * @param string $changed
-   *   The value we want to set as changed.
-   *
-   * @return void
-   *   No return value.
-   */
-  private function setSubscriptionChanged(string $mail, string $scope, $changed): void {
-    $connection = $this->container->get('database');
-    // Update changed setting the changed older than a day ago.
-    $connection->update('oe_subscriptions_anonymous_tokens')
-      ->fields([
-        'changed' => $changed,
-      ])
-      ->condition('mail', $mail)
-      ->condition('scope', $scope)
-      ->execute();
+    // Generate a new token for the same e-mail and scope.
+    $new_token = $token_service->get($mail, $scope);
+    // The old token is not valid anymore.
+    $this->assertFalse($token_service->isValid($mail, $scope, $token));
+    // Only latest works.
+    $this->assertTrue($token_service->isValid($mail, $scope, $new_token));
+
+    // Delete the token.
+    $this->assertTrue($token_service->delete($mail, $scope));
+    // The token is not valid anymore.
+    $this->assertFalse($token_service->isValid($mail, $scope, $new_token));
+
+    // Token lasts for an hour.
+    $token = $token_service->get($mail, $scope);
+    $request_time += 86400;
+    $this->assertTrue($token_service->isValid($mail, $scope, $token));
+    $request_time += 1;
+    $this->assertFalse($token_service->isValid($mail, $scope, $token));
+
+    // Create new, set time again and delete expired.
+    $token = $token_service->get('456@mail.com', $scope);
+    $this->assertTrue($token_service->isValid('456@mail.com', $scope, $token));
+    $request_time += 86401;
+    $token_service->deleteExpired();
+    // We can't rely on isValid() given performs two checks, if it exists and
+    // it's not expired.
+    // The delete() operation returns true only if a token was deleted,
+    // regardless of expiration date.
+    $this->assertFalse($token_service->delete('456@mail.com', $scope));
+    $this->assertFalse($token_service->delete($mail, $scope));
+
+    // Test that tokens generated with different e-mails are different.
+    $token = $token_service->get('one@example.com', $scope);
+    $token_service->get('two@example.com', $scope);
+    $this->assertFalse($token_service->isValid('two@example.com', $scope, $token));
+    $this->assertTrue($token_service->isValid('one@example.com', $scope, $token));
+
+    // Test that different tokens generated with same e-mail but different
+    // scope work correctly.
+    $mail = 'same@example.com';
+    $token_scope_a = $token_service->get($mail, 'a');
+    $token_scope_b = $token_service->get($mail, 'b');
+    $this->assertTrue($token_service->isValid($mail, 'a', $token_scope_a));
+    $this->assertTrue($token_service->isValid($mail, 'b', $token_scope_b));
+    $this->assertFalse($token_service->isValid($mail, 'a', $token_scope_b));
+    $this->assertFalse($token_service->isValid($mail, 'b', $token_scope_a));
   }
 
 }
