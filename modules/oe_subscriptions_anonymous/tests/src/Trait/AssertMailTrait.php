@@ -7,7 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Trait;
 use Drupal\Core\Test\AssertMailTrait as CoreAssertMailTrait;
 
 /**
- * Overrides the core trait to avoid cached results.
+ * Extends the core trait to test emails.
  */
 trait AssertMailTrait {
 
@@ -34,6 +34,33 @@ trait AssertMailTrait {
     \Drupal::state()->resetCache();
 
     return $this->drupalAssertMail($name, $value, $message);
+  }
+
+  /**
+   * Empties the mail collector.
+   */
+  protected function resetMailCollector(): void {
+    \Drupal::state()->set('system.test_mail_collector', []);
+  }
+
+  /**
+   * Returns all the URLs that are set as footnote.
+   *
+   * @param string $text
+   *   The text to parse.
+   *
+   * @return array
+   *   An array of URLs extracted, keyed by the corresponding footnote.
+   */
+  protected function getMailFootNoteUrls(string $text): array {
+    preg_match_all('/\[(\d+)\]\s*(https?:\/\/[^\s]+)/', $text, $matches, PREG_SET_ORDER);
+
+    $urls = [];
+    foreach ($matches as $match) {
+      $urls[$match[1]] = $match[2];
+    }
+
+    return $urls;
   }
 
 }
