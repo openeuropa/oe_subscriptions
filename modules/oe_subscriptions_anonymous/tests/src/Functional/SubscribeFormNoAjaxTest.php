@@ -7,12 +7,14 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
 
 /**
  * Tests the subscribe form when it's not rendered in an AJAX context.
  */
 class SubscribeFormNoAjaxTest extends BrowserTestBase {
 
+  use AssertMailTrait;
   use FlagCreateTrait;
 
   /**
@@ -76,12 +78,15 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
     // The modal was not closed, and the errors are rendered inside it.
     $assert_session->statusMessageContains("$mail_label field is required.", 'error');
     $assert_session->statusMessageContains("$terms_label field is required.", 'error');
+    $this->assertEmpty($this->getMails());
 
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
     $assert_session->addressEquals($node->toUrl()->setAbsolute()->toString());
+    $this->assertCount(1, $this->getMails());
+    $this->assertMail('to', 'test@test.com');
   }
 
 }
