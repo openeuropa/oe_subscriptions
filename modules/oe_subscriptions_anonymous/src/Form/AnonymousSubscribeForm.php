@@ -16,6 +16,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
@@ -138,15 +139,14 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Get parameters.
     $mail = $form_state->getValue('email');
-    $flag = $form_state->get('flag');
-    $entity_id = $form_state->get('entity_id');
+    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
 
     // @todo Send a different e-mail when the user is already subscribed.
+    // @todo Send a different e-mail if the user is coupled.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
-      "subscription_create",
+      'subscription_create',
       $mail,
       $this->languageManager->getCurrentLanguage()->getId(),
       [
@@ -165,15 +165,15 @@ class AnonymousSubscribeForm extends FormBase {
     }
 
     $this->messenger()->addMessage($this->t('A confirmation e-email has been sent to your e-mail address.'));
-    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     try {
       // Redirect to the canonical page of the entity.
       $form_state->setRedirectUrl($entity->toUrl());
     }
     catch (UndefinedLinkTemplateException $exception) {
-      // Catch scenarios where no caonical link template or uri_callback are
+      // Catch scenarios where no canonical link template or uri_callback are
       // defined.
+      $form_state->setRedirectUrl(Url::fromRoute('<front>'));
     }
   }
 
