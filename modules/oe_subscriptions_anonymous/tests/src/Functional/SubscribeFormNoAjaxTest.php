@@ -121,7 +121,7 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
 
     // The cancel link is now invalid.
     $this->drupalGet($mail_urls[3]);
-    $assert_session->statusMessageContains('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.', 'error');
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
@@ -147,7 +147,35 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
 
     // The cancel link is now invalid.
     $this->drupalGet($mail_urls[3]);
-    $assert_session->statusMessageContains('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.', 'error');
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
+
+    $page_two = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+    $this->resetMailCollector();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+      'flag' => $pages_flag->id(),
+      'entity_id' => $page_two->id(),
+    ]));
+    $assert_session->fieldExists($mail_label)->setValue('another@example.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+
+    // Test the e-mail sent.
+    $mails = $this->getMails();
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page_two);
+
+    // Use the cancel link first.
+    $this->drupalGet($mail_urls[3]);
+    $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
+    $this->assertFalse($pages_flag->isFlagged($page_two, $account));
+
+    // The confirm link is now invalid.
+    $this->drupalGet($mail_urls[2]);
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
   }
 
   /**

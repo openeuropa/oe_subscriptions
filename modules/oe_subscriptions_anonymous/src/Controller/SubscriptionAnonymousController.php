@@ -75,7 +75,7 @@ class SubscriptionAnonymousController extends ControllerBase {
       // The token could be expired or not existing. But to avoid disclosing
       // information about users that actually requested to subscribe, we
       // always use the same message.
-      $this->messenger()->addWarning($this->t('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.'));
+      $this->messenger()->addWarning($this->t('You have tried to use a link that has been used or is no longer valid. Please request a new link.'));
 
       return $response;
     }
@@ -116,7 +116,7 @@ class SubscriptionAnonymousController extends ControllerBase {
       $this->messenger()->addStatus($this->t('Your subscription request has been canceled.'));
     }
     else {
-      $this->messenger()->addError($this->t('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.'));
+      $this->messenger()->addWarning($this->t('You have tried to use a link that has been used or is no longer valid. Please request a new link.'));
     }
 
     return new RedirectResponse(Url::fromRoute('<front>')->toString());

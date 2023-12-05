@@ -82,6 +82,8 @@ class TokenManagerTest extends KernelTestBase {
     // Test that tokens generated with different e-mails are different.
     $token = $token_service->get('one@example.com', $scope);
     $token_service->get('two@example.com', $scope);
+    // The token was generated for the "one" e-mail address, so it's not valid
+    // for the "two" e-mail address.
     $this->assertFalse($token_service->isValid('two@example.com', $scope, $token));
     $this->assertTrue($token_service->isValid('one@example.com', $scope, $token));
 
