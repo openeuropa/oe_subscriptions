@@ -1,4 +1,4 @@
-oe_subscriptions_anonymous.anonymous_subscribe:
+oe_subscriptions_anonymous.subscription_request:
   path: '/subscribe/request/{flag}/{entity_id}'
   defaults:
     _title_callback: '\Drupal\oe_subscriptions_anonymous\Form\AnonymousSubscribeForm::getTitle'
@@ -7,7 +7,7 @@ oe_subscriptions_anonymous.anonymous_subscribe:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
 
-oe_subscriptions_anonymous.anonymous_confirm:
+oe_subscriptions_anonymous.subscription_request.confirm:
   path: '/subscribe/confirm/{flag}/{entity_id}/{email}/{hash}'
   defaults:
     _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:confirmSubscriptionRequest'
@@ -15,7 +15,7 @@ oe_subscriptions_anonymous.anonymous_confirm:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
 
-oe_subscriptions_anonymous.anonymous_cancel:
+oe_subscriptions_anonymous.subscription_request.cancel:
   path: '/subscribe/cancel/{flag}/{entity_id}/{email}/{hash}'
   defaults:
     _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:cancelSubscriptionRequest'

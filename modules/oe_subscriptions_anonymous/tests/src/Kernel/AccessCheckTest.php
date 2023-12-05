@@ -136,7 +136,7 @@ class AccessCheckTest extends KernelTestBase {
    */
   public function routeDataProvider(): iterable {
     yield [
-      'oe_subscriptions_anonymous.anonymous_subscribe',
+      'oe_subscriptions_anonymous.subscription_request',
     ];
 
     // The next routes have the same parameters.
@@ -146,12 +146,12 @@ class AccessCheckTest extends KernelTestBase {
       'hash' => 'random',
     ];
     yield [
-      'oe_subscriptions_anonymous.anonymous_confirm',
+      'oe_subscriptions_anonymous.subscription_request.confirm',
       $extra_parameters,
     ];
 
     yield [
-      'oe_subscriptions_anonymous.anonymous_cancel',
+      'oe_subscriptions_anonymous.subscription_request.cancel',
       $extra_parameters,
     ];
   }

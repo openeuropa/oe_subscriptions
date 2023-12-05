@@ -78,7 +78,7 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($article->toUrl());
     // Click subscribe link.
     $this->clickLink('Subscribe to this article');
-    $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+    $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => 'subscribe_article',
       'entity_id' => $article->id(),
     ])->setAbsolute()->toString());
@@ -124,7 +124,7 @@ class SubscribeTest extends BrowserTestBase {
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => $pages_flag->id(),
       'entity_id' => $page->id(),
     ]));
@@ -156,7 +156,7 @@ class SubscribeTest extends BrowserTestBase {
       'status' => 1,
     ]);
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => $pages_flag->id(),
       'entity_id' => $page_two->id(),
     ]));

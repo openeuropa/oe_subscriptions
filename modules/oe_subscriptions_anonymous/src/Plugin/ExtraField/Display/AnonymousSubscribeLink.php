@@ -68,7 +68,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
       return $build;
     }
     // Get link to form.
-    $url = Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+    $url = Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => $flag->id(),
       'entity_id' => $entity->id(),
     ]);
