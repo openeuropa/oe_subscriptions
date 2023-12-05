@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\flag\FlagInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
@@ -108,19 +110,7 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
     // Test the e-mail sent.
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
-    $this->assertMail('to', 'test@test.com');
-    $this->assertMail('subject', 'Confirm your subscription to ' . $article->label());
-    $this->assertMailString('body', "{$article->label()} [1]", 1);
-    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
-    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
-
-    $mail_urls = $this->getMailFootNoteUrls($mails[0]['body']);
-    $this->assertCount(3, $mail_urls);
-    $this->assertEquals($article->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
-    $base_confirm_url = $this->getAbsoluteUrl('/subscribe/confirm/subscribe_article/1/test%40test.com/');
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '.+$@', $mail_urls[2]);
-    $base_cancel_url = $this->getAbsoluteUrl('/subscribe/cancel/subscribe_article/1/test%40test.com/');
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '.+$@', $mail_urls[3]);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'test@test.com', $article_flag, $article);
 
     // Confirm the subscription request.
     $this->drupalGet($mail_urls[2]);
@@ -147,25 +137,51 @@ class SubscribeFormNoAjaxTest extends BrowserTestBase {
     // Test the e-mail sent.
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
-    $this->assertMail('to', 'another@example.com');
-    $this->assertMail('subject', 'Confirm your subscription to ' . $page->label());
-    $this->assertMailString('body', "{$page->label()} [1]", 1);
-    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
-    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
-
-    $mail_urls = $this->getMailFootNoteUrls($mails[0]['body']);
-    $this->assertCount(3, $mail_urls);
-    $this->assertEquals($page->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
-    $base_confirm_url = $this->getAbsoluteUrl('/subscribe/confirm/subscribe_page/2/another%40example.com/');
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '.+$@', $mail_urls[2]);
-    $base_cancel_url = $this->getAbsoluteUrl('/subscribe/cancel/subscribe_page/2/another%40example.com/');
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '.+$@', $mail_urls[3]);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page);
 
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $account = user_load_by_mail('another@example.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
+
+    // The cancel link is now invalid.
+    $this->drupalGet($mail_urls[3]);
+    $assert_session->statusMessageContains('You have tried to use a cancel link that has been used or is no longer valid. Please request a new link.', 'error');
+  }
+
+  /**
+   * Asserts the content of a subscription confirmation mail.
+   *
+   * @param array $mail_data
+   *   The mail data.
+   * @param string $email
+   *   The e-mail address the mail should be sent to.
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag that the mail links should point to.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity being flagged.
+   *
+   * @return array
+   *   A list of URLs extracted from the mail.
+   */
+  protected function assertSubscriptionConfirmationMail(array $mail_data, string $email, FlagInterface $flag, EntityInterface $entity): array {
+    $this->assertMail('to', $email);
+    $this->assertMail('subject', 'Confirm your subscription to ' . $entity->label());
+    $this->assertMailString('body', "{$entity->label()} [1]", 1);
+    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
+    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
+
+    $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
+    $this->assertCount(3, $mail_urls);
+    $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
+    $url_suffix = sprintf('%s/%s/%s', $flag->id(), $entity->id(), rawurlencode($email));
+    $base_confirm_url = $this->getAbsoluteUrl('/subscribe/confirm/' . $url_suffix);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '.+$@', $mail_urls[2]);
+    $base_cancel_url = $this->getAbsoluteUrl('/subscribe/cancel/' . $url_suffix);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '.+$@', $mail_urls[3]);
+
+    return $mail_urls;
   }
 
 }
