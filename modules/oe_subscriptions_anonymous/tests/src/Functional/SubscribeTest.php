@@ -1,30 +1,29 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
-use Drupal\Core\Test\AssertMailTrait;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
-use Drupal\oe_subscriptions_anonymous\TokenManager;
+use Drupal\flag\FlagInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
 
 /**
- * Modal form test.
+ * Tests the subscribe workflow.
  */
 class SubscribeTest extends BrowserTestBase {
 
-  use FlagCreateTrait;
   use AssertMailTrait;
+  use FlagCreateTrait;
 
   /**
    * {@inheritdoc}
    */
   protected static $modules = [
     'node',
-    'flag',
-    'oe_subscriptions',
     'oe_subscriptions_anonymous',
   ];
 
@@ -34,10 +33,11 @@ class SubscribeTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests anonymous subscription process.
+   * {@inheritdoc}
    */
-  public function testSubscriptionProcess(): void {
-    // Create content types.
+  protected function setUp(): void {
+    parent::setUp();
+
     $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
@@ -46,9 +46,16 @@ class SubscribeTest extends BrowserTestBase {
       'type' => 'page',
       'name' => 'Page',
     ]);
+  }
+
+  /**
+   * Tests the subscription form.
+   */
+  public function testForm(): void {
     // Create flags.
-    $articles_flag = $this->createFlagFromArray([
+    $article_flag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
+      'flag_short' => 'Subscribe to this article',
       'entity_type' => 'node',
       'bundles' => ['article'],
     ]);
@@ -57,7 +64,7 @@ class SubscribeTest extends BrowserTestBase {
       'entity_type' => 'node',
       'bundles' => ['page'],
     ]);
-    // Create nodes.
+    // Create some test nodes.
     $article = $this->drupalCreateNode([
       'type' => 'article',
       'status' => 1,
@@ -68,279 +75,138 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
+    $this->drupalGet($article->toUrl());
+    // Click subscribe link.
+    $this->clickLink('Subscribe to this article');
+    $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+      'flag' => 'subscribe_article',
+      'entity_id' => $article->id(),
+    ])->setAbsolute()->toString());
+
     $mail_label = 'Your e-mail';
     $terms_label = 'I have read and agree with the data protection terms.';
-    $scope = TokenManager::buildScope(
-      TokenManager::TYPE_SUBSCRIBE,
-      [
-        $articles_flag->id(),
-        $article->id(),
-      ]);
+    $mail_field = $assert_session->fieldExists($mail_label);
+    $terms_field = $assert_session->fieldExists($terms_label);
+    // Only one button should be rendered.
+    $assert_session->buttonNotExists('No thanks');
+    $assert_session->elementsCount('css', '.form-actions input[type="submit"]', 1);
 
-    // Go to articles subscribe form page.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Test form submit.
-    $assert_session->fieldExists($mail_label)->setValue('test1@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
+    // Verify that mail and terms field are marked as required.
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test1@mail.com');
-    // Search URLs in body.
+    // The modal was not closed, and the errors are rendered inside it.
+    $assert_session->statusMessageContains("$mail_label field is required.", 'error');
+    $assert_session->statusMessageContains("$terms_label field is required.", 'error');
+    $this->assertEmpty($this->getMails());
+
+    $mail_field->setValue('test@test.com');
+    $terms_field->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
+
+    // Test the e-mail sent.
     $mails = $this->getMails();
-    $mail = end($mails);
-    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Confirm subscription.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription confirmed.');
-    // Cancel subscription.
-    $this->drupalGet($cancel_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription canceled.');
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'test@test.com', $article_flag, $article);
+
+    // Confirm the subscription request.
+    $this->drupalGet($mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $account = user_load_by_mail('test@test.com');
+    $this->assertNotEmpty($account);
+    $this->assertTrue($article_flag->isFlagged($article, $account));
+
+    // The cancel link is now invalid.
+    $this->drupalGet($mail_urls[3]);
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
 
     // Subscribe to a different flag and node.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $pages_flag->id(),
-        'entity_id' => $page->id(),
-      ]));
-    // Test form submit.
-    $assert_session->fieldExists($mail_label)->setValue('test2@mail.com');
+    $this->resetMailCollector();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+      'flag' => $pages_flag->id(),
+      'entity_id' => $page->id(),
+    ]));
+    $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test2@mail.com');
-    // Search URLs in body.
-    $mails = $this->getMails();
-    $mail = end($mails);
-    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Confirm subscription.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription confirmed.');
-    // Cancel subscription.
-    $this->drupalGet($cancel_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription canceled.');
+    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
 
-    // Subscribe and cancel before confirming.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $pages_flag->id(),
-        'entity_id' => $page->id(),
-      ]));
-    // Test form submit.
-    $assert_session->fieldExists($mail_label)->setValue('test3@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test3@mail.com');
-    // Search URLs in body.
+    // Test the e-mail sent.
     $mails = $this->getMails();
-    $mail = end($mails);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Cancel subscription.
-    $this->drupalGet($cancel_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription canceled.');
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page);
 
-    // Try to confirm or cancel unexisting subscriptions.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be confirmed.');
-    $this->drupalGet($cancel_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be canceled.');
+    $this->drupalGet($mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $account = user_load_by_mail('another@example.com');
+    $this->assertNotEmpty($account);
+    $this->assertTrue($pages_flag->isFlagged($page, $account));
 
-    // Subscribe without confirm, and request subscription again.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Test form submit.
-    $assert_session->fieldExists($mail_label)->setValue('test4@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test4@mail.com');
-    // Search URLs in body.
-    $mails = $this->getMails();
-    $first_mail = end($mails);
-    $first_confirm_url = $this->firstUrlByText('confirm', $first_mail['body']);
-    $first_cancel_url = $this->firstUrlByText('cancel', $first_mail['body']);
-    // Visit page again.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Set values again with same mail.
-    $assert_session->fieldExists($mail_label)->setValue('test4@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test4@mail.com');
-    // Search URLs in body.
-    $mails = $this->getMails();
-    $second_mail = end($mails);
-    $second_confirm_url = $this->firstUrlByText('confirm', $second_mail['body']);
-    $second_cancel_url = $this->firstUrlByText('cancel', $second_mail['body']);
-    // We try to confirm/cancel with URLs from the oldest mail.
-    $this->drupalGet($first_confirm_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be confirmed.');
-    $this->drupalGet($first_cancel_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be canceled.');
-    // Then we confirm and cancel with the latest mail.
-    $this->drupalGet($second_confirm_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription confirmed.');
-    $this->drupalGet($second_cancel_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription canceled.');
+    // The cancel link is now invalid.
+    $this->drupalGet($mail_urls[3]);
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
 
-    // Test expired subscription hash.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Set values again with same mail.
-    $assert_session->fieldExists($mail_label)->setValue('test5@mail.com');
+    $page_two = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+    $this->resetMailCollector();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe', [
+      'flag' => $pages_flag->id(),
+      'entity_id' => $page_two->id(),
+    ]));
+    $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test5@mail.com');
-    // Search URLs in body.
-    $mails = $this->getMails();
-    $mail = end($mails);
-    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Set the changed more than a day ago.
-    $this->setSubscriptionChanged('test5@mail.com', $scope, time() - 90000);
-    // User can't confirm.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be confirmed.');
-    // Neither can cancel.
-    $this->drupalGet($cancel_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be canceled.');
+    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
 
-    // Test expired subscription hash, request again and confirm.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Set values again with same mail.
-    $assert_session->fieldExists($mail_label)->setValue('test6@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test6@mail.com');
-    // Search URLs in body.
+    // Test the e-mail sent.
     $mails = $this->getMails();
-    $mail = end($mails);
-    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Set the changed more than a day ago.
-    $this->setSubscriptionChanged('test6@mail.com', $scope, time() - 90000);
-    // User can't confirm.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('error');
-    $this->assertSession()->pageTextContains('The subscription could not be confirmed.');
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.anonymous_subscribe',
-      [
-        'flag' => $articles_flag->id(),
-        'entity_id' => $article->id(),
-      ]));
-    // Set values again with same mail.
-    $assert_session->fieldExists($mail_label)->setValue('test6@mail.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('A confirmation e-email has been sent to your e-mail address.');
-    // Assert mail field.
-    $this->assertMail('to', 'test6@mail.com');
-    // Search URLs in body.
-    $mails = $this->getMails();
-    $mail = end($mails);
-    $confirm_url = $this->firstUrlByText('confirm', $mail['body']);
-    $cancel_url = $this->firstUrlByText('cancel', $mail['body']);
-    // Confirm.
-    $this->drupalGet($confirm_url);
-    $assert_session->statusMessageExists('status');
-    $this->assertSession()->pageTextContains('Subscription confirmed.');
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page_two);
+
+    // Use the cancel link first.
+    $this->drupalGet($mail_urls[3]);
+    $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
+    $this->assertFalse($pages_flag->isFlagged($page_two, $account));
+
+    // The confirm link is now invalid.
+    $this->drupalGet($mail_urls[2]);
+    $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
   }
 
   /**
-   * Returns first URL found in a string given a substring.
+   * Asserts the content of a subscription confirmation mail.
    *
-   * @param string $needle
-   *   Substring to contained in URLs.
-   * @param string $haystack
-   *   String to search URLs.
+   * @param array $mail_data
+   *   The mail data.
+   * @param string $email
+   *   The e-mail address the mail should be sent to.
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag that the mail links should point to.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity being flagged.
    *
-   * @return string
-   *   The fisrt matching URL, empty string otherwise.
+   * @return array
+   *   A list of URLs extracted from the mail.
    */
-  private function firstUrlByText($needle, $haystack): string {
-    $link = '';
-    preg_match_all("/https?:\/\/[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|))/", $haystack, $urls);
-    foreach ($urls[0] as $url) {
-      if (str_contains($url, $needle)) {
-        $link = $url;
-        break;
-      }
-    }
-    return $link;
-  }
+  protected function assertSubscriptionConfirmationMail(array $mail_data, string $email, FlagInterface $flag, EntityInterface $entity): array {
+    $this->assertMail('to', $email);
+    $this->assertMail('subject', 'Confirm your subscription to ' . $entity->label());
+    $this->assertMailString('body', "{$entity->label()} [1]", 1);
+    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
+    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
 
-  /**
-   * Sets a subscription changed value.
-   *
-   * @param string $mail
-   *   Subscribing mail.
-   * @param string $scope
-   *   The entity to subscribe to.
-   * @param string $changed
-   *   The value we want to set as changed.
-   *
-   * @return void
-   *   No return value.
-   */
-  private function setSubscriptionChanged(string $mail, string $scope, $changed): void {
-    $connection = $this->container->get('database');
-    // Update changed setting the changed older than a day ago.
-    $connection->update('oe_subscriptions_anonymous_tokens')
-      ->fields(['changed' => $changed])
-      ->condition('mail', $mail)
-      ->condition('scope', $scope)
-      ->execute();
+    $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
+    $this->assertCount(3, $mail_urls);
+    $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
+    $url_suffix = sprintf('%s/%s/%s', $flag->id(), $entity->id(), rawurlencode($email));
+    $base_confirm_url = $this->getAbsoluteUrl('/subscribe/confirm/' . $url_suffix);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '.+$@', $mail_urls[2]);
+    $base_cancel_url = $this->getAbsoluteUrl('/subscribe/cancel/' . $url_suffix);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '.+$@', $mail_urls[3]);
+
+    return $mail_urls;
   }
 
 }
