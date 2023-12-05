@@ -112,6 +112,7 @@ class SubscribeTest extends BrowserTestBase {
     // Confirm the subscription request.
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
     $account = user_load_by_mail('test@test.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($article_flag->isFlagged($article, $account));
@@ -119,6 +120,7 @@ class SubscribeTest extends BrowserTestBase {
     // The cancel link is now invalid.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
+    $assert_session->addressEquals('/');
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
@@ -130,6 +132,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
     $mails = $this->getMails();
@@ -138,6 +141,7 @@ class SubscribeTest extends BrowserTestBase {
 
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
     $account = user_load_by_mail('another@example.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
@@ -145,6 +149,7 @@ class SubscribeTest extends BrowserTestBase {
     // The cancel link is now invalid.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
+    $assert_session->addressEquals('/');
 
     $page_two = $this->drupalCreateNode([
       'type' => 'page',
@@ -159,6 +164,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
     $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
     $mails = $this->getMails();
@@ -168,11 +174,13 @@ class SubscribeTest extends BrowserTestBase {
     // Use the cancel link first.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
+    $assert_session->addressEquals('/');
     $this->assertFalse($pages_flag->isFlagged($page_two, $account));
 
     // The confirm link is now invalid.
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
+    $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
   }
 
   /**
