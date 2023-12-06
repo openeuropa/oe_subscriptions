@@ -6,12 +6,14 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
 
 /**
  * Modal form test.
  */
 class SubscribeModalFormTest extends WebDriverTestBase {
 
+  use AssertMailTrait;
   use FlagCreateTrait;
 
   /**
@@ -19,8 +21,6 @@ class SubscribeModalFormTest extends WebDriverTestBase {
    */
   protected static $modules = [
     'node',
-    'flag',
-    'oe_subscriptions',
     'oe_subscriptions_anonymous',
   ];
 
@@ -99,6 +99,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->buttonExists('No thanks', $button_pane)->press();
     $assert_session->elementNotExists('css', $modal_selector);
     $assert_session->statusMessageNotExists();
+    // No e-mails have been sent.
+    $this->assertEmpty($this->getMails());
 
     // Test submit.
     $this->clickLink($link_text);
@@ -109,6 +111,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->assertWaitOnAjaxRequest();
     $assert_session->elementNotExists('css', $modal_selector);
     $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $this->assertCount(1, $this->getMails());
+    $this->assertMail('to', 'test@test.com');
   }
 
   /**

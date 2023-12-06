@@ -13,9 +13,13 @@ use Drupal\Core\Ajax\MessageCommand;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,17 +33,31 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * Creates a new instance of this class.
    *
+   * @param \Drupal\oe_subscriptions_anonymous\TokenManagerInterface $tokenManager
+   *   The token manager.
+   * @param \Drupal\Core\Mail\MailManagerInterface $mailManager
+   *   The mail manager.
    * @param \Drupal\flag\FlagServiceInterface $flagService
    *   The flag service.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
+   *   The language manager.
    */
-  public function __construct(protected FlagServiceInterface $flagService) {}
+  public function __construct(
+    protected TokenManagerInterface $tokenManager,
+    protected MailManagerInterface $mailManager,
+    protected FlagServiceInterface $flagService,
+    protected LanguageManagerInterface $languageManager
+  ) {}
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     $instance = new static(
-      $container->get('flag')
+      $container->get('oe_subscriptions_anonymous.token_manager'),
+      $container->get('plugin.manager.mail'),
+      $container->get('flag'),
+      $container->get('language_manager')
     );
     $instance->setMessenger($container->get('messenger'));
 
@@ -121,23 +139,41 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // @todo Send the email.
-    // If the form was rendered in an AJAX call, we don't need to do anything
-    // else.
+    $mail = $form_state->getValue('email');
+    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
+
+    // @todo Send a different e-mail when the user is already subscribed.
+    // @todo Send a different e-mail if the user is coupled.
+    $result = $this->mailManager->mail(
+      'oe_subscriptions_anonymous',
+      'subscription_create',
+      $mail,
+      $this->languageManager->getCurrentLanguage()->getId(),
+      [
+        'email' => $mail,
+        'flag' => $flag,
+        'entity_id' => $entity_id,
+      ]);
+
+    if (!$result) {
+      $this->messenger()->addError($this->t('An error occurred when sending the confirmation e-mail. Please contact the administrator.'));
+      return;
+    }
+
     if ($this->isAjax()) {
       return;
     }
 
     $this->messenger()->addMessage($this->t('A confirmation e-email has been sent to your e-mail address.'));
-    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     try {
       // Redirect to the canonical page of the entity.
       $form_state->setRedirectUrl($entity->toUrl());
     }
     catch (UndefinedLinkTemplateException $exception) {
-      // Catch scenarios where no caonical link template or uri_callback are
+      // Catch scenarios where no canonical link template or uri_callback are
       // defined.
+      $form_state->setRedirectUrl(Url::fromRoute('<front>'));
     }
   }
 
