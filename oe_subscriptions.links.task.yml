@@ -1,0 +1,5 @@
+oe_subscriptions.user.subscriptions:
+  route_name: oe_subscriptions.user.subscriptions
+  base_route: entity.user.canonical
+  title: Subscriptions
+  weight: 10
