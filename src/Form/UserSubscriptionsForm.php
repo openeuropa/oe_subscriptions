@@ -100,7 +100,7 @@ class UserSubscriptionsForm extends FormBase {
   }
 
   /**
-   * Builds the list of flagged entities for the a user.
+   * Builds the list of flagged entities for a user.
    *
    * @param \Drupal\user\UserInterface $user
    *   The user.
@@ -111,10 +111,11 @@ class UserSubscriptionsForm extends FormBase {
   protected function buildFlagList(UserInterface $user): array {
     $flag_storage = $this->entityTypeManager->getStorage('flagging');
     // @todo Add paging.
-    // @todo Add sorting. The flagged entity information is in another table.
     $results = $flag_storage->getQuery()
       ->accessCheck()
       ->condition('uid', $user->id())
+      ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
+      ->sort('entity_type')
       ->sort('created', 'DESC')
       ->execute();
 
@@ -134,15 +135,6 @@ class UserSubscriptionsForm extends FormBase {
 
       return $build;
     }
-
-    $build += [
-      '#type' => 'table',
-      '#header' => [
-        $this->t('Type'),
-        $this->t('Title'),
-        $this->t('Operations'),
-      ],
-    ];
 
     $cacheability = CacheableMetadata::createFromRenderArray($build);
     $rows = [];
@@ -174,7 +166,19 @@ class UserSubscriptionsForm extends FormBase {
       ];
     }
 
-    $build['#rows'] = $rows;
+    $build = [
+      '#type' => 'table',
+      '#attributes' => [
+        'class' => ['user-subscriptions'],
+      ],
+      '#header' => [
+        $this->t('Type'),
+        $this->t('Title'),
+        $this->t('Operations'),
+      ],
+      '#rows' => $rows,
+    ];
+    $cacheability->applyTo($build);
 
     return $build;
   }
