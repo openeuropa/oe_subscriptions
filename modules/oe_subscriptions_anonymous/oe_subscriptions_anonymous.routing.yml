@@ -22,3 +22,11 @@ oe_subscriptions_anonymous.subscription_request.cancel:
   requirements:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
+
+oe_subscriptions_anonymous.user_subscriptions.request_access:
+  path: '/user/subscriptions'
+  defaults:
+    _form: '\Drupal\oe_subscriptions_anonymous\Form\UserSubscriptionsRequestAccessForm'
+    _title: 'Manage your subscriptions'
+  requirements:
+    _user_is_logged_in: 'FALSE'

@@ -7,6 +7,7 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\SubscriptionCreate;
+use Drupal\oe_subscriptions_anonymous\MailTemplate\UserSubscriptionsAccess;
 
 /**
  * Implements hook_ENTITY_insert().
@@ -44,6 +45,7 @@ function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) 
 function oe_subscriptions_anonymous_mail($key, &$message, $params) {
   $class = match ($key) {
     'subscription_create' => SubscriptionCreate::class,
+    'user_subscriptions_access' => UserSubscriptionsAccess::class
   };
   \Drupal::classResolver($class)->prepare($message, $params);
 }
