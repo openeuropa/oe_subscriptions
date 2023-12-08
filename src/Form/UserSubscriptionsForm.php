@@ -116,7 +116,9 @@ class UserSubscriptionsForm extends FormBase {
       ->condition('uid', $user->id())
       ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
       ->sort('entity_type')
-      ->sort('created', 'DESC')
+      // Sorting by flag ID is equivalent to sorting by creation time, as IDs
+      // are incremental.
+      ->sort('id', 'DESC')
       ->execute();
 
     $build = [
