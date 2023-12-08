@@ -24,6 +24,7 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
+    'block',
     'entity_test',
     'node',
     'oe_subscriptions_anonymous',
@@ -39,6 +40,11 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
+
+    $this->drupalPlaceBlock('local_tasks_block', [
+      'region' => 'header',
+      'id' => 'local_tasks',
+    ]);
 
     $this->drupalCreateContentType([
       'type' => 'article',
@@ -145,7 +151,11 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
     $assert_session->statusCodeEquals(403);
 
     $this->drupalLogin($user_one);
-    $this->drupalGet("/user/{$user_one->id()}/subscriptions");
+    $this->drupalGet($user_one->toUrl());
+    // The subscriptions page is placed as tab in the dedicated block.
+    $link = $assert_session->elementExists('css', '#block-local-tasks')->findLink('Subscriptions');
+    $this->assertNotEmpty($link);
+    $link->click();
     $assert_session->titleEquals('My subscriptions | Drupal');
     $assert_session->pageTextContains('No subscriptions found.');
 
