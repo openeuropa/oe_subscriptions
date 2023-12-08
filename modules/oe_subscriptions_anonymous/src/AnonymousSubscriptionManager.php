@@ -39,8 +39,9 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
 
     // If no user is present, create a decoupled user.
     if ($account === FALSE) {
+      /** @var \Drupal\user\UserInterface $account */
       $account = $this->entityTypeManager->getStorage('user')->create(['mail' => $mail]);
-      $account->save();
+      $account->addRole('anonymous_subscriber')->save();
     }
 
     /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $account */
