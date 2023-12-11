@@ -10,6 +10,7 @@ use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CloseModalDialogCommand;
 use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -83,27 +84,35 @@ class AnonymousSubscribeForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
-    // Default Text without link.
+    // Terms and conditions link.
     $title = $this->t('I have read and agree with the data protection terms.');
+    $cache = new CacheableMetadata();
+    $terms_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+    $cache->addCacheableDependency($terms_config);
     // Config from terms page.
-    $terms_link = $this->configFactory->get(SettingsForm::CONFIG_NAME)->get('page_link');
-    // In case we have a link we try to add it to the text.
-    if (!empty($terms_link)) {
-      // Create URL object.
-      $url = Url::fromUri($terms_link);
-      // Override the dispalyed text.
-      $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
+    if (!empty($terms_config->get('url'))) {
+      // Get URL and check access.
+      $url = Url::fromUri($terms_config?->get('url'));
+      $access = $url->access(NULL, TRUE);
+      // Handle cache dependencies.
+      $cache->addCacheableDependency($access);
+      if ($access->isAllowed()) {
+        $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
+      }
     }
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
       '#required' => TRUE,
     ];
+
     $form['accept_terms'] = [
       '#type' => 'checkbox',
       '#title' => $title,
       '#required' => TRUE,
     ];
+    $cache->applyTo($form['accept_terms']);
+
     // This button will is used to close the modal, no submit callback.
     $form['actions'] = [
       '#type' => 'actions',

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous\Form;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
@@ -58,13 +59,13 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
     // Saved config.
-    $page_link = $this->config(static::CONFIG_NAME)->get('page_link');
+    $url = $this->config(static::CONFIG_NAME)->get('url');
     // Link field.
-    $form['page_link'] = [
+    $form['url'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'node',
       '#title' => $this->t('Terms page URL'),
-      '#default_value' => !empty($page_link) ? $this->getUriAsDisplayableString($page_link) : '',
+      '#default_value' => !empty($url) ? $this->getUriAsDisplayableString($url) : '',
       '#description' => $this->t('The URL to the terms and conditions page.'),
       '#required' => TRUE,
       '#element_validate' => [
@@ -87,8 +88,11 @@ class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $this->config(static::CONFIG_NAME)
-      ->set('page_link', $form_state->getValue('page_link'))
+      ->set('url', $form_state->getValue('url'))
       ->save();
+
+    Cache::invalidateTags($this->config(static::CONFIG_NAME)->getCacheTags());
+
     parent::submitForm($form, $form_state);
   }
 
