@@ -88,11 +88,7 @@ class TermsConfigurationTest extends BrowserTestBase {
     $url_field = $assert_session->fieldExists('Terms page URL');
     $url_field->setValue($page->label() . ' (' . $page->id() . ')');
     $assert_session->buttonExists('Save configuration')->press();
-
-    // Check that the value is preserved.
     $assert_session->statusMessageContains('The configuration options have been saved.');
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
-    $this->assertEquals($url_field->getValue(), $page->label() . ' (' . $page->id() . ')');
     $this->drupalLogout();
 
     // The link is present in page.
@@ -100,14 +96,16 @@ class TermsConfigurationTest extends BrowserTestBase {
       'flag' => 'subscribe_all',
       'entity_id' => $page->id(),
     ]));
-    $assert_session->linkExists('data protection terms');
+    $this->clickLink('data protection terms');
+    $assert_session->addressEquals($page->toUrl());
 
-    // The link is present in article.
+    // The link is present in article and it's the same than in page.
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => 'subscribe_all',
       'entity_id' => $article->id(),
     ]));
-    $assert_session->linkExists('data protection terms');
+    $this->clickLink('data protection terms');
+    $assert_session->addressEquals($page->toUrl());
 
     // Delete node and check that the field is not present.
     $page->delete();
