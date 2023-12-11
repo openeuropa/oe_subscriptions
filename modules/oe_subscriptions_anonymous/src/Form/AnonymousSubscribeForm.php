@@ -92,7 +92,7 @@ class AnonymousSubscribeForm extends FormBase {
       // Create URL object.
       $url = Url::fromUri($terms_link);
       // Override the dispalyed text.
-      $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', ['@terms_page' => $url->toString()]);
+      $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
     }
     $form['email'] = [
       '#type' => 'email',
