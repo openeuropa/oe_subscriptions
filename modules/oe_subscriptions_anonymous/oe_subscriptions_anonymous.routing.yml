@@ -14,6 +14,8 @@ oe_subscriptions_anonymous.subscription_request.confirm:
   requirements:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
+  options:
+    no_cache: TRUE
 
 oe_subscriptions_anonymous.subscription_request.cancel:
   path: '/subscribe/cancel/{flag}/{entity_id}/{email}/{hash}'
@@ -22,6 +24,8 @@ oe_subscriptions_anonymous.subscription_request.cancel:
   requirements:
     _user_is_logged_in: 'FALSE'
     _anonymous_subscription_access: 'TRUE'
+  options:
+    no_cache: TRUE
 
 oe_subscriptions_anonymous.user_subscriptions.request_access:
   path: '/user/subscriptions'
@@ -30,6 +34,8 @@ oe_subscriptions_anonymous.user_subscriptions.request_access:
     _title: 'Manage your subscriptions'
   requirements:
     _user_is_logged_in: 'FALSE'
+  options:
+    no_cache: TRUE
 
 oe_subscriptions_anonymous.user_subscriptions.view:
   path: '/user/subscriptions/{email}/{token}'
@@ -38,3 +44,5 @@ oe_subscriptions_anonymous.user_subscriptions.view:
     _title: 'Your subscriptions'
   requirements:
     _user_is_logged_in: 'FALSE'
+  options:
+    no_cache: TRUE
