@@ -15,7 +15,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
@@ -39,14 +38,11 @@ class AnonymousSubscribeForm extends FormBase {
    *   The flag service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
-   * @param \Drupal\Core\Render\RendererInterface $renderer
-   *   The renderer.
    */
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
     protected LanguageManagerInterface $languageManager,
-    protected RendererInterface $renderer
   ) {}
 
   /**
@@ -57,9 +53,9 @@ class AnonymousSubscribeForm extends FormBase {
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
       $container->get('language_manager'),
-      $container->get('renderer')
     );
     $instance->setMessenger($container->get('messenger'));
+    $instance->setConfigFactory($container->get('config.factory'));
 
     return $instance;
   }
@@ -94,21 +90,9 @@ class AnonymousSubscribeForm extends FormBase {
     // In case we have a link we try to add it to the text.
     if (!empty($terms_link)) {
       // Create URL object.
-      $url = Url::fromUri($terms_link, [
-        'attributes' => [
-          'target' => '_blank',
-        ],
-      ]);
-      // Render array with the previous.
-      $link = [
-        '#type' => 'link',
-        '#url' => $url,
-        '#title' => $this->t('data protection terms'),
-      ];
-      // Result.
-      $result = $this->renderer->render($link);
+      $url = Url::fromUri($terms_link);
       // Override the dispalyed text.
-      $title = $this->t('I have read and agree with the @terms_page.', ['@terms_page' => $result]);
+      $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', ['@terms_page' => $url->toString()]);
     }
     $form['email'] = [
       '#type' => 'email',

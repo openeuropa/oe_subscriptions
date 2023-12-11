@@ -37,7 +37,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Constructs a settings form.
    *
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity manager.
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager) {
