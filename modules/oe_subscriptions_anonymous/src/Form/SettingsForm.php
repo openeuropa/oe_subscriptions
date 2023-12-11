@@ -59,9 +59,9 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
     // Saved config.
-    $url = $this->config(static::CONFIG_NAME)->get('url');
+    $url = $this->config(static::CONFIG_NAME)->get('terms_url');
     // Link field.
-    $form['url'] = [
+    $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'node',
       '#title' => $this->t('Terms page URL'),
@@ -88,7 +88,7 @@ class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $this->config(static::CONFIG_NAME)
-      ->set('url', $form_state->getValue('url'))
+      ->set('terms_url', $form_state->getValue('terms_url'))
       ->save();
 
     Cache::invalidateTags($this->config(static::CONFIG_NAME)->getCacheTags());

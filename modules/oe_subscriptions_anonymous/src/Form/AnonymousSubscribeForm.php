@@ -90,8 +90,8 @@ class AnonymousSubscribeForm extends FormBase {
     $terms_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
     $cache->addCacheableDependency($terms_config);
     // In case we have a value we override default text with the link.
-    if (!empty($terms_config->get('url'))) {
-      $url = Url::fromUri($terms_config->get('url'));
+    if (!empty($terms_config->get('terms_url'))) {
+      $url = Url::fromUri($terms_config->get('terms_url'));
       $access = $url->access(NULL, TRUE);
       $cache->addCacheableDependency($access);
       if ($access->isAllowed()) {
