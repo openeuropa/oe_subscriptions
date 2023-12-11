@@ -89,17 +89,16 @@ class AnonymousSubscribeForm extends FormBase {
     $cache = new CacheableMetadata();
     $terms_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
     $cache->addCacheableDependency($terms_config);
-    // Config from terms page.
+    // In case we have a value we override default text with the link.
     if (!empty($terms_config->get('url'))) {
-      // Get URL and check access.
       $url = Url::fromUri($terms_config?->get('url'));
       $access = $url->access(NULL, TRUE);
-      // Handle cache dependencies.
       $cache->addCacheableDependency($access);
       if ($access->isAllowed()) {
         $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
       }
     }
+
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
