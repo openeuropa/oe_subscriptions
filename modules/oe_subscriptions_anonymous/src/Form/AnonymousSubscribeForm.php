@@ -43,7 +43,7 @@ class AnonymousSubscribeForm extends FormBase {
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
-    protected LanguageManagerInterface $languageManager,
+    protected LanguageManagerInterface $languageManager
   ) {}
 
   /**
@@ -53,7 +53,7 @@ class AnonymousSubscribeForm extends FormBase {
     $instance = new static(
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
-      $container->get('language_manager'),
+      $container->get('language_manager')
     );
     $instance->setMessenger($container->get('messenger'));
     $instance->setConfigFactory($container->get('config.factory'));
