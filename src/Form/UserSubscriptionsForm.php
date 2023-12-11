@@ -8,6 +8,7 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\user\UserInterface;
@@ -59,6 +60,14 @@ class UserSubscriptionsForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
+    $form['preferred_language'] = [
+      '#type' => 'language_select',
+      '#title' => $this->t('Preferred language'),
+      '#languages' => LanguageInterface::STATE_CONFIGURABLE,
+      '#description' => $this->t("The primary language of this account's profile information."),
+      '#default_value' => $user->getPreferredLangcode(),
+    ];
+
     $form['flag_list'] = $this->buildFlagList($user);
 
     $form['actions'] = [
@@ -77,7 +86,14 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // @todo Implement submitForm() method.
+    [$user] = $form_state->getBuildInfo()['args'];
+
+    // @see \Drupal\user\AccountForm::buildEntity()
+    $preferred_language = $form_state->getValue('preferred_language');
+    $user->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
+    $user->save();
+
+    $this->messenger()->addStatus($this->t('Your preferences have been saved.'));
   }
 
   /**
