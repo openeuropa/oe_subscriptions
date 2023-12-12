@@ -116,6 +116,22 @@ class TermsConfigurationTest extends BrowserTestBase {
     $assert_session->fieldExists('I have read and agree with the data protection terms.');
     $assert_session->linkNotExists('data protection terms');
 
+    // Set external URL for terms page.
+    $this->drupalLogin($user);
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $url_field = $assert_session->fieldExists('Terms page URL');
+    $url_field->setValue('https://www.drupal.org/');
+    $assert_session->buttonExists('Save configuration')->press();
+    $assert_session->statusMessageContains('The configuration options have been saved.');
+    $this->drupalLogout();
+    // Confirm that the link works.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $article->id(),
+    ]));
+    $this->clickLink('data protection terms');
+    $assert_session->addressEquals('https://www.drupal.org/');
+
   }
 
 }
