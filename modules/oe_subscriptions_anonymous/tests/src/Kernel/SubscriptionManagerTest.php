@@ -77,6 +77,7 @@ class SubscriptionManagerTest extends KernelTestBase {
     $this->assertTrue($article_flag->isFlagged($article_one, $user));
     // The created user is marked as decoupled.
     $this->assertTrue($user->isDecoupled());
+    $this->assertTrue($user->hasRole('anonymous_subscriber'));
 
     // Only account was created.
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
@@ -96,6 +97,7 @@ class SubscriptionManagerTest extends KernelTestBase {
     $another_user = user_load_by_mail('another@example.com');
     $this->assertInstanceOf(DecoupledAuthUserInterface::class, $another_user);
     $this->assertTrue($another_user->isDecoupled());
+    $this->assertTrue($another_user->hasRole('anonymous_subscriber'));
     $this->assertTrue($article_flag->isFlagged($article_one, $another_user));
     $this->assertCount(2, $user_storage->loadMultiple());
     // The other flags are not impacted.
