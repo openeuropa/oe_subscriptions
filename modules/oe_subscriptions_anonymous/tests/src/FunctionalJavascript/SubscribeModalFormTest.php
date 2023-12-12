@@ -110,7 +110,8 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
     $assert_session->assertWaitOnAjaxRequest();
     $assert_session->elementNotExists('css', $modal_selector);
-    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->statusMessageContains('A confirmation email has been sent to your email address', 'warning');
+    $assert_session->statusMessageContains('To confirm your subscription, please click on the confirmation link sent to your e-mail address.', 'warning');
     $this->assertCount(1, $this->getMails());
     $this->assertMail('to', 'test@test.com');
   }
