@@ -12,7 +12,7 @@ use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
-use Symfony\Component\DomCrawler\Crawler;
+use Drupal\user\UserInterface;
 
 /**
  * Tests the user subscriptions page.
@@ -177,39 +177,53 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
     $table = $assert_session->elementExists('css', 'table.user-subscriptions');
 
     // Assert the header row labels.
+    $header_cells = $this->getTableSectionRows($table, 'thead');
+    $this->assertCount(1, $header_cells);
     $this->assertEquals([
-      [
-        'Type',
-        'Title',
-        'Operations',
-      ],
-    ], $this->getTableSectionContent($table, 'thead'));
+      'Type',
+      'Title',
+      'Operations',
+    ], array_map(fn($cell) => trim($cell->getHtml()), $header_cells[0]));
 
-    $rows = $this->getTableSectionContent($table, 'tbody');
+    $rows = $this->getTableSectionRows($table, 'tbody');
     $this->assertCount(3, $rows);
-    $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $rows[0]);
-    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $rows[1]);
-    $this->assertSubscriptionRow('Content', $article, $articles_flag, $rows[2]);
+    $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $user_one, $rows[0]);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_one, $rows[1]);
+    $this->assertSubscriptionRow('Content', $article, $articles_flag, $user_one, $rows[2]);
 
     // Flag another entities for the user one.
     $flag_service->flag($bar_flag, $bar, $user_one);
     $flag_service->flag($pages_flag, $page_one, $user_one);
     $this->drupalGet("/user/{$user_one->id()}/subscriptions");
-    $rows = $this->getTableSectionContent($table, 'tbody');
+    $rows = $this->getTableSectionRows($table, 'tbody');
     $this->assertCount(5, $rows);
-    $this->assertSubscriptionRow('Test entity with bundle', $bar, $bar_flag, $rows[0]);
-    $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $rows[1]);
-    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $rows[2]);
-    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $rows[3]);
-    $this->assertSubscriptionRow('Content', $article, $articles_flag, $rows[4]);
+    $this->assertSubscriptionRow('Test entity with bundle', $bar, $bar_flag, $user_one, $rows[0]);
+    $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $user_one, $rows[1]);
+    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_one, $rows[2]);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_one, $rows[3]);
+    $this->assertSubscriptionRow('Content', $article, $articles_flag, $user_one, $rows[4]);
 
     // Check the flags of user two.
     $this->drupalLogin($user_two);
     $this->drupalGet("/user/{$user_two->id()}/subscriptions");
-    $rows = $this->getTableSectionContent($table, 'tbody');
+    $rows = $this->getTableSectionRows($table, 'tbody');
     $this->assertCount(2, $rows);
-    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $rows[0]);
-    $this->assertSubscriptionRow('Content', $article, $articles_flag, $rows[1]);
+    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_two, $rows[0]);
+    $this->assertSubscriptionRow('Content', $article, $articles_flag, $user_two, $rows[1]);
+
+    // Use the remove button to unsubscribe from the article.
+    $rows[1][2]->pressButton('Remove');
+    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $article->label(), 'status');
+    $rows = $this->getTableSectionRows($table, 'tbody');
+    $this->assertCount(1, $rows);
+    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_two, $rows[0]);
+    $this->assertFalse($articles_flag->isFlagged($article, $user_two));
+
+    // Unsubscribe from the page too.
+    $rows[0][2]->pressButton('Remove');
+    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $page_one->label(), 'status');
+    $this->assertEmpty($this->getTableSectionRows($table, 'tbody'));
+    $assert_session->pageTextContains('No subscriptions found.');
   }
 
   /**
@@ -264,29 +278,22 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
    * @param string $section
    *   The table section. Either "thead" or "tbody".
    *
-   * @return array
-   *   The cell content ordered by row.
+   * @return \Behat\Mink\Element\NodeElement[][]
+   *   The cell elements, grouped by row.
    */
-  protected function getTableSectionContent(NodeElement $table, string $section): array {
+  protected function getTableSectionRows(NodeElement $table, string $section): array {
     $cell_selector = match($section) {
       'thead' => 'th',
       'tbody' => 'td',
     };
 
-    $content = [];
-    $rows = $table->findAll('css', $section . ' tr');
-    /** @var \Behat\Mink\Element\NodeElement[] $rows */
-    foreach ($rows as $row) {
-      $cells = $row->findAll('css', $cell_selector);
-      $row_content = [];
-      foreach ($cells as $cell) {
-        /** @var \Behat\Mink\Element\NodeElement $cell */
-        $row_content[] = trim($cell->getHtml());
-      }
-      $content[] = $row_content;
+    $cells = [];
+    foreach ($table->findAll('css', $section . ' tr') as $row) {
+      /** @var \Behat\Mink\Element\NodeElement $row */
+      $cells[] = $row->findAll('css', $cell_selector);
     }
 
-    return $content;
+    return $cells;
   }
 
   /**
@@ -298,22 +305,28 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
    *   The flagged entity.
    * @param \Drupal\flag\FlagInterface $flag
    *   The flag.
-   * @param array $cells
-   *   The cell contents.
+   * @param \Drupal\user\UserInterface $account
+   *   The user account for which the page has been rendered.
+   * @param \Behat\Mink\Element\NodeElement[] $cells
+   *   The cell elements.
+   *
+   * @throws \Drupal\Core\Entity\EntityMalformedException
    */
-  protected function assertSubscriptionRow(string $entity_type_label, EntityInterface $entity, FlagInterface $flag, array $cells): void {
-    global $base_path;
+  protected function assertSubscriptionRow(string $entity_type_label, EntityInterface $entity, FlagInterface $flag, UserInterface $account, array $cells): void {
+    $this->assertEquals($entity_type_label, $cells[0]->getHtml());
 
-    $this->assertEquals($entity_type_label, $cells[0]);
-    $this->assertEquals((string) $entity->toLink()->toString(), $cells[1]);
-
-    // The third cell has markup that contains a flag link. Extract the link.
-    $crawler = new Crawler($cells[2]);
-    $links = $crawler->filter('a');
+    $links = $cells[1]->findAll('css', 'a');
     $this->assertCount(1, $links);
+    $this->assertEquals($entity->toUrl()->toString(), $links[0]->getAttribute('href'));
+    $this->assertEquals($entity->label(), $links[0]->getHtml());
 
-    $url = sprintf('%sflag/unflag/%s/%s', $base_path, $flag->id(), $entity->id());
-    $this->assertStringStartsWith($url, $links->eq(0)->attr('href'));
+    $buttons = $cells[2]->findAll('named', ['button', 'Remove']);
+    $this->assertCount(1, $buttons);
+
+    // @todo is this needed?
+    $flagging = \Drupal::service('flag')->getFlagging($flag, $entity, $account);
+    $this->assertNotEmpty($flagging);
+    $this->assertEquals(sprintf('edit-flag-list-%s-unflag', $flagging->id()), $buttons[0]->getAttribute('data-drupal-selector'));
   }
 
 }

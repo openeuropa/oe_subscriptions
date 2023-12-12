@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions\Form;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
@@ -11,6 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\flag\FlagServiceInterface;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -24,10 +26,16 @@ class UserSubscriptionsForm extends FormBase {
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
+   * @param \Drupal\flag\FlagServiceInterface $flagService
+   *   The flag service.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
    */
-  public function __construct(protected EntityTypeManagerInterface $entityTypeManager, protected AccountInterface $currentUser) {}
+  public function __construct(
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected FlagServiceInterface $flagService,
+    protected AccountInterface $currentUser
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -35,6 +43,7 @@ class UserSubscriptionsForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
+      $container->get('flag'),
       $container->get('current_user')
     );
   }
@@ -155,7 +164,6 @@ class UserSubscriptionsForm extends FormBase {
     }
 
     $cacheability = CacheableMetadata::createFromRenderArray($build);
-    $rows = [];
     /** @var \Drupal\flag\FlaggingInterface[] $flaggings */
     $flaggings = $flag_storage->loadMultiple($results);
     foreach ($flaggings as $flagging) {
@@ -175,16 +183,23 @@ class UserSubscriptionsForm extends FormBase {
         continue;
       }
 
-      $rows[] = [
-        'type' => $entity->getEntityType()->getLabel(),
-        'label' => ['data' => $entity->toLink()->toRenderable()],
-        'flag_link' => [
-          'data' => $flag->getLinkTypePlugin()->getAsFlagLink($flag, $entity),
+      $build[$flagging->id()] = [
+        '#flag_id' => $flag->id(),
+        '#entity_type_id' => $entity->getEntityTypeId(),
+        '#entity_id' => $entity->id(),
+        'type' => [
+          '#plain_text' => $entity->getEntityType()->getLabel(),
+        ],
+        'label' => $entity->toLink()->toRenderable(),
+        'unflag' => [
+          '#type' => 'submit',
+          '#value' => $this->t('Remove'),
+          '#submit' => ['::unflagSubmit'],
         ],
       ];
     }
 
-    $build = [
+    $build += [
       '#type' => 'table',
       '#attributes' => [
         'class' => ['user-subscriptions'],
@@ -194,11 +209,43 @@ class UserSubscriptionsForm extends FormBase {
         $this->t('Title'),
         $this->t('Operations'),
       ],
-      '#rows' => $rows,
     ];
     $cacheability->applyTo($build);
 
     return $build;
+  }
+
+  /**
+   * Submit handler to remove a single flag.
+   *
+   * @param array $form
+   *   The form structure.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  public function unflagSubmit(array $form, FormStateInterface $form_state) {
+    $triggering_element = $form_state->getTriggeringElement();
+    $row = NestedArray::getValue($form, array_slice($triggering_element['#array_parents'], 0, -1));
+    [
+      '#flag_id' => $flag_id,
+      '#entity_type_id' => $entity_type_id,
+      '#entity_id' => $entity_id,
+    ] = $row;
+
+    $flag = $this->entityTypeManager->getStorage('flag')->load($flag_id);
+    $entity = $this->entityTypeManager->getStorage($entity_type_id)->load($entity_id);
+    [$user] = $form_state->getBuildInfo()['args'];
+
+    // Unsubscribe only if the entity is found. It could have been deleted
+    // while the user has the page open.
+    if ($entity) {
+      $this->flagService->unflag($flag, $entity, $user);
+    }
+
+    // We always show the correct message even if the entity was not found.
+    $this->messenger()->addStatus($this->t('You have successfully unsubscribed from @label.', [
+      '@label' => $entity->label(),
+    ]));
   }
 
 }
