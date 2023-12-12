@@ -28,7 +28,7 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
     'block',
     'entity_test',
     'node',
-    'oe_subscriptions_anonymous',
+    'oe_subscriptions',
   ];
 
   /**
