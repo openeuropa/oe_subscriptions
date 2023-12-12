@@ -22,6 +22,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class UserSubscriptionsForm extends FormBase {
 
   /**
+   * The user account for which the form is being rendered.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected UserInterface $account;
+
+  /**
    * Creates a new instance of this class.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -69,15 +76,17 @@ class UserSubscriptionsForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
+    $this->account = $user;
+
     $form['preferred_language'] = [
       '#type' => 'language_select',
       '#title' => $this->t('Preferred language'),
       '#languages' => LanguageInterface::STATE_CONFIGURABLE,
       '#description' => $this->t("The primary language of this account's profile information."),
-      '#default_value' => $user->getPreferredLangcode(),
+      '#default_value' => $this->account->getPreferredLangcode(),
     ];
 
-    $form['flag_list'] = $this->buildFlagList($user);
+    $form['flag_list'] = $this->buildFlagList();
 
     $form['actions'] = [
       '#type' => 'actions',
@@ -95,12 +104,10 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    [$user] = $form_state->getBuildInfo()['args'];
-
     // @see \Drupal\user\AccountForm::buildEntity()
     $preferred_language = $form_state->getValue('preferred_language');
-    $user->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
-    $user->save();
+    $this->account->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
+    $this->account->save();
 
     $this->messenger()->addStatus($this->t('Your preferences have been saved.'));
   }
@@ -125,20 +132,17 @@ class UserSubscriptionsForm extends FormBase {
   }
 
   /**
-   * Builds the list of flagged entities for a user.
-   *
-   * @param \Drupal\user\UserInterface $user
-   *   The user.
+   * Builds the list of flagged entities for the current account.
    *
    * @return array
    *   A render array.
    */
-  protected function buildFlagList(UserInterface $user): array {
+  protected function buildFlagList(): array {
     $flag_storage = $this->entityTypeManager->getStorage('flagging');
     // @todo Add paging.
     $results = $flag_storage->getQuery()
       ->accessCheck()
-      ->condition('uid', $user->id())
+      ->condition('uid', $this->account->id())
       ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
       ->sort('entity_type')
       // Sorting by flag ID is equivalent to sorting by creation time, as IDs
@@ -173,7 +177,7 @@ class UserSubscriptionsForm extends FormBase {
       }
       $flag = $flagging->getFlag();
 
-      $entity_access = $entity->access('view', $user, TRUE);
+      $entity_access = $entity->access('view', $this->account, TRUE);
       $cacheability->addCacheableDependency($entity_access);
       // We don't render the row if the user has no view access to this entity
       // (e.g. it has been unpublished).
@@ -234,12 +238,11 @@ class UserSubscriptionsForm extends FormBase {
 
     $flag = $this->entityTypeManager->getStorage('flag')->load($flag_id);
     $entity = $this->entityTypeManager->getStorage($entity_type_id)->load($entity_id);
-    [$user] = $form_state->getBuildInfo()['args'];
 
     // Unsubscribe only if the entity is found. It could have been deleted
     // while the user has the page open.
     if ($entity) {
-      $this->flagService->unflag($flag, $entity, $user);
+      $this->flagService->unflag($flag, $entity, $this->account);
     }
 
     // We always show the correct message even if the entity was not found.
