@@ -101,7 +101,8 @@ class SubscribeTest extends BrowserTestBase {
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->statusMessageContains('A confirmation email has been sent to your email address', 'warning');
+    $assert_session->statusMessageContains('To confirm your subscription, please click on the confirmation link sent to your e-mail address.', 'warning');
     $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
@@ -131,7 +132,8 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->statusMessageContains('A confirmation email has been sent to your email address', 'warning');
+    $assert_session->statusMessageContains('To confirm your subscription, please click on the confirmation link sent to your e-mail address.', 'warning');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
@@ -163,7 +165,8 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $assert_session->statusMessageContains('A confirmation email has been sent to your email address', 'warning');
+    $assert_session->statusMessageContains('To confirm your subscription, please click on the confirmation link sent to your e-mail address.', 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
