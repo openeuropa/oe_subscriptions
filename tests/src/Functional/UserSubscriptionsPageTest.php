@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\flag\FlagInterface;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Symfony\Component\DomCrawler\Crawler;
@@ -65,7 +66,7 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
   /**
    * Tests the subscriptions page.
    */
-  public function testSubscriptionsPage(): void {
+  public function testFlagsList(): void {
     $flag_defaults = [
       'flag_short' => 'Flag',
       'unflag_short' => 'Unflag',
@@ -209,6 +210,50 @@ class UserSubscriptionsPageTest extends BrowserTestBase {
     $this->assertCount(2, $rows);
     $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $rows[0]);
     $this->assertSubscriptionRow('Content', $article, $articles_flag, $rows[1]);
+  }
+
+  /**
+   * Tests the user preferences fields.
+   */
+  public function testUserPreferences(): void {
+    $user = $this->drupalCreateUser();
+    $this->drupalLogin($user);
+    $path = "/user/{$user->id()}/subscriptions";
+    $this->drupalGet($path);
+    $assert_session = $this->assertSession();
+    $assert_session->fieldNotExists('Preferred language');
+
+    \Drupal::service('module_installer')->install(['language']);
+    $this->drupalGet($path);
+    $select = $assert_session->selectExists('Preferred language');
+    $this->assertEquals([
+      'en' => 'English',
+    ], $this->getOptions($select));
+
+    ConfigurableLanguage::createFromLangcode('it')->save();
+    $this->drupalGet($path);
+    $this->assertEquals([
+      'en' => 'English',
+      'it' => 'Italian',
+    ], $this->getOptions($select));
+
+    ConfigurableLanguage::createFromLangcode('es')->save();
+    $this->drupalGet($path);
+    $this->assertEquals([
+      'en' => 'English',
+      'it' => 'Italian',
+      'es' => 'Spanish',
+    ], $this->getOptions($select));
+
+    $select->selectOption('Italian');
+    $assert_session->buttonExists('Save')->press();
+    $assert_session->statusMessageContains('Your preferences have been saved', 'status');
+
+    $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+    $user_storage->resetCache();
+    /** @var \Drupal\user\UserInterface $user */
+    $user = $user_storage->load($user->id());
+    $this->assertEquals('it', $user->getPreferredLangcode());
   }
 
   /**
