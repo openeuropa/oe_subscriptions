@@ -15,6 +15,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
@@ -38,11 +39,14 @@ class AnonymousSubscribeForm extends FormBase {
    *   The flag service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
-    protected LanguageManagerInterface $languageManager
+    protected LanguageManagerInterface $languageManager,
+    protected RendererInterface $renderer,
   ) {}
 
   /**
@@ -52,7 +56,8 @@ class AnonymousSubscribeForm extends FormBase {
     $instance = new static(
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('renderer')
     );
     $instance->setMessenger($container->get('messenger'));
 
@@ -159,7 +164,14 @@ class AnonymousSubscribeForm extends FormBase {
       return;
     }
 
-    $this->messenger()->addMessage($this->t('A confirmation e-email has been sent to your e-mail address.'));
+    $confirm_message = [
+      '#theme' => 'oe_subscriptions_anonymous_message',
+      '#title' => $this->t('A confirmation email has been sent to your email address'),
+      '#message' => $this->t('To confirm your subscription, <strong>please click on the confirmation link</strong> sent to your e-mail address.'),
+    ];
+    $rendered_message = $this->renderer->render($confirm_message);
+    $this->messenger()->addWarning($rendered_message);
+
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     try {
       // Redirect to the canonical page of the entity.
@@ -178,8 +190,15 @@ class AnonymousSubscribeForm extends FormBase {
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
 
+    $confirm_message = [
+      '#theme' => 'oe_subscriptions_anonymous_message',
+      '#title' => $this->t('A confirmation email has been sent to your email address'),
+      '#message' => $this->t('To confirm your subscription, <strong>please click on the confirmation link</strong> sent to your e-mail address.'),
+    ];
+    $rendered_message = $this->renderer->render($confirm_message);
+
     $response->addCommand(new CloseModalDialogCommand());
-    $response->addCommand(new MessageCommand($this->t('A confirmation e-email has been sent to your e-mail address.')));
+    $response->addCommand(new MessageCommand($rendered_message, NULL, ['type' => 'warning']));
 
     return $response;
   }
