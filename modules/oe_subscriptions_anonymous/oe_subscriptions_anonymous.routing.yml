@@ -41,7 +41,7 @@ oe_subscriptions_anonymous.user_subscriptions.view:
   path: '/user/subscriptions/{email}/{token}'
   defaults:
     _controller: '\Drupal\oe_subscriptions_anonymous\Controller\SubscriptionAnonymousController:userSubscriptionsPage'
-    _title: 'Your subscriptions'
+    _title: 'Manage your subscriptions'
   requirements:
     _user_is_logged_in: 'FALSE'
   options:

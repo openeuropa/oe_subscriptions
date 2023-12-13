@@ -123,10 +123,10 @@ class UserSubscriptionsForm extends FormBase {
    */
   public function getTitle(UserInterface $user): TranslatableMarkup {
     if ($this->currentUser->id() === $user->id()) {
-      return $this->t('My subscriptions');
+      return $this->t('Manage your subscriptions');
     }
 
-    return $this->t('@name subscriptions', [
+    return $this->t('Manage @name subscriptions', [
       '@name' => $user->getDisplayName(),
     ]);
   }
