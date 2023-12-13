@@ -210,9 +210,9 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
     $url_suffix = sprintf('%s/%s/%s', $flag->id(), $entity->id(), rawurlencode($email));
     $base_confirm_url = $this->getAbsoluteUrl('/subscribe/confirm/' . $url_suffix);
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '.+$@', $mail_urls[2]);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_confirm_url, '@') . '/.+$@', $mail_urls[2]);
     $base_cancel_url = $this->getAbsoluteUrl('/subscribe/cancel/' . $url_suffix);
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '.+$@', $mail_urls[3]);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '/.+$@', $mail_urls[3]);
 
     return $mail_urls;
   }
