@@ -7,6 +7,7 @@ namespace Drupal\oe_subscriptions_anonymous\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
+use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions\Form\UserSubscriptionsForm;
@@ -151,7 +152,7 @@ class SubscriptionAnonymousController extends ControllerBase {
    */
   public function userSubscriptionsPage(string $email, string $token) {
     if (!$this->tokenManager->isValid($email, 'user_subscriptions_page', $token)) {
-      $this->messenger()->addWarning($this->t('Your token is either invalid or it has expired. Please request a new token to access your subscriptions.'));
+      $this->messenger()->addError($this->t('Your token is either invalid or it has expired. Please request a new token to access your subscriptions.'));
       return $this->redirect('oe_subscriptions_anonymous.user_subscriptions.request_access');
     }
 
@@ -160,9 +161,20 @@ class SubscriptionAnonymousController extends ControllerBase {
     ]);
     /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $user */
     $user = empty($users) ? NULL : reset($users);
-    if (!$user || $user->isCoupled()) {
-      $this->messenger()->addWarning($this->t('Your token is either invalid or it has expired. Please request a new token to access your subscriptions.'));
-      return $this->redirect('oe_subscriptions_anonymous.user_subscriptions.request_access');
+    if (!$user) {
+      $this->messenger()->addWarning($this->t("You don't have any subscriptions at the moment."));
+      return $this->redirect('<front>');
+    }
+
+    if ($user->isCoupled()) {
+      $this->messenger()->addWarning($this->t('It seems that you have an account on this website. Please login to manage your subscriptions.'));
+      return $this->redirect('user.login', [], [
+        'query' => [
+          'destination' => Url::fromRoute('oe_subscriptions.user.subscriptions', [
+            'user' => $user->id(),
+          ])->toString(),
+        ],
+      ]);
     }
 
     return $this->formBuilder->getForm(UserSubscriptionsForm::class, $user);
