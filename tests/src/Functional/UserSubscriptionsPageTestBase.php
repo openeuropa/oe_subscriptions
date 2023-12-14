@@ -164,7 +164,6 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     ], array_map(fn($cell) => trim($cell->getHtml()), $header_cells[0]));
 
     $rows = $this->getTableSectionRows($table, 'tbody');
-    file_put_contents('/var/www/html/debug.html', $this->getSession()->getPage()->getOuterHtml());
     $this->assertCount(3, $rows);
     $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $user_one, $rows[0]);
     $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_one, $rows[1]);
