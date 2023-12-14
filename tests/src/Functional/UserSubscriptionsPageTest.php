@@ -58,7 +58,7 @@ class UserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
     $this->assertNotEmpty($link);
     $link->click();
     $table = $assert_session->elementExists('css', 'table.user-subscriptions');
-    $this->assertCount(5, $this->getTableSectionRows($table, 'tbody'));
+    $this->assertCount(4, $this->getTableSectionRows($table, 'tbody'));
   }
 
   /**

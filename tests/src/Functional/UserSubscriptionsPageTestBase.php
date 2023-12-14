@@ -130,6 +130,8 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     ]);
     $bar->save();
 
+    /** @var \Drupal\user\UserInterface $user_one */
+    /** @var \Drupal\user\UserInterface $user_two */
     [$user_one, $user_two] = $fn_create_users();
 
     $fn_go_to_page($user_one);
@@ -201,6 +203,23 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $page_one->label(), 'status');
     $this->assertEmpty($this->getTableSectionRows($table, 'tbody'));
     $assert_session->pageTextContains('No subscriptions found.');
+
+    // Administrators can manage other users subscriptions.
+    $this->drupalLogin($this->drupalCreateUser(['administer users']));
+    $this->drupalGet("/user/{$user_one->id()}/subscriptions");
+    $assert_session->titleEquals(sprintf('Manage %s subscriptions | Drupal', $user_one->getDisplayName()));
+    $rows = $this->getTableSectionRows($table, 'tbody');
+    $this->assertCount(5, $rows);
+    // Remove the subscription from the article.
+    $rows[4][2]->pressButton('Remove');
+    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $article->label(), 'status');
+    $rows = $this->getTableSectionRows($table, 'tbody');
+    $this->assertCount(4, $rows);
+    $this->assertSubscriptionRow('Test entity with bundle', $bar, $bar_flag, $user_one, $rows[0]);
+    $this->assertSubscriptionRow('Test entity with bundle', $foo, $foo_flag, $user_one, $rows[1]);
+    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_one, $rows[2]);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_one, $rows[3]);
+    $this->drupalLogout();
   }
 
   /**
