@@ -55,11 +55,8 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
  */
 function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
   return [
-    'oe_subscriptions_anonymous_message' => [
-      'variables' => [
-        'title' => '',
-        'message' => '',
-      ],
+    'oe_subscriptions_anonymous_message_confirm' => [
+      'variables' => [],
     ],
   ];
 }
