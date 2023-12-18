@@ -54,9 +54,7 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    // Saved config.
     $url = $this->config(static::CONFIG_NAME)->get('terms_url');
-    // Link field.
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'node',
