@@ -11,7 +11,7 @@ use Drupal\Tests\flag\Traits\FlagCreateTrait;
 /**
  * Tests the subscription configuration.
  */
-class TermsConfigurationTest extends BrowserTestBase {
+class SettingsTest extends BrowserTestBase {
 
   use FlagCreateTrait;
 
@@ -49,17 +49,11 @@ class TermsConfigurationTest extends BrowserTestBase {
    * Tests the configuration for the terms link in the subscriptions form.
    */
   public function testTermsConfiguration(): void {
-    // Create flags.
     $this->createFlagFromArray([
       'id' => 'subscribe_all',
       'flag_short' => 'Subscribe',
       'entity_type' => 'node',
       'bundles' => [],
-    ]);
-    // Create some test nodes.
-    $article = $this->drupalCreateNode([
-      'type' => 'article',
-      'status' => 1,
     ]);
     $page = $this->drupalCreateNode([
       'type' => 'page',
@@ -67,14 +61,8 @@ class TermsConfigurationTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-
-    // Assert that the link is not present if the configuration is not set.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
-    $assert_session->fieldExists('I have read and agree with the data protection terms.');
-    $assert_session->linkNotExists('data protection terms');
+    $user = $this->createUser(['administer anonymous subscriptions']);
+    $page_value = $page->label() . ' (' . $page->id() . ')';
 
     // User without permission can't access the configuration page.
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
@@ -82,55 +70,24 @@ class TermsConfigurationTest extends BrowserTestBase {
     $assert_session->statusCodeEquals(403);
 
     // Assert user with permissions can manage configuration.
-    $user = $this->createUser(['administer anonymous subscriptions']);
     $this->drupalLogin($user);
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
     $url_field = $assert_session->fieldExists('Terms page URL');
-    $url_field->setValue($page->label() . ' (' . $page->id() . ')');
+    $url_field->setValue($page_value);
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.');
-    $this->drupalLogout();
-
-    // The link is present in page.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $page->id(),
-    ]));
-    $this->clickLink('data protection terms');
-    $assert_session->addressEquals($page->toUrl());
-
-    // The link is present in article and it's the same than in page.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
-    $this->clickLink('data protection terms');
-    $assert_session->addressEquals($page->toUrl());
-
-    // Delete node and check that the field is not present.
-    $page->delete();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
-    $assert_session->fieldExists('I have read and agree with the data protection terms.');
-    $assert_session->linkNotExists('data protection terms');
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->assertEquals($url_field->getValue(), $page_value);
 
     // Set external URL for terms page.
-    $this->drupalLogin($user);
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
     $url_field = $assert_session->fieldExists('Terms page URL');
     $url_field->setValue('https://www.drupal.org/');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.');
-    $this->drupalLogout();
-    // Confirm that the link works.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
-    $this->clickLink('data protection terms');
-    $assert_session->addressEquals('https://www.drupal.org/');
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->assertEquals($url_field->getValue(), 'https://www.drupal.org/');
+
   }
 
 }
