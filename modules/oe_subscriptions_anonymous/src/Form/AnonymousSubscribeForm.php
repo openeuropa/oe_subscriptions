@@ -10,7 +10,6 @@ use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CloseModalDialogCommand;
 use Drupal\Core\Ajax\MessageCommand;
-use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -86,14 +85,11 @@ class AnonymousSubscribeForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
     // Terms and conditions link.
     $title = $this->t('I have read and agree with the data protection terms.');
-    $cache = new CacheableMetadata();
     $terms_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
-    $cache->addCacheableDependency($terms_config);
     // In case we have a value we override default text with the link.
     if (!empty($terms_config->get('terms_url'))) {
       $url = Url::fromUri($terms_config->get('terms_url'));
       $access = $url->access(NULL, TRUE);
-      $cache->addCacheableDependency($access);
       if ($access->isAllowed()) {
         $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
       }
@@ -110,7 +106,6 @@ class AnonymousSubscribeForm extends FormBase {
       '#title' => $title,
       '#required' => TRUE,
     ];
-    $cache->applyTo($form['accept_terms']);
 
     // This button will is used to close the modal, no submit callback.
     $form['actions'] = [

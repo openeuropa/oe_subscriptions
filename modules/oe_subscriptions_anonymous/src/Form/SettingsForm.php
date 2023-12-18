@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace Drupal\oe_subscriptions_anonymous\Form;
 
-use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -87,8 +86,6 @@ class SettingsForm extends ConfigFormBase {
     $this->config(static::CONFIG_NAME)
       ->set('terms_url', $form_state->getValue('terms_url'))
       ->save();
-
-    Cache::invalidateTags($this->config(static::CONFIG_NAME)->getCacheTags());
 
     parent::submitForm($form, $form_state);
   }
