@@ -103,7 +103,7 @@ class SettingsForm extends ConfigFormBase {
    * @return string
    *   String to be displayed.
    *
-   * @see static::getUserEnteredStringAsUri()
+   * @see \Drupal\link\Plugin\Field\FieldWidget\LinkWidget::getUserEnteredStringAsUri()
    */
   protected function getUriAsDisplayableString($uri): string {
     $scheme = parse_url($uri, PHP_URL_SCHEME);
