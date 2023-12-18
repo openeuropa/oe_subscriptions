@@ -86,10 +86,17 @@ class SettingsTest extends BrowserTestBase {
 
     // Set external URL for terms page.
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
-    $url_field = $assert_session->fieldExists('Terms page URL');
     $url_field->setValue('https://www.drupal.org/');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
+
+    // Set invalid links.
+    $url_field->setValue('Plain text');
+    $assert_session->buttonExists('Save configuration')->press();
+    $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
+    $url_field->setValue('www.drupal.org');
+    $assert_session->buttonExists('Save configuration')->press();
+    $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
   }
 
 }
