@@ -131,7 +131,6 @@ class TermsConfigurationTest extends BrowserTestBase {
     ]));
     $this->clickLink('data protection terms');
     $assert_session->addressEquals('https://www.drupal.org/');
-
   }
 
 }

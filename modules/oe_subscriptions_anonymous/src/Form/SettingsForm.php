@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\oe_subscriptions_anonymous\Form;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
@@ -22,13 +23,6 @@ class SettingsForm extends ConfigFormBase {
   const CONFIG_NAME = 'oe_subscriptions_anonymous.settings';
 
   /**
-   * EntityTypeManager.
-   *
-   * @var Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
-
-  /**
    * {@inheritdoc}
    */
   public function getFormId(): string {
@@ -38,11 +32,13 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Constructs a settings form.
    *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The factory for configuration objects.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity manager.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager) {
-    $this->entityTypeManager = $entityTypeManager;
+  public function __construct(ConfigFactoryInterface $config_factory, protected EntityTypeManagerInterface $entityTypeManager) {
+    parent::__construct($config_factory);
   }
 
   /**
@@ -50,6 +46,7 @@ class SettingsForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('config.factory'),
       $container->get('entity_type.manager')
     );
   }
@@ -114,7 +111,6 @@ class SettingsForm extends ConfigFormBase {
    * @see static::getUserEnteredStringAsUri()
    */
   protected function getUriAsDisplayableString($uri): string {
-
     $scheme = parse_url($uri, PHP_URL_SCHEME);
 
     // By default, the displayable string is the URI.
