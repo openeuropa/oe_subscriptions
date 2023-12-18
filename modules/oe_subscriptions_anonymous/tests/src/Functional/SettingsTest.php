@@ -75,11 +75,11 @@ class SettingsTest extends BrowserTestBase {
     $url_field = $assert_session->fieldExists('Terms page URL');
     // Check that the field is required.
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains("Terms page URL field is required.");
+    $assert_session->statusMessageContains('Terms page URL field is required.', 'error');
     // Set an internal link value.
     $url_field->setValue($page_value);
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('The configuration options have been saved.');
+    $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
     // The form displays the saved value.
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
     $this->assertEquals($url_field->getValue(), $page_value);
@@ -89,7 +89,7 @@ class SettingsTest extends BrowserTestBase {
     $url_field = $assert_session->fieldExists('Terms page URL');
     $url_field->setValue('https://www.drupal.org/');
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('The configuration options have been saved.');
+    $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
   }
 
 }
