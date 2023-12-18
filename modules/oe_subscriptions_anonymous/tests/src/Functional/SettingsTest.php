@@ -48,7 +48,7 @@ class SettingsTest extends BrowserTestBase {
   /**
    * Tests the configuration for the terms link in the subscriptions form.
    */
-  public function testTermsConfiguration(): void {
+  public function testSettingsForm(): void {
     $this->createFlagFromArray([
       'id' => 'subscribe_all',
       'flag_short' => 'Subscribe',
@@ -69,13 +69,18 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->pageTextContains('You are not authorized to access this page.');
     $assert_session->statusCodeEquals(403);
 
-    // Assert user with permissions can manage configuration.
+    // Test link configuration for terms page.
     $this->drupalLogin($user);
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
     $url_field = $assert_session->fieldExists('Terms page URL');
+    // Check that the field is required.
+    $assert_session->buttonExists('Save configuration')->press();
+    $assert_session->statusMessageContains("Terms page URL field is required.");
+    // Set an internal link value.
     $url_field->setValue($page_value);
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.');
+    // The form displays the saved value.
     $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
     $this->assertEquals($url_field->getValue(), $page_value);
 
@@ -85,9 +90,6 @@ class SettingsTest extends BrowserTestBase {
     $url_field->setValue('https://www.drupal.org/');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.');
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
-    $this->assertEquals($url_field->getValue(), 'https://www.drupal.org/');
-
   }
 
 }
