@@ -19,7 +19,6 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,8 +32,6 @@ class AnonymousSubscribeForm extends FormBase {
   /**
    * Creates a new instance of this class.
    *
-   * @param \Drupal\oe_subscriptions_anonymous\TokenManagerInterface $tokenManager
-   *   The token manager.
    * @param \Drupal\Core\Mail\MailManagerInterface $mailManager
    *   The mail manager.
    * @param \Drupal\flag\FlagServiceInterface $flagService
@@ -43,7 +40,6 @@ class AnonymousSubscribeForm extends FormBase {
    *   The language manager.
    */
   public function __construct(
-    protected TokenManagerInterface $tokenManager,
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
     protected LanguageManagerInterface $languageManager
@@ -54,7 +50,6 @@ class AnonymousSubscribeForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     $instance = new static(
-      $container->get('oe_subscriptions_anonymous.token_manager'),
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
       $container->get('language_manager')
