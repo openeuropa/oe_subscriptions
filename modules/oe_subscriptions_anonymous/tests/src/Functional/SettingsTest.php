@@ -29,37 +29,9 @@ class SettingsTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * {@inheritdoc}
-   */
-  protected function setUp(): void {
-    parent::setUp();
-
-    $this->drupalCreateContentType([
-      'type' => 'article',
-      'name' => 'Article',
-    ]);
-
-    $this->drupalCreateContentType([
-      'type' => 'page',
-      'name' => 'Page',
-    ]);
-  }
-
-  /**
    * Tests the configuration for the terms link in the subscriptions form.
    */
   public function testSettingsForm(): void {
-    $this->createFlagFromArray([
-      'id' => 'subscribe_all',
-      'flag_short' => 'Subscribe',
-      'entity_type' => 'node',
-      'bundles' => [],
-    ]);
-    $page = $this->drupalCreateNode([
-      'type' => 'page',
-      'status' => 1,
-    ]);
-
     $assert_session = $this->assertSession();
     $user = $this->createUser(['administer anonymous subscriptions']);
     $page_value = $page->label() . ' (' . $page->id() . ')';

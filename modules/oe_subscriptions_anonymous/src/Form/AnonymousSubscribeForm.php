@@ -89,8 +89,7 @@ class AnonymousSubscribeForm extends FormBase {
     // In case we have a value we override default text with the link.
     if (!empty($terms_config->get('terms_url'))) {
       $url = Url::fromUri($terms_config->get('terms_url'));
-      $access = $url->access(NULL, TRUE);
-      if ($access->isAllowed()) {
+      if ($url->access()) {
         $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
       }
     }

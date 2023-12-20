@@ -250,8 +250,8 @@ class SubscribeTest extends BrowserTestBase {
       'flag' => 'subscribe_all',
       'entity_id' => $article->id(),
     ]));
-    $this->clickLink('data protection terms');
-    $assert_session->addressEquals('https://www.drupal.org/');
+    $link = $this->getSession()->getPage()->findLink('data protection terms');
+    $this->assertEquals('https://www.drupal.org/', $link->getAttribute('href'));
   }
 
   /**

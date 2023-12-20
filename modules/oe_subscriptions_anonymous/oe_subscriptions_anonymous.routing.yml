@@ -54,6 +54,6 @@ oe_subscriptions_anonymous.settings:
   path: '/admin/config/message/oe_subscriptions_anonymous'
   defaults:
     _form: 'Drupal\oe_subscriptions_anonymous\Form\SettingsForm'
-    _title: 'Anonymous subscriptions settings page'
+    _title: 'Anonymous subscriptions settings'
   requirements:
     _permission: 'administer anonymous subscriptions'
