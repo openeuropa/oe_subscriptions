@@ -7,7 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\FunctionalJavascript;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
-use Drupal\Tests\oe_subscriptions_anonymous\Trait\MessageTemplateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 
 /**
  * Modal form test.
@@ -16,7 +16,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
 
   use AssertMailTrait;
   use FlagCreateTrait;
-  use MessageTemplateTrait;
+  use StatusMessageTrait;
 
   /**
    * {@inheritdoc}
@@ -112,7 +112,11 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
     $assert_session->assertWaitOnAjaxRequest();
     $assert_session->elementNotExists('css', $modal_selector);
-    $this->confirMessageExists();
+    $this->assertHtmlStatusMessage([
+      'h4' => 'A confirmation email has been sent to your email address',
+      'p' => 'To confirm your subscription, please click on the confirmation link sent to your e-mail address.',
+      'strong' => 'please click on the confirmation link',
+    ], 'warning');
     $this->assertCount(1, $this->getMails());
     $this->assertMail('to', 'test@test.com');
   }
