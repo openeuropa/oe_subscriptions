@@ -139,7 +139,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertHtmlStatusMessage($confirm_message);
+    $this->assertHtmlStatusMessage($confirm_message, 'warning');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
@@ -171,7 +171,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertHtmlStatusMessage($confirm_message, 'warnasdaing');
+    $this->assertHtmlStatusMessage($confirm_message, 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
