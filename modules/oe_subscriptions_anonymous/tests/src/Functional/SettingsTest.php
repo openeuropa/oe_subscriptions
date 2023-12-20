@@ -32,6 +32,15 @@ class SettingsTest extends BrowserTestBase {
    * Tests the configuration for the terms link in the subscriptions form.
    */
   public function testSettingsForm(): void {
+    $this->drupalCreateContentType([
+      'type' => 'page',
+      'name' => 'Page',
+    ]);
+    $page = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
     $assert_session = $this->assertSession();
     $user = $this->createUser(['administer anonymous subscriptions']);
     $page_value = $page->label() . ' (' . $page->id() . ')';
