@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Trait;
 
 /**
- * Trait to assert confirmation message.
+ * Trait to assert status message.
  */
 trait StatusMessageTrait {
 
