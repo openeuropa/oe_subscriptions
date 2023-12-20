@@ -31,7 +31,7 @@ trait StatusMessageTrait {
     }
     $assert_session = $this->assertSession();
     // All elements in the array have to be present.
-    foreach ($html as $key => $value) {
+    array_walk($html, function ($value, $key) use ($allowed_types, $type, $assert_session) {
       $selector = $assert_session->buildXPathQuery('//div[@data-drupal-messages]//div[(contains(@aria-label, :aria_label) or contains(@aria-labelledby, :type))]//' . $key . '[contains(., :content)]', [
         // Value of the 'aria-label' attribute, used in Stark.
         ':aria_label' => $allowed_types[$type],
@@ -40,7 +40,7 @@ trait StatusMessageTrait {
         ':content' => $value,
       ]);
       $assert_session->elementExists('xpath', $selector);
-    };
+    });
   }
 
 }
