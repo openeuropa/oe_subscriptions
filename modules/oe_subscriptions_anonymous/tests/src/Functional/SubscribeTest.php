@@ -10,7 +10,7 @@ use Drupal\flag\FlagInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
-use Drupal\Tests\oe_subscriptions_anonymous\Trait\MessageTemplateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 
 /**
  * Tests the subscribe workflow.
@@ -19,7 +19,7 @@ class SubscribeTest extends BrowserTestBase {
 
   use AssertMailTrait;
   use FlagCreateTrait;
-  use MessageTemplateTrait;
+  use StatusMessageTrait;
 
   /**
    * {@inheritdoc}
@@ -78,6 +78,12 @@ class SubscribeTest extends BrowserTestBase {
 
     $assert_session = $this->assertSession();
     $this->drupalGet($article->toUrl());
+    $confirm_message = [
+      'h4' => 'A confirmation email has been sent to your email address',
+      'p' => 'To confirm your subscription, please click on the confirmation link sent to your e-mail address.',
+      'strong' => 'please click on the confirmation link',
+    ];
+
     // Click subscribe link.
     $this->clickLink('Subscribe to this article');
     $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
@@ -103,7 +109,7 @@ class SubscribeTest extends BrowserTestBase {
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->confirMessageExists();
+    $this->assertHtmlStatusMessage($confirm_message, 'warning');
     $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
@@ -133,7 +139,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->confirMessageExists();
+    $this->assertHtmlStatusMessage($confirm_message);
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
@@ -165,7 +171,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->confirMessageExists();
+    $this->assertHtmlStatusMessage($confirm_message, 'warnasdaing');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
 
     // Test the e-mail sent.
