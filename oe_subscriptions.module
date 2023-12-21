@@ -68,17 +68,18 @@ function oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter(&$
  */
 function oe_subscriptions_flag_insert(EntityInterface $entity) {
   $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (strpos($entity->id(), $flag_prefix . '_') == 0) {
-    $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-    $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
-    if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
-      return;
-    }
-    $entity->createDuplicate()
-      ->set('id', $email_flag_id)
-      ->set('label', $mail_prefix . ' - ' . $entity->label())
-      ->save();
+  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  if (empty($flag_prefix) || empty($mail_prefix) || strpos($entity->id(), $flag_prefix . '_') !== 0) {
+    return;
   }
+  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+  if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+    return;
+  }
+  $entity->createDuplicate()
+    ->set('id', $email_flag_id)
+    ->set('label', $mail_prefix . ' - ' . $entity->label())
+    ->save();
 }
 
 /**
@@ -86,11 +87,12 @@ function oe_subscriptions_flag_insert(EntityInterface $entity) {
  */
 function oe_subscriptions_flag_delete(EntityInterface $entity) {
   $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (strpos($entity->id(), $flag_prefix . '_') == 0) {
-    $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-    $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
-    if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
-      $email_flag->delete();
-    }
+  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  if (empty($flag_prefix) || empty($mail_prefix) || strpos($entity->id(), $flag_prefix . '_') !== 0) {
+    return;
+  }
+  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+  if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+    $email_flag->delete();
   }
 }
