@@ -15,6 +15,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
@@ -38,11 +39,14 @@ class AnonymousSubscribeForm extends FormBase {
    *   The flag service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
-    protected LanguageManagerInterface $languageManager
+    protected LanguageManagerInterface $languageManager,
+    protected RendererInterface $renderer
   ) {}
 
   /**
@@ -52,7 +56,8 @@ class AnonymousSubscribeForm extends FormBase {
     $instance = new static(
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('renderer')
     );
     $instance->setMessenger($container->get('messenger'));
     $instance->setConfigFactory($container->get('config.factory'));
