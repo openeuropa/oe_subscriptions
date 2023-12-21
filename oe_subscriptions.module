@@ -5,6 +5,7 @@
  * Subscriptions module.
  */
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\oe_subscriptions\Form\SettingsForm;
 
@@ -60,4 +61,36 @@ function oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter(&$
   $form['#theme_wrappers']['oe_subscriptions_user_subscriptions_page'] = [
     '#attributes' => [],
   ];
+}
+
+/**
+ * Implements hook_flag_insert().
+ */
+function oe_subscriptions_flag_insert(EntityInterface $entity) {
+  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  if (strpos($entity->id(), $flag_prefix . '_') == 0) {
+    $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+    $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+    if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+      return;
+    }
+    $entity->createDuplicate()
+      ->set('id', $email_flag_id)
+      ->set('label', $mail_prefix . ' - ' . $entity->label())
+      ->save();
+  }
+}
+
+/**
+ * Implements hook_flag_delete().
+ */
+function oe_subscriptions_flag_delete(EntityInterface $entity) {
+  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  if (strpos($entity->id(), $flag_prefix . '_') == 0) {
+    $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+    $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+    if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+      $email_flag->delete();
+    }
+  }
 }
