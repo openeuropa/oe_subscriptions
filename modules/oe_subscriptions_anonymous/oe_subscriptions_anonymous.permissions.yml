@@ -1,0 +1,3 @@
+administer anonymous subscriptions:
+  title: 'Administer anonymous subscriptions'
+  restrict access: false

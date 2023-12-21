@@ -7,6 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
+use Drupal\oe_subscriptions_anonymous\Form\SettingsForm;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
@@ -184,6 +185,73 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
+  }
+
+  /**
+   * Tests the terms and conditions link.
+   */
+  public function testTermsAndConditionsLink() {
+    $this->createFlagFromArray([
+      'id' => 'subscribe_all',
+      'flag_short' => 'Subscribe',
+      'entity_type' => 'node',
+      'bundles' => [],
+    ]);
+    $article = $this->drupalCreateNode([
+      'type' => 'article',
+      'status' => 1,
+    ]);
+    $page = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
+    $assert_session = $this->assertSession();
+    $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+
+    // Assert that the link is not present if the configuration is not set.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $article->id(),
+    ]));
+    $assert_session->fieldExists('I have read and agree with the data protection terms.');
+    $assert_session->linkNotExists('data protection terms');
+
+    // The link to article is present.
+    $terms_config->set('terms_url', 'entity:node/' . $article->id())->save();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $article->id(),
+    ]));
+    $this->clickLink('data protection terms');
+    $assert_session->addressEquals($article->toUrl());
+
+    // The link to page is present.
+    $terms_config->set('terms_url', 'entity:node/' . $page->id())->save();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $page->id(),
+    ]));
+    $this->clickLink('data protection terms');
+    $assert_session->addressEquals($page->toUrl());
+
+    // Delete node and check that the field is not present.
+    $page->delete();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $article->id(),
+    ]));
+    $assert_session->fieldExists('I have read and agree with the data protection terms.');
+    $assert_session->linkNotExists('data protection terms');
+
+    // Set external URL for terms page.
+    $terms_config->set('terms_url', 'https://www.drupal.org/')->save();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => 'subscribe_all',
+      'entity_id' => $article->id(),
+    ]));
+    $link = $this->getSession()->getPage()->findLink('data protection terms');
+    $this->assertEquals('https://www.drupal.org/', $link->getAttribute('href'));
   }
 
   /**

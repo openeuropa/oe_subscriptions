@@ -46,7 +46,7 @@ class AnonymousSubscribeForm extends FormBase {
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
     protected LanguageManagerInterface $languageManager,
-    protected RendererInterface $renderer,
+    protected RendererInterface $renderer
   ) {}
 
   /**
@@ -60,6 +60,7 @@ class AnonymousSubscribeForm extends FormBase {
       $container->get('renderer')
     );
     $instance->setMessenger($container->get('messenger'));
+    $instance->setConfigFactory($container->get('config.factory'));
 
     return $instance;
   }
@@ -87,16 +88,29 @@ class AnonymousSubscribeForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
+    // Terms and conditions link.
+    $title = $this->t('I have read and agree with the data protection terms.');
+    $terms_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+    // In case we have a value we override default text with the link.
+    if (!empty($terms_config->get('terms_url'))) {
+      $url = Url::fromUri($terms_config->get('terms_url'));
+      if ($url->access()) {
+        $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
+      }
+    }
+
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Your e-mail'),
       '#required' => TRUE,
     ];
+
     $form['accept_terms'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('I have read and agree with the data protection terms.'),
+      '#title' => $title,
       '#required' => TRUE,
     ];
+
     // This button will is used to close the modal, no submit callback.
     $form['actions'] = [
       '#type' => 'actions',
