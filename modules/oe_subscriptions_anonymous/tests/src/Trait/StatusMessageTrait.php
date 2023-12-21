@@ -17,10 +17,11 @@ trait StatusMessageTrait {
    * @param string $type
    *   The type of message.
    */
-  private function assertHtmlStatusMessage(array $html, string $type): void {
+  protected function assertHtmlStatusMessage(array $html, string $type): void {
     if (empty($html) || array_is_list($html)) {
-      throw new \InvalidArgumentException(sprintf("Provide an associative array of tags and content with the HTML you want to check, please."));
+      throw new \InvalidArgumentException('An associative array of tags and expected their content is expected.');
     }
+
     $allowed_types = [
       'status' => 'Status message',
       'error' => 'Error message',
