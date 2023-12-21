@@ -5,9 +5,20 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Trait;
 
 /**
- * Trait to assert status message.
+ * Trait to assert status messages.
  */
 trait StatusMessageTrait {
+
+  /**
+   * Asserts that the subscription create mail status message is shown.
+   */
+  protected function assertSubscriptionCreateMailStatusMessage(): void {
+    $this->assertHtmlStatusMessage([
+      'h4' => 'A confirmation email has been sent to your email address',
+      'p' => 'To confirm your subscription, please click on the confirmation link sent to your e-mail address.',
+      'strong' => 'please click on the confirmation link',
+    ], 'warning');
+  }
 
   /**
    * Asserts that a status message contains a given tags/content.
