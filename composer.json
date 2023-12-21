@@ -61,6 +61,9 @@
         "patches": {
             "drupal/core": {
                 "Many calls to ContextRepository::getAvailableContexts() due to entity upcasting @see https://www.drupal.org/project/drupal/issues/3158130": "https://www.drupal.org/files/issues/2022-12-11/3158130-26.patch"
+            },
+            "drupal/message_digest": {
+                "Installing site from existing config fails when message_digest_ui module is part of the install @see https://www.drupal.org/project/message_digest/issues/3375308": "https://git.drupalcode.org/project/message_digest/-/merge_requests/12.diff"
             }
         },
         "drupal-scaffold": {
