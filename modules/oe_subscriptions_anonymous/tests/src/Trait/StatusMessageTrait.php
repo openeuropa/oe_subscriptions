@@ -30,18 +30,18 @@ trait StatusMessageTrait {
     if (!isset($allowed_types[$type])) {
       throw new \InvalidArgumentException(sprintf("Provide an message type, the allowed values are 'status', 'error', 'warning'. The value provided was '%s'.", $type));
     }
+
     $assert_session = $this->assertSession();
-    // All elements in the array have to be present.
-    array_walk($html, function ($value, $key) use ($allowed_types, $type, $assert_session) {
-      $selector = $assert_session->buildXPathQuery('//div[@data-drupal-messages]//div[(contains(@aria-label, :aria_label) or contains(@aria-labelledby, :type))]//' . $key . '[contains(., :content)]', [
+    foreach ($html as $tag => $content) {
+      $xpath = $assert_session->buildXPathQuery('//div[@data-drupal-messages]//div[(contains(@aria-label, :aria_label) or contains(@aria-labelledby, :type))]//' . $tag . '[contains(., :content)]', [
         // Value of the 'aria-label' attribute, used in Stark.
         ':aria_label' => $allowed_types[$type],
         // Value of the 'aria-labelledby' attribute, used in Claro and Olivero.
         ':type' => $type,
-        ':content' => $value,
+        ':content' => $content,
       ]);
-      $assert_session->elementExists('xpath', $selector);
-    });
+      $assert_session->elementExists('xpath', $xpath);
+    }
   }
 
 }
