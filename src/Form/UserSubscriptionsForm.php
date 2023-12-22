@@ -7,6 +7,7 @@ namespace Drupal\oe_subscriptions\Form;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -37,11 +38,14 @@ class UserSubscriptionsForm extends FormBase {
    *   The flag service.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler.
    */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected FlagServiceInterface $flagService,
-    protected AccountInterface $currentUser
+    protected AccountInterface $currentUser,
+    protected ModuleHandlerInterface $moduleHandler
   ) {}
 
   /**
@@ -51,7 +55,8 @@ class UserSubscriptionsForm extends FormBase {
     $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('flag'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('module_handler')
     );
 
     return $instance;
@@ -79,6 +84,9 @@ class UserSubscriptionsForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
     $this->account = $user;
+    $this->moduleHandler->loadInclude('message_digest_ui', 'module');
+    $message_digest = $user->get('message_digest');
+    $storage_definition = $message_digest->getFieldDefinition()->getFieldStorageDefinition();
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
@@ -86,6 +94,14 @@ class UserSubscriptionsForm extends FormBase {
       '#languages' => LanguageInterface::STATE_CONFIGURABLE,
       '#description' => $this->t("The primary language of this account's profile information."),
       '#default_value' => $this->account->getPreferredLangcode(),
+    ];
+
+    $form['message_digest'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Notifications frequency'),
+      '#description' => $this->t("The frequency this account will receive notifications is subscribed to."),
+      '#default_value' => $message_digest->value ?: '0',
+      '#options' => message_digest_allowed_values_callback($storage_definition),
     ];
 
     $form['flag_list'] = $this->buildFlagList();
@@ -108,7 +124,9 @@ class UserSubscriptionsForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // @see \Drupal\user\AccountForm::buildEntity()
     $preferred_language = $form_state->getValue('preferred_language');
+    $message_digest = $form_state->getValue('message_digest');
     $this->account->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
+    $this->account->set('message_digest', $message_digest === '' ? NULL : $message_digest);
     $this->account->save();
 
     $this->messenger()->addStatus($this->t('Your preferences have been saved.'));
