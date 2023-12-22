@@ -67,12 +67,11 @@ function oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter(&$
  * Implements hook_flag_insert().
  */
 function oe_subscriptions_flag_insert(EntityInterface $entity) {
-  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  if (empty($flag_prefix) || empty($mail_prefix) || strpos($entity->id(), $flag_prefix . '_') !== 0) {
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
     return;
   }
-  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
   if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     return;
   }
@@ -86,12 +85,11 @@ function oe_subscriptions_flag_insert(EntityInterface $entity) {
  * Implements hook_flag_delete().
  */
 function oe_subscriptions_flag_delete(EntityInterface $entity) {
-  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  if (empty($flag_prefix) || empty($mail_prefix) || strpos($entity->id(), $flag_prefix . '_') !== 0) {
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
     return;
   }
-  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
   if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     $email_flag->delete();
   }
