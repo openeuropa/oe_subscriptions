@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Anonymous subscriptions module.
+ * Subscriptions module.
  */
 
 use Drupal\Core\Entity\EntityInterface;
