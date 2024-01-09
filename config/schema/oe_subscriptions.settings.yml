@@ -1,4 +1,4 @@
-oe_subscriptions_anonymous.settings:
+oe_subscriptions.settings:
   type: config_object
   label: 'Terms page'
   mapping:

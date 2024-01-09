@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Drupal\oe_subscriptions_anonymous\Form;
+namespace Drupal\oe_subscriptions\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
@@ -12,20 +12,20 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * The form for the configuration of the Anonymous subscription module.
+ * The form for the configuration of the Subscription module.
  */
 class SettingsForm extends ConfigFormBase {
 
   /**
    * Name of the config being edited.
    */
-  const CONFIG_NAME = 'oe_subscriptions_anonymous.settings';
+  const CONFIG_NAME = 'oe_subscriptions.settings';
 
   /**
    * {@inheritdoc}
    */
   public function getFormId(): string {
-    return 'oe_subscriptions_anonymous_settings_form';
+    return 'oe_subscriptions_settings_form';
   }
 
   /**

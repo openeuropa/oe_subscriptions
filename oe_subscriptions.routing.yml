@@ -10,3 +10,11 @@ oe_subscriptions.user.subscriptions:
     parameters:
       user:
         type: entity:user
+
+oe_subscriptions.settings:
+  path: '/admin/config/message/oe_subscriptions'
+  defaults:
+    _form: 'Drupal\oe_subscriptions\Form\SettingsForm'
+    _title: 'Subscriptions settings'
+  requirements:
+    _permission: 'administer subscriptions'

@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
+namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
@@ -20,7 +20,7 @@ class SettingsTest extends BrowserTestBase {
    */
   protected static $modules = [
     'node',
-    'oe_subscriptions_anonymous',
+    'oe_subscriptions',
   ];
 
   /**
@@ -42,17 +42,17 @@ class SettingsTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-    $user = $this->createUser(['administer anonymous subscriptions']);
+    $user = $this->createUser(['administer subscriptions']);
     $page_value = $page->label() . ' (' . $page->id() . ')';
 
     // User without permission can't access the configuration page.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
     $assert_session->pageTextContains('You are not authorized to access this page.');
     $assert_session->statusCodeEquals(403);
 
     // Test link configuration for terms page.
     $this->drupalLogin($user);
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
     $url_field = $assert_session->fieldExists('Terms page URL');
     // Check that the field is required.
     $assert_session->buttonExists('Save configuration')->press();
@@ -62,11 +62,11 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
     // The form displays the saved value.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
     $this->assertEquals($url_field->getValue(), $page_value);
 
     // Set external URL for terms page.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.settings'));
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
     $url_field->setValue('https://www.drupal.org/');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');

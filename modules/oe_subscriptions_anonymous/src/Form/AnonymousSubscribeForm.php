@@ -19,6 +19,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions\Form\SettingsForm;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
