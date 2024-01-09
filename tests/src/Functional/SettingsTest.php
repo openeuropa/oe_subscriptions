@@ -79,7 +79,7 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
 
-    // Test 'My subscriptions' page text.
+    // Test that the text configuration saved and preserved.
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
     $page_text_field = $assert_session->fieldExists('Subscriptions page text');
     $page_text_field->setValue('Test text.');
