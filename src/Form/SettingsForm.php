@@ -55,6 +55,8 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $url = $this->config(static::CONFIG_NAME)->get('terms_url');
+    $subscriptions_page_text = $this->config(static::CONFIG_NAME)->get('subscriptions_page_text');
+
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'node',
@@ -74,6 +76,13 @@ class SettingsForm extends ConfigFormBase {
       '#process_default_value' => FALSE,
     ];
 
+    $form['subscriptions_page_text'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Subscriptions page text'),
+      '#default_value' => $subscriptions_page_text ?? '',
+      '#description' => $this->t('Text displayed on "My subscriptions" page.'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -83,6 +92,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $this->config(static::CONFIG_NAME)
       ->set('terms_url', $form_state->getValue('terms_url'))
+      ->set('subscriptions_page_text', $form_state->getValue('subscriptions_page_text'))
       ->save();
 
     parent::submitForm($form, $form_state);

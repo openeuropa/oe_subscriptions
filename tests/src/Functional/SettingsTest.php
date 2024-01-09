@@ -29,7 +29,7 @@ class SettingsTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests the configuration for the terms link in the subscriptions form.
+   * Tests the configuration for the subscriptions settings form.
    */
   public function testSettingsForm(): void {
     $this->drupalCreateContentType([
@@ -78,6 +78,15 @@ class SettingsTest extends BrowserTestBase {
     $url_field->setValue('www.drupal.org');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
+
+    // Test 'My subscriptions' page text.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
+    $page_text_field = $assert_session->fieldExists('Subscriptions page text');
+    $page_text_field->setValue('Test text.');
+    $assert_session->buttonExists('Save configuration')->press();
+    $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
+    $this->assertEquals($page_text_field->getValue(), 'Test text.');
   }
 
 }
