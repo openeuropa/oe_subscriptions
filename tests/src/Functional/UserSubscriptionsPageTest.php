@@ -73,4 +73,16 @@ class UserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
     $this->doTestUserPreferences($this->drupalCreateUser(), $fn_get_path);
   }
 
+  /**
+   * Tests the form configuration.
+   */
+  public function testFormConfiguration(): void {
+    $fn_get_path = function ($user) {
+      $this->drupalLogin($user);
+      return "/user/{$user->id()}/subscriptions";
+    };
+
+    $this->doTestFormConfiguration($this->drupalCreateUser(), $fn_get_path);
+  }
+
 }

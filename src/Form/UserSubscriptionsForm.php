@@ -12,6 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -48,11 +49,14 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
+    $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('flag'),
       $container->get('current_user')
     );
+    $instance->setConfigFactory($container->get('config.factory'));
+
+    return $instance;
   }
 
   /**
@@ -77,6 +81,23 @@ class UserSubscriptionsForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
     $this->account = $user;
+    $subscriptions_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+
+    if (!empty($subscriptions_config->get('subscriptions_page_text'))) {
+      $form['subscriptions_text'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => $subscriptions_config->get('subscriptions_page_text'),
+      ];
+    }
+
+    if (!empty($subscriptions_config->get('terms_url'))) {
+      $form['terms_link'] = [
+        '#title' => $this->t('Terms & Conditions'),
+        '#type' => 'link',
+        '#url' => Url::fromUri($subscriptions_config->get('terms_url')),
+      ];
+    }
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
@@ -161,7 +182,9 @@ class UserSubscriptionsForm extends FormBase {
 
     if (empty($results)) {
       $build['no_results'] = [
-        '#plain_text' => $this->t('No subscriptions found.'),
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => $this->t('No subscriptions found.'),
       ];
 
       return $build;

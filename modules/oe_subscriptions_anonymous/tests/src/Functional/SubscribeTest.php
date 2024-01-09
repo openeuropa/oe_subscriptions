@@ -229,7 +229,7 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-    $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+    $subscriptions_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
 
     // Assert that the link is not present if the configuration is not set.
     $this->visitSubscriptionRequestPageForEntity($flag, $article);

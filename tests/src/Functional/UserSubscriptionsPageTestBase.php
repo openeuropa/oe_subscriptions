@@ -10,6 +10,7 @@ use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
+use Drupal\oe_subscriptions\Form\SettingsForm;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\user\UserInterface;
@@ -269,6 +270,56 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     /** @var \Drupal\user\UserInterface $user */
     $user = $user_storage->load($user->id());
     $this->assertEquals('it', $user->getPreferredLangcode());
+  }
+
+  /**
+   * Tests the configuration displayed in form.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   The user for the test.
+   * @param callable $fn_get_path
+   *   Callable that returns the path to visit for the test. It also needs to
+   *   take care of logging the user, or requesting a token in order to allow
+   *   visiting the path.
+   */
+  protected function doTestFormConfiguration(UserInterface $user, callable $fn_get_path): void {
+    $path = $fn_get_path($user);
+    $this->drupalGet($path);
+    $assert_session = $this->assertSession();
+    $page_one = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+    $page_two = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+    $subscriptions_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+
+    // Test that text and link aren't present by default.
+    $this->drupalGet($path);
+    $assert_session->pageTextNotContains('Configurable text 1.');
+    $assert_session->linkNotExists('Terms & Conditions');
+
+    // Test that the text and link are displayed after setting configuration.
+    $subscriptions_config
+      ->set('terms_url', 'entity:node/' . $page_one->id())
+      ->set('subscriptions_page_text', 'Configurable text 1.')
+      ->save();
+    $this->drupalGet($path);
+    $assert_session->pageTextContains('Configurable text 1.');
+    $this->clickLink('Terms & Conditions');
+    $assert_session->addressEquals($page_one->toUrl());
+
+    // Test that the text and link are displayed after updating configuration.
+    $subscriptions_config
+      ->set('terms_url', 'entity:node/' . $page_two->id())
+      ->set('subscriptions_page_text', 'Configurable text 2.')
+      ->save();
+    $this->drupalGet($path);
+    $assert_session->pageTextContains('Configurable text 2.');
+    $this->clickLink('Terms & Conditions');
+    $assert_session->addressEquals($page_two->toUrl());
   }
 
   /**
