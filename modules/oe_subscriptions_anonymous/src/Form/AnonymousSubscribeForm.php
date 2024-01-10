@@ -8,8 +8,7 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Ajax\AjaxFormHelperTrait;
 use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\CloseModalDialogCommand;
-use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -174,10 +173,6 @@ class AnonymousSubscribeForm extends FormBase {
       return;
     }
 
-    if ($this->isAjax()) {
-      return;
-    }
-
     $confirm_message = [
       '#theme' => 'oe_subscriptions_anonymous_message_confirm',
     ];
@@ -202,13 +197,8 @@ class AnonymousSubscribeForm extends FormBase {
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
 
-    $confirm_message = [
-      '#theme' => 'oe_subscriptions_anonymous_message_confirm',
-    ];
-    $rendered_message = $this->renderer->render($confirm_message);
-
-    $response->addCommand(new CloseModalDialogCommand());
-    $response->addCommand(new MessageCommand($rendered_message, NULL, ['type' => 'warning']));
+    $command = new RedirectCommand($form_state->getRedirect());
+    $response->addCommand($command);
 
     return $response;
   }
