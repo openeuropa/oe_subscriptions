@@ -49,6 +49,7 @@ class SubscribeTest extends BrowserTestBase {
       'type' => 'page',
       'name' => 'Page',
     ]);
+    \Drupal::service('theme_installer')->install(['oe_subscriptions_anonymous_theme_test']);
   }
 
   /**
@@ -126,14 +127,16 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals('/');
 
-    // Subscribe to a different flag and node.
+    // Subscribe to a different flag and node, with an overriden status message.
+    $this->config('system.theme')->set('default', 'oe_subscriptions_anonymous_theme_test')->save();
     $this->resetMailCollector();
     $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->assertSession()->pageTextContains('Status-messages template overriden by theme.');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
+    $this->config('system.theme')->set('default', 'stark')->save();
 
     // Test the e-mail sent.
     $mails = $this->getMails();
