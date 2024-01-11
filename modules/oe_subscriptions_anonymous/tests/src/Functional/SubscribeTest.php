@@ -179,6 +179,34 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
+
+    // Test that a user can have multiple pending subscription requests.
+    $this->resetMailCollector();
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
+    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
+    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $this->assertSubscriptionCreateMailStatusMessage();
+
+    $mails = $this->getMails();
+    $this->assertCount(2, $mails);
+    $first_mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'multiple@example.com', $pages_flag, $page);
+    $second_mail_urls = $this->assertSubscriptionConfirmationMail($mails[1], 'multiple@example.com', $pages_flag, $page_two);
+
+    $this->drupalGet($first_mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $account = user_load_by_mail('multiple@example.com');
+    $this->assertNotEmpty($account);
+    $this->assertTrue($pages_flag->isFlagged($page, $account));
+
+    $this->drupalGet($second_mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $this->assertTrue($pages_flag->isFlagged($page_two, $account));
   }
 
   /**
