@@ -1,0 +1,6 @@
+theme_test.template_test:
+  path: '/oe-subscriptions-anonymous-test/template-link-test'
+  defaults:
+    _controller: '\Drupal\oe_subscriptions_anonymous_test\TestController::testLinkTemplate'
+  requirements:
+    _access: 'TRUE'

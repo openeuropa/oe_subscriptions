@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\SubscriptionCreate;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\UserSubscriptionsAccess;
 
@@ -58,5 +59,27 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
     'oe_subscriptions_anonymous_message_confirm' => [
       'variables' => [],
     ],
+    'oe_subscriptions_anonymous_link' => [
+      'variables' => [
+        'title' => '',
+        'url' => '',
+        'attributes' => [],
+      ],
+    ],
   ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function oe_subscriptions_anonymous_preprocess_oe_subscriptions_anonymous_link(&$variables) {
+  if (empty($variables['url'])) {
+    return;
+  }
+  /** @var \Drupal\Core\Url $url */
+  $url = $variables['url'];
+  if (!$url instanceof Url) {
+    return;
+  }
+  $variables['attributes']['href'] = $url->toString();
 }

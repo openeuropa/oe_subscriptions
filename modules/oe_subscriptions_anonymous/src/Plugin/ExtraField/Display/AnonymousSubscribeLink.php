@@ -84,7 +84,7 @@ class AnonymousSubscribeLink extends ExtraFieldDisplayBase implements ContainerF
     }
     // Link.
     $build = [
-      '#type' => 'link',
+      '#theme' => 'oe_subscriptions_anonymous_link',
       '#title' => $flag->getShortText('flag'),
       '#url' => $url,
       '#attributes' => [
