@@ -179,6 +179,10 @@ class AnonymousSubscribeForm extends FormBase {
     $rendered_message = $this->renderer->render($confirm_message);
     $this->messenger()->addWarning($rendered_message);
 
+    if ($this->isAjax()) {
+      return;
+    }
+
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
     try {
       // Redirect to the canonical page of the entity.
@@ -196,11 +200,20 @@ class AnonymousSubscribeForm extends FormBase {
    */
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
+    [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
 
-    $command = new RedirectCommand($form_state->getRedirect());
-    $response->addCommand($command);
+    $entity = $this->flagService->getFlaggableById($flag, $entity_id);
+    try {
+      // Redirect to the canonical page of the entity.
+      $url = $entity->toUrl();
+    }
+    catch (UndefinedLinkTemplateException $exception) {
+      // Catch scenarios where no canonical link template or uri_callback are
+      // defined.
+      $url = Url::fromRoute('<front>');
+    }
 
-    return $response;
+    return $response->addCommand(new RedirectCommand($url->toString()));
   }
 
   /**
