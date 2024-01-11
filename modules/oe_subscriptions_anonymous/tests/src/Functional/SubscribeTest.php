@@ -83,7 +83,7 @@ class SubscribeTest extends BrowserTestBase {
     // Click subscribe link.
     $this->clickLink('Subscribe to this article');
     $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_article',
+      'flag' => $article_flag->id(),
       'entity_id' => $article->id(),
     ])->setAbsolute()->toString());
 
@@ -128,10 +128,7 @@ class SubscribeTest extends BrowserTestBase {
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => $pages_flag->id(),
-      'entity_id' => $page->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
@@ -160,10 +157,7 @@ class SubscribeTest extends BrowserTestBase {
       'status' => 1,
     ]);
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => $pages_flag->id(),
-      'entity_id' => $page_two->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
@@ -191,7 +185,7 @@ class SubscribeTest extends BrowserTestBase {
    * Tests the terms and conditions link.
    */
   public function testTermsAndConditionsLink() {
-    $this->createFlagFromArray([
+    $flag = $this->createFlagFromArray([
       'id' => 'subscribe_all',
       'flag_short' => 'Subscribe',
       'entity_type' => 'node',
@@ -210,46 +204,31 @@ class SubscribeTest extends BrowserTestBase {
     $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
 
     // Assert that the link is not present if the configuration is not set.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $assert_session->fieldExists('I have read and agree with the data protection terms.');
     $assert_session->linkNotExists('data protection terms');
 
     // The link to article is present.
     $terms_config->set('terms_url', 'entity:node/' . $article->id())->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($article->toUrl());
 
     // The link to page is present.
     $terms_config->set('terms_url', 'entity:node/' . $page->id())->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $page->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $page);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($page->toUrl());
 
     // Delete node and check that the field is not present.
     $page->delete();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $assert_session->fieldExists('I have read and agree with the data protection terms.');
     $assert_session->linkNotExists('data protection terms');
 
     // Set external URL for terms page.
     $terms_config->set('terms_url', 'https://www.drupal.org/')->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $link = $this->getSession()->getPage()->findLink('data protection terms');
     $this->assertEquals('https://www.drupal.org/', $link->getAttribute('href'));
   }
@@ -286,6 +265,21 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '/.+$@', $mail_urls[3]);
 
     return $mail_urls;
+  }
+
+  /**
+   * Visits the subscription request page for the given entity.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag entity.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to flag.
+   */
+  protected function visitSubscriptionRequestPageForEntity(FlagInterface $flag, EntityInterface $entity): void {
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => $flag->id(),
+      'entity_id' => $entity->id(),
+    ]));
   }
 
 }
