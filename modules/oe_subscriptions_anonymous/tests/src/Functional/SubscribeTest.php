@@ -249,11 +249,11 @@ class SubscribeTest extends BrowserTestBase {
    *   A list of URLs extracted from the mail.
    */
   protected function assertSubscriptionConfirmationMail(array $mail_data, string $email, FlagInterface $flag, EntityInterface $entity): array {
-    $this->assertMail('to', $email);
-    $this->assertMail('subject', 'Confirm your subscription to ' . $entity->label());
-    $this->assertMailString('body', "{$entity->label()} [1]", 1);
-    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
-    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
+    $this->assertMailProperty('to', $email, $mail_data);
+    $this->assertMailProperty('subject', 'Confirm your subscription to ' . $entity->label(), $mail_data);
+    $this->assertMailString('body', "{$entity->label()} [1]", $mail_data);
+    $this->assertMailString('body', 'Confirm subscription request [2]', $mail_data);
+    $this->assertMailString('body', 'Cancel subscription request [3]', $mail_data);
 
     $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
     $this->assertCount(3, $mail_urls);

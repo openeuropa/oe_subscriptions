@@ -116,8 +116,8 @@ class AnonymousUserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
 
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
-    $this->assertMail('to', $email);
-    $this->assertMail('subject', 'Access your subscriptions page');
+    $this->assertMailProperty('to', $email);
+    $this->assertMailProperty('subject', 'Access your subscriptions page');
     $this->assertMailString('body', 'Click here to access your subscriptions page. [1]', 1);
     $mail_urls = $this->getMailFootNoteUrls($mails[0]['body']);
     $this->assertCount(1, $mail_urls);

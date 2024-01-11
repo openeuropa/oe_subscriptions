@@ -4,36 +4,65 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Trait;
 
-use Drupal\Core\Test\AssertMailTrait as CoreAssertMailTrait;
-
 /**
  * Extends the core trait to test emails.
  */
 trait AssertMailTrait {
 
-  use CoreAssertMailTrait {
-    getMails as drupalGetMails;
-    assertMail as drupalAssertMail;
-  }
-
   /**
-   * {@inheritdoc}
+   * Gets an array containing all emails sent during this test case.
+   *
+   * @return array
+   *   An array containing email messages captured during the current test.
    */
-  protected function getMails(array $filter = []) {
+  protected function getMails(): array {
     // Reset the cache to allow to call the method multiple times.
     \Drupal::state()->resetCache();
 
-    return $this->drupalGetMails($filter);
+    return \Drupal::state()->get('system.test_mail_collector', []);
   }
 
   /**
-   * {@inheritdoc}
+   * Asserts a single property or field from the e-mail.
+   *
+   * @param string $key
+   *   The property name (e.g. "to", "subject").
+   * @param mixed $value
+   *   The expected property value.
+   * @param array|null $mail
+   *   The mail itself. If left empty, the last collected e-mail will be used.
    */
-  protected function assertMail($name, $value = '', $message = '') {
-    // Reset the cache to allow to call the method multiple times.
-    \Drupal::state()->resetCache();
+  protected function assertMailProperty(string $key, $value, array $mail = NULL): void {
+    if ($mail === NULL) {
+      $mails = $this->getMails();
+      $mail = end($mails);
+    }
 
-    return $this->drupalAssertMail($name, $value, $message);
+    $this->assertArrayHasKey($key, $mail);
+    $this->assertEquals($value, $mail[$key]);
+  }
+
+  /**
+   * Asserts that a mail property contains the specified string.
+   *
+   * @param string $key
+   *   The property name (e.g. "to", "subject").
+   * @param string $string
+   *   The string to search.
+   * @param array|null $mail
+   *   The mail itself. If left empty, the last collected e-mail will be used.
+   */
+  protected function assertMailString(string $key, string $string, array $mail = NULL): void {
+    if ($mail === NULL) {
+      $mails = $this->getMails();
+      $mail = end($mails);
+    }
+
+    // Normalize whitespace, as we don't know what the mail system might have
+    // done. Any run of whitespace becomes a single space.
+    $normalized_mail = preg_replace('/\s+/', ' ', $mail[$key]);
+    $normalized_string = preg_replace('/\s+/', ' ', $string);
+    $this->assertStringContainsString($normalized_string, $normalized_mail);
   }
 
   /**
