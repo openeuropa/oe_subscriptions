@@ -2,3 +2,4 @@ name: 'OE Subscriptions anonymous test'
 type: module
 description: 'Support module for anonymous subscriptions testing.'
 package: Testing
+hidden: TRUE
