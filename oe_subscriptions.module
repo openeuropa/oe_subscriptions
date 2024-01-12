@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Subscriptions module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function oe_subscriptions_theme($existing, $type, $theme, $path) {
+  return [
+    'oe_subscriptions_no_subscriptions' => [
+      'variables' => [],
+    ],
+    'oe_subscriptions_introduction' => [
+      'variables' => [
+        'text' => '',
+      ],
+    ],
+  ];
+}

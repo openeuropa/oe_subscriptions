@@ -97,9 +97,9 @@ class AnonymousUserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
   }
 
   /**
-   * Tests the form configuration.
+   * Tests the rendering of the introduction text.
    */
-  public function testFormConfiguration(): void {
+  public function testFormPreface(): void {
     $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
@@ -111,7 +111,7 @@ class AnonymousUserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
       return $this->getAnonymousUserSubscriptionsPageUrl($user->getEmail());
     };
 
-    $this->doTestFormConfiguration($user, $fn_get_path);
+    $this->doTestFormPreface($user, $fn_get_path);
   }
 
   /**

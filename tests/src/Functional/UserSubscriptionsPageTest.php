@@ -74,15 +74,15 @@ class UserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
   }
 
   /**
-   * Tests the form configuration.
+   * Tests the rendering of the introduction text.
    */
-  public function testFormConfiguration(): void {
+  public function testFormPreface(): void {
     $fn_get_path = function ($user) {
       $this->drupalLogin($user);
       return "/user/{$user->id()}/subscriptions";
     };
 
-    $this->doTestFormConfiguration($this->drupalCreateUser(), $fn_get_path);
+    $this->doTestFormPreface($this->drupalCreateUser(), $fn_get_path);
   }
 
 }

@@ -273,7 +273,7 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
   }
 
   /**
-   * Tests the configuration displayed in form.
+   * Tests the rendering of the introduction text.
    *
    * @param \Drupal\user\UserInterface $user
    *   The user for the test.
@@ -282,44 +282,29 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
    *   take care of logging the user, or requesting a token in order to allow
    *   visiting the path.
    */
-  protected function doTestFormConfiguration(UserInterface $user, callable $fn_get_path): void {
+  protected function doTestFormPreface(UserInterface $user, callable $fn_get_path): void {
     $path = $fn_get_path($user);
     $this->drupalGet($path);
     $assert_session = $this->assertSession();
-    $page_one = $this->drupalCreateNode([
-      'type' => 'page',
-      'status' => 1,
-    ]);
-    $page_two = $this->drupalCreateNode([
-      'type' => 'page',
-      'status' => 1,
-    ]);
     $subscriptions_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
 
-    // Test that text and link aren't present by default.
+    // Test that text isn't present by default.
     $this->drupalGet($path);
     $assert_session->pageTextNotContains('Configurable text 1.');
-    $assert_session->linkNotExists('Terms & Conditions');
 
     // Test that the text and link are displayed after setting configuration.
     $subscriptions_config
-      ->set('terms_url', 'entity:node/' . $page_one->id())
       ->set('subscriptions_page_text', 'Configurable text 1.')
       ->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 1.');
-    $this->clickLink('Terms & Conditions');
-    $assert_session->addressEquals($page_one->toUrl());
 
     // Test that the text and link are displayed after updating configuration.
     $subscriptions_config
-      ->set('terms_url', 'entity:node/' . $page_two->id())
       ->set('subscriptions_page_text', 'Configurable text 2.')
       ->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 2.');
-    $this->clickLink('Terms & Conditions');
-    $assert_session->addressEquals($page_two->toUrl());
   }
 
   /**
