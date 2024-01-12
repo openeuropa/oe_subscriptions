@@ -5,6 +5,6 @@ oe_subscriptions.settings:
     terms_url:
       type: text
       label: 'Page link'
-    subscriptions_page_text:
+    introduction_text:
       type: text
       label: 'Subscriptions page text'

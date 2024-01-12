@@ -55,7 +55,7 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $url = $this->config(static::CONFIG_NAME)->get('terms_url');
-    $subscriptions_page_text = $this->config(static::CONFIG_NAME)->get('subscriptions_page_text');
+    $introduction_text = $this->config(static::CONFIG_NAME)->get('introduction_text');
 
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
@@ -76,10 +76,10 @@ class SettingsForm extends ConfigFormBase {
       '#process_default_value' => FALSE,
     ];
 
-    $form['subscriptions_page_text'] = [
+    $form['introduction_text'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Subscriptions page text'),
-      '#default_value' => $subscriptions_page_text ?? '',
+      '#default_value' => $introduction_text ?? '',
       '#description' => $this->t('Text displayed on "My subscriptions" page.'),
     ];
 
@@ -92,7 +92,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $this->config(static::CONFIG_NAME)
       ->set('terms_url', $form_state->getValue('terms_url'))
-      ->set('subscriptions_page_text', $form_state->getValue('subscriptions_page_text'))
+      ->set('introduction_text', $form_state->getValue('introduction_text'))
       ->save();
 
     parent::submitForm($form, $form_state);

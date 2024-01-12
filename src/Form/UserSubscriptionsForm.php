@@ -82,9 +82,9 @@ class UserSubscriptionsForm extends FormBase {
     $this->account = $user;
     $subscriptions_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
 
-    $form['subscriptions_text'] = [
+    $form['introduction_text'] = [
       '#theme' => 'oe_subscriptions_introduction',
-      '#text' => $subscriptions_config->get('subscriptions_page_text'),
+      '#text' => $subscriptions_config->get('introduction_text'),
     ];
 
     $form['preferred_language'] = [

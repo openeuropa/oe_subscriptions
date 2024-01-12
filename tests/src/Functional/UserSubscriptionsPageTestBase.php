@@ -294,14 +294,14 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
 
     // Test that the text and link are displayed after setting configuration.
     $subscriptions_config
-      ->set('subscriptions_page_text', 'Configurable text 1.')
+      ->set('introduction_text', 'Configurable text 1.')
       ->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 1.');
 
     // Test that the text and link are displayed after updating configuration.
     $subscriptions_config
-      ->set('subscriptions_page_text', 'Configurable text 2.')
+      ->set('introduction_text', 'Configurable text 2.')
       ->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 2.');
