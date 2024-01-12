@@ -189,13 +189,21 @@ class AnonymousSubscribeForm extends FormBase {
       // defined.
       $form_state->setRedirectUrl(Url::fromRoute('<front>'));
     }
+    // Storing redirect disabled value to use in AjaxSubmit.
+    if ($this->isAjax()) {
+      $form['redirect_disabled'] = $form_state->isRedirectDisabled();
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
-    $form_state->disableRedirect(FALSE);
+    // Adding redirection from regular form submit variables. By default,
+    // Drupal\Core\Form\FormBuilder disables the redirection in AJAX submission.
+    // This is byassed in order to allow the message template from theme take
+    // place. Drupal\Core\Ajax\MessageCommand does not use theme template.
+    $form_state->disableRedirect($form_state->get('redirect_disabled'));
     $response = new AjaxResponse();
     $url = new RedirectCommand($form_state->getRedirect()->toString());
 
