@@ -125,11 +125,10 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->assertMailProperty('to', 'test@test.com');
     $assert_session->addressEquals($node->toUrl());
 
-    // Test confirm message override.
-    // Drupal\Core\Ajax\MessageCommand does not use theme template, and
-    // overrides are not taken in place. In order to solve the issue, current
-    // implementation adds a redirection in AjaxSubmit with values from regular
-    // submit, adding the confirm message through the messenger service.
+    // Test that the modal reloads the page in order to show the success
+    // message, rather then using the message AJAX command. The message command
+    // handles the status message rendering directly, without taking into
+    // account template overrides.
     $this->config('system.theme')->set('default', 'oe_subscriptions_anonymous_theme_test')->save();
     $this->drupalGet($node->toUrl());
     $this->clickLink($link_text);
