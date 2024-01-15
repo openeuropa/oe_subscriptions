@@ -195,10 +195,11 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
-    // The disable redirect has been forced to FALSE in order to allow
-    // redirection added in regular submit to take place and reload the page.
-    // By default, \Drupal\Core\Form\FormBuilder disables the redirection in
-    // AJAX submissions.
+    // We need to retrieve the redirect URL set in ::formSubmit(), but
+    // the getRedirect() method will return false if redirects are disabled.
+    // Form redirects are normally disabled during AJAX requests by the form
+    // builder.
+    // @see \Drupal\Core\Form\FormBuilder::buildForm()
     $is_redirect_disabled = $form_state->isRedirectDisabled();
     $form_state->disableRedirect(FALSE);
     $redirect = $form_state->getRedirect();
