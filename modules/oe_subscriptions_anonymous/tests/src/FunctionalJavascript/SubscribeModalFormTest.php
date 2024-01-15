@@ -114,7 +114,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $assert_session->elementNotExists('css', $modal_selector);
     $this->assertSubscriptionCreateMailStatusMessage();
     $this->assertCount(1, $this->getMails());
-    $this->assertMail('to', 'test@test.com');
+    $this->assertMailProperty('to', 'test@test.com');
   }
 
   /**

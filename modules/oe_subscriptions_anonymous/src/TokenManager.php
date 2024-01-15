@@ -110,13 +110,13 @@ class TokenManager implements TokenManagerInterface {
    */
   public static function buildScope(string $type, array $parts = []): string {
     // No other elements than the type.
-    if (empty($entity_ids)) {
+    if (empty($parts)) {
       return $type;
     }
     // Prepend the type and return.
-    array_unshift($entity_ids, $type);
+    array_unshift($parts, $type);
 
-    return implode(':', $entity_ids);
+    return implode(':', $parts);
   }
 
 }

@@ -96,6 +96,11 @@ class TokenManagerTest extends KernelTestBase {
     $this->assertTrue($token_service->isValid($mail, 'b', $token_scope_b));
     $this->assertFalse($token_service->isValid($mail, 'a', $token_scope_b));
     $this->assertFalse($token_service->isValid($mail, 'b', $token_scope_a));
+
+    // Test the build scope method.
+    $this->assertEquals('type:a:b:c', $token_service::buildScope('type', ['a', 'b', 'c']));
+    $this->assertEquals('type:d:e:f', $token_service::buildScope('type', ['d', 'e', 'f']));
+    $this->assertEquals('type_only', $token_service::buildScope('type_only'));
   }
 
 }

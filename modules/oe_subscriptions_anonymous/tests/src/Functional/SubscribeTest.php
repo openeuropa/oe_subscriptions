@@ -83,7 +83,7 @@ class SubscribeTest extends BrowserTestBase {
     // Click subscribe link.
     $this->clickLink('Subscribe to this article');
     $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_article',
+      'flag' => $article_flag->id(),
       'entity_id' => $article->id(),
     ])->setAbsolute()->toString());
 
@@ -128,10 +128,7 @@ class SubscribeTest extends BrowserTestBase {
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => $pages_flag->id(),
-      'entity_id' => $page->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
@@ -160,10 +157,7 @@ class SubscribeTest extends BrowserTestBase {
       'status' => 1,
     ]);
     $this->resetMailCollector();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => $pages_flag->id(),
-      'entity_id' => $page_two->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
     $assert_session->buttonExists('Subscribe me')->press();
@@ -185,13 +179,41 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
+
+    // Test that a user can have multiple pending subscription requests.
+    $this->resetMailCollector();
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
+    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
+    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+    $this->assertSubscriptionCreateMailStatusMessage();
+
+    $mails = $this->getMails();
+    $this->assertCount(2, $mails);
+    $first_mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'multiple@example.com', $pages_flag, $page);
+    $second_mail_urls = $this->assertSubscriptionConfirmationMail($mails[1], 'multiple@example.com', $pages_flag, $page_two);
+
+    $this->drupalGet($first_mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $account = user_load_by_mail('multiple@example.com');
+    $this->assertNotEmpty($account);
+    $this->assertTrue($pages_flag->isFlagged($page, $account));
+
+    $this->drupalGet($second_mail_urls[2]);
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+    $this->assertTrue($pages_flag->isFlagged($page_two, $account));
   }
 
   /**
    * Tests the terms and conditions link.
    */
   public function testTermsAndConditionsLink() {
-    $this->createFlagFromArray([
+    $flag = $this->createFlagFromArray([
       'id' => 'subscribe_all',
       'flag_short' => 'Subscribe',
       'entity_type' => 'node',
@@ -210,46 +232,31 @@ class SubscribeTest extends BrowserTestBase {
     $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
 
     // Assert that the link is not present if the configuration is not set.
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $assert_session->fieldExists('I have read and agree with the data protection terms.');
     $assert_session->linkNotExists('data protection terms');
 
     // The link to article is present.
     $terms_config->set('terms_url', 'entity:node/' . $article->id())->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($article->toUrl());
 
     // The link to page is present.
     $terms_config->set('terms_url', 'entity:node/' . $page->id())->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $page->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $page);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($page->toUrl());
 
     // Delete node and check that the field is not present.
     $page->delete();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $assert_session->fieldExists('I have read and agree with the data protection terms.');
     $assert_session->linkNotExists('data protection terms');
 
     // Set external URL for terms page.
     $terms_config->set('terms_url', 'https://www.drupal.org/')->save();
-    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
-      'flag' => 'subscribe_all',
-      'entity_id' => $article->id(),
-    ]));
+    $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $link = $this->getSession()->getPage()->findLink('data protection terms');
     $this->assertEquals('https://www.drupal.org/', $link->getAttribute('href'));
   }
@@ -270,11 +277,11 @@ class SubscribeTest extends BrowserTestBase {
    *   A list of URLs extracted from the mail.
    */
   protected function assertSubscriptionConfirmationMail(array $mail_data, string $email, FlagInterface $flag, EntityInterface $entity): array {
-    $this->assertMail('to', $email);
-    $this->assertMail('subject', 'Confirm your subscription to ' . $entity->label());
-    $this->assertMailString('body', "{$entity->label()} [1]", 1);
-    $this->assertMailString('body', 'Confirm subscription request [2]', 1);
-    $this->assertMailString('body', 'Cancel subscription request [3]', 1);
+    $this->assertMailProperty('to', $email, $mail_data);
+    $this->assertMailProperty('subject', 'Confirm your subscription to ' . $entity->label(), $mail_data);
+    $this->assertMailString('body', "{$entity->label()} [1]", $mail_data);
+    $this->assertMailString('body', 'Confirm subscription request [2]', $mail_data);
+    $this->assertMailString('body', 'Cancel subscription request [3]', $mail_data);
 
     $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
     $this->assertCount(3, $mail_urls);
@@ -286,6 +293,21 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '/.+$@', $mail_urls[3]);
 
     return $mail_urls;
+  }
+
+  /**
+   * Visits the subscription request page for the given entity.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The flag entity.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to flag.
+   */
+  protected function visitSubscriptionRequestPageForEntity(FlagInterface $flag, EntityInterface $entity): void {
+    $this->drupalGet(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
+      'flag' => $flag->id(),
+      'entity_id' => $entity->id(),
+    ]));
   }
 
 }
