@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Drupal\Core\Url;
+use Drupal\filter\Entity\FilterFormat;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 
@@ -79,14 +80,35 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
 
-    // Test that the text configuration saved and preserved.
+    // Test that the introduction text saved and preserved.
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
-    $page_text_field = $assert_session->fieldExists('Subscriptions page text');
-    $page_text_field->setValue('Test text.');
+    $introduction_text = $assert_session->fieldExists('Introduction text');
+    $introduction_text->setValue('Test text.');
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
-    $this->assertEquals($page_text_field->getValue(), 'Test text.');
+    $this->assertEquals($introduction_text->getValue(), 'Test text.');
+
+    // Test text formats for introduction text.
+    FilterFormat::create([
+      'format' => 'full_html',
+      'name' => 'Full HTML',
+      'roles' => ['authenticated'],
+    ])->save();
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
+    $subform = $assert_session->elementExists('css', '[data-drupal-selector="edit-introduction-text-format"]');
+    $text_format = $assert_session->selectExists('Text format', $subform);
+    // Check that the new text format is available.
+    $this->assertEquals([
+      'plain_text' => 'Plain text',
+      'full_html' => 'Full HTML',
+    ], $this->getOptions($text_format));
+    $this->assertEquals($text_format->getValue(), 'plain_text');
+    $text_format->setValue('full_html');
+    $assert_session->buttonExists('Save configuration')->press();
+    // Test that 'full' option is saved.
+    $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
+    $this->assertEquals($text_format->getValue(), 'full_html');
   }
 
 }

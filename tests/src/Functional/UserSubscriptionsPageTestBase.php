@@ -6,8 +6,10 @@ namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
+use Drupal\filter\Entity\FilterFormat;
 use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\oe_subscriptions\Form\SettingsForm;
@@ -292,19 +294,28 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     $this->drupalGet($path);
     $assert_session->pageTextNotContains('Configurable text 1.');
 
-    // Test that the text and link are displayed after setting configuration.
+    // Test that the text is displayed after setting configuration.
     $subscriptions_config
-      ->set('introduction_text', 'Configurable text 1.')
-      ->save();
+      ->set('introduction_text', [
+        'value' => 'Configurable text 1.',
+        'format' => 'plain_text',
+      ])->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 1.');
 
-    // Test that the text and link are displayed after updating configuration.
+    // Test that the text with a link is displayed after updating configuration.
+    FilterFormat::create([
+      'format' => 'full_html',
+      'name' => 'Full HTML',
+    ])->save();
     $subscriptions_config
-      ->set('introduction_text', 'Configurable text 2.')
-      ->save();
+      ->set('introduction_text', [
+        'value' => 'Configurable text 2 <a href="' . Url::fromRoute('<front>')->toString() . '">Terms and conditions</a>.',
+        'format' => 'full_html',
+      ])->save();
     $this->drupalGet($path);
-    $assert_session->pageTextContains('Configurable text 2.');
+    $assert_session->pageTextContains('Configurable text 2 Terms and conditions.');
+    $assert_session->linkExists('Terms and conditions');
   }
 
   /**
