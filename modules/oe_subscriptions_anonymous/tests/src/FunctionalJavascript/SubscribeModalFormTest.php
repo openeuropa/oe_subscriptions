@@ -32,6 +32,14 @@ class SubscribeModalFormTest extends WebDriverTestBase {
   protected $defaultTheme = 'stark';
 
   /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
+    \Drupal::service('theme_installer')->install(['oe_subscriptions_anonymous_theme_test']);
+  }
+
+  /**
    * Tests that subscribe link open a modal.
    */
   public function testModalForm(): void {
@@ -115,6 +123,21 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $this->assertSubscriptionCreateMailStatusMessage();
     $this->assertCount(1, $this->getMails());
     $this->assertMailProperty('to', 'test@test.com');
+    $assert_session->addressEquals($node->toUrl());
+
+    // Test that the modal reloads the page in order to show the success
+    // message, rather then using the message AJAX command. The message command
+    // handles the status message rendering directly, without taking into
+    // account template overrides.
+    $this->config('system.theme')->set('default', 'oe_subscriptions_anonymous_theme_test')->save();
+    $this->drupalGet($node->toUrl());
+    $this->clickLink($link_text);
+    $assert_session->waitForElement('css', $modal_selector);
+    $mail_field->setValue('test1@test.com');
+    $terms_field->check();
+    $assert_session->buttonExists('Subscribe me', $button_pane)->press();
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->assertSession()->pageTextContains('Status-messages template overriden by theme.');
   }
 
   /**

@@ -1,0 +1,6 @@
+name: 'OE Subscriptions anonymous theme test'
+type: theme
+base theme: stark
+description: 'Support theme for anonymous subscriptions tests.'
+package: Testing
+hidden: TRUE

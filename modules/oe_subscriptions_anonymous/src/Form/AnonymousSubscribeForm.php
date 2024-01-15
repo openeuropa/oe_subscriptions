@@ -8,8 +8,7 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Ajax\AjaxFormHelperTrait;
 use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\CloseModalDialogCommand;
-use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -174,10 +173,6 @@ class AnonymousSubscribeForm extends FormBase {
       return;
     }
 
-    if ($this->isAjax()) {
-      return;
-    }
-
     $confirm_message = [
       '#theme' => 'oe_subscriptions_anonymous_message_confirm',
     ];
@@ -200,17 +195,19 @@ class AnonymousSubscribeForm extends FormBase {
    * {@inheritdoc}
    */
   protected function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
+    // We need to retrieve the redirect URL set in ::formSubmit(), but
+    // the getRedirect() method will return false if redirects are disabled.
+    // Form redirects are normally disabled during AJAX requests by the form
+    // builder.
+    // @see \Drupal\Core\Form\FormBuilder::buildForm()
+    $is_redirect_disabled = $form_state->isRedirectDisabled();
+    $form_state->disableRedirect(FALSE);
+    $redirect = $form_state->getRedirect();
+    $form_state->disableRedirect($is_redirect_disabled);
     $response = new AjaxResponse();
+    $url = new RedirectCommand($redirect->toString());
 
-    $confirm_message = [
-      '#theme' => 'oe_subscriptions_anonymous_message_confirm',
-    ];
-    $rendered_message = $this->renderer->render($confirm_message);
-
-    $response->addCommand(new CloseModalDialogCommand());
-    $response->addCommand(new MessageCommand($rendered_message, NULL, ['type' => 'warning']));
-
-    return $response;
+    return $response->addCommand($url);
   }
 
   /**
