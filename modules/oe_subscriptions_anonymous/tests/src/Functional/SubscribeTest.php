@@ -229,7 +229,7 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-    $subscriptions_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+    $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
 
     // Assert that the link is not present if the configuration is not set.
     $this->visitSubscriptionRequestPageForEntity($flag, $article);
@@ -237,13 +237,13 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->linkNotExists('data protection terms');
 
     // The link to article is present.
-    $subscriptions_config->set('terms_url', 'entity:node/' . $article->id())->save();
+    $terms_config->set('terms_url', 'entity:node/' . $article->id())->save();
     $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($article->toUrl());
 
-    // The subscriptions_config to page is present.
-    $subscriptions_config->set('terms_url', 'entity:node/' . $page->id())->save();
+    // The terms_config to page is present.
+    $terms_config->set('terms_url', 'entity:node/' . $page->id())->save();
     $this->visitSubscriptionRequestPageForEntity($flag, $page);
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($page->toUrl());
@@ -255,7 +255,7 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->linkNotExists('data protection terms');
 
     // Set external URL for terms page.
-    $subscriptions_config->set('terms_url', 'https://www.drupal.org/')->save();
+    $terms_config->set('terms_url', 'https://www.drupal.org/')->save();
     $this->visitSubscriptionRequestPageForEntity($flag, $article);
     $link = $this->getSession()->getPage()->findLink('data protection terms');
     $this->assertEquals('https://www.drupal.org/', $link->getAttribute('href'));
