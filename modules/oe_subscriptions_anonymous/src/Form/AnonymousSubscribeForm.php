@@ -90,10 +90,10 @@ class AnonymousSubscribeForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
     // Terms and conditions link.
     $title = $this->t('I have read and agree with the data protection terms.');
-    $subscriptions_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+    $config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
     // In case we have a value we override default text with the link.
-    if (!empty($subscriptions_config->get('terms_url'))) {
-      $url = Url::fromUri($subscriptions_config->get('terms_url'));
+    if (!empty($config->get('terms_url'))) {
+      $url = Url::fromUri($config->get('terms_url'));
       if ($url->access()) {
         $title = $this->t('I have read and agree with the <a href=":url" target="_blank" >data protection terms</a>.', [':url' => $url->toString()]);
       }

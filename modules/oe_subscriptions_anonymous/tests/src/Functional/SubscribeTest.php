@@ -242,7 +242,7 @@ class SubscribeTest extends BrowserTestBase {
     $this->clickLink('data protection terms');
     $assert_session->addressEquals($article->toUrl());
 
-    // The terms_config to page is present.
+    // The link to page is present.
     $terms_config->set('terms_url', 'entity:node/' . $page->id())->save();
     $this->visitSubscriptionRequestPageForEntity($flag, $page);
     $this->clickLink('data protection terms');
