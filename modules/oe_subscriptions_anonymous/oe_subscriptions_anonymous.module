@@ -78,7 +78,7 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
  *   An associative array containing:
  *   - link: The link text.
  *   - url: The link destination.
- *   - attributes: array of attributes the link has.
+ *   - attributes: associative array containing the properties of the element.
  */
 function template_preprocess_oe_subscriptions_anonymous_link(&$variables) {
   if (empty($variables['url'])) {
