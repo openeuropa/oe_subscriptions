@@ -10,5 +10,5 @@
 #}
 {% apply spaceless %}
   {# Set set URL from variables #}
-  <a{{ attributes }}>{{ title }}</a>
+  <a{{ attributes.addClass(['button', 'button--small']) }}>{{ title }}</a>
 {% endapply %}
