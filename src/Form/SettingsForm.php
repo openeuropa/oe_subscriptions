@@ -56,7 +56,6 @@ class SettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $url = $this->config(static::CONFIG_NAME)->get('terms_url');
     $introduction_text = $this->config(static::CONFIG_NAME)->get('introduction_text');
-    $formats = $this->entityTypeManager->getStorage('filter_format')->loadMultiple();
 
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
@@ -81,13 +80,9 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'text_format',
       '#title' => $this->t('Introduction text'),
       '#default_value' => $introduction_text['value'] ?? '',
-      '#allowed_formats' => !empty($formats) ? array_keys($formats) : [],
+      '#format' => $introduction_text['format'] ?? NULL,
       '#description' => $this->t('Text displayed on "My subscriptions" page.'),
     ];
-
-    if (!empty($introduction_text['format'])) {
-      $form['introduction_text']['#format'] = $introduction_text['format'];
-    }
 
     return parent::buildForm($form, $form_state);
   }

@@ -6,7 +6,6 @@ namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\filter\Entity\FilterFormat;
@@ -310,12 +309,13 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     ])->save();
     $subscriptions_config
       ->set('introduction_text', [
-        'value' => 'Configurable text 2 <a href="' . Url::fromRoute('<front>')->toString() . '">Terms and conditions</a>.',
+        'value' => 'Configurable text 2 <a href="/test">Terms and conditions</a>.',
         'format' => 'full_html',
       ])->save();
     $this->drupalGet($path);
     $assert_session->pageTextContains('Configurable text 2 Terms and conditions.');
-    $assert_session->linkExists('Terms and conditions');
+    $link = $assert_session->elementExists('xpath', '//a[text()="Terms and conditions"]');
+    $this->assertEquals('/test', $link->getAttribute('href'));
   }
 
   /**

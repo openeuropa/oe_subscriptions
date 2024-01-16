@@ -64,7 +64,7 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
     // The form displays the saved value.
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
-    $this->assertEquals($url_field->getValue(), $page_value);
+    $this->assertEquals($page_value, $url_field->getValue());
 
     // Set external URL for terms page.
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
@@ -87,12 +87,17 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->buttonExists('Save configuration')->press();
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
-    $this->assertEquals($introduction_text->getValue(), 'Test text.');
+    $this->assertEquals('Test text.', $introduction_text->getValue());
 
     // Test text formats for introduction text.
     FilterFormat::create([
       'format' => 'full_html',
       'name' => 'Full HTML',
+      'roles' => ['authenticated'],
+    ])->save();
+    FilterFormat::create([
+      'format' => 'filtered_html',
+      'name' => 'Filtered HTML',
       'roles' => ['authenticated'],
     ])->save();
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
@@ -102,13 +107,14 @@ class SettingsTest extends BrowserTestBase {
     $this->assertEquals([
       'plain_text' => 'Plain text',
       'full_html' => 'Full HTML',
+      'filtered_html' => 'Filtered HTML',
     ], $this->getOptions($text_format));
-    $this->assertEquals($text_format->getValue(), 'plain_text');
+    $this->assertEquals('plain_text', $text_format->getValue());
     $text_format->setValue('full_html');
     $assert_session->buttonExists('Save configuration')->press();
     // Test that 'full' option is saved.
     $this->drupalGet(Url::fromRoute('oe_subscriptions.settings'));
-    $this->assertEquals($text_format->getValue(), 'full_html');
+    $this->assertEquals('full_html', $text_format->getValue());
   }
 
 }
