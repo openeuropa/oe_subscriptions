@@ -70,9 +70,17 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_preprocess_HOOK().
+ * Prepares variables for link template.
+ *
+ * Default template: oe-subscriptions-anonymous-link.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - link: The link text.
+ *   - url: The link destination.
+ *   - attributes: array of attributes the link has.
  */
-function oe_subscriptions_anonymous_preprocess_oe_subscriptions_anonymous_link(&$variables) {
+function template_preprocess_oe_subscriptions_anonymous_link(&$variables) {
   if (empty($variables['url'])) {
     return;
   }
