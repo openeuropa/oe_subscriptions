@@ -11,10 +11,7 @@ use Drupal\Core\Url;
 class TestController extends ControllerBase {
 
   /**
-   * Tests template overriding based on filename.
-   *
-   * @return array
-   *   A render array containing a theme override.
+   * Renders anonymous link template with different parameters.
    */
   public function testLinkTemplate() {
     $markup = '';
