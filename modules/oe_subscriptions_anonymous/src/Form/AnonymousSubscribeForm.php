@@ -19,7 +19,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions\Form\SettingsForm;
+use Drupal\oe_subscriptions_anonymous\Settings;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -90,7 +90,7 @@ class AnonymousSubscribeForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
     // Terms and conditions link.
     $title = $this->t('I have read and agree with the data protection terms.');
-    $config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+    $config = $this->configFactory->get(Settings::CONFIG_NAME);
     // In case we have a value we override default text with the link.
     if (!empty($config->get('terms_url'))) {
       $url = Url::fromUri($config->get('terms_url'));
