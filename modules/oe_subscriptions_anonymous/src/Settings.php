@@ -26,10 +26,10 @@ class Settings implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
    */
-  public function __construct(protected EntityTypeManagerInterface $entityTypeManager, protected ConfigFactoryInterface $config) {}
+  public function __construct(protected EntityTypeManagerInterface $entityTypeManager, protected ConfigFactoryInterface $configFactory) {}
 
   /**
    * {@inheritdoc}
@@ -42,10 +42,13 @@ class Settings implements ContainerInjectionInterface {
   }
 
   /**
-   * Alters the settings form to add anonymous settings.
+   * Alters the form to add anonymous settings.
+   *
+   * @param array $form
+   *   The form.
    */
-  public function settingsFormAlter(&$form) {
-    $url = $this->config->get(static::CONFIG_NAME)->get('terms_url');
+  public function settingsFormAlter(&$form): void {
+    $url = $this->configFactory->get(static::CONFIG_NAME)->get('terms_url');
 
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
@@ -70,9 +73,14 @@ class Settings implements ContainerInjectionInterface {
 
   /**
    * Submit to save anonymous settings.
+   *
+   * @param array $form
+   *   The form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
-  public function settingsFormSubmit($form, FormStateInterface $form_state) {
-    $config = $this->config->getEditable(static::CONFIG_NAME);
+  public function settingsFormSubmit($form, FormStateInterface $form_state): void {
+    $config = $this->configFactory->getEditable(static::CONFIG_NAME);
     $config->set('terms_url', $form_state->getValue('terms_url'))->save();
   }
 
@@ -118,7 +126,7 @@ class Settings implements ContainerInjectionInterface {
       // Show the 'entity:' URI as the entity autocomplete would.
       // @todo Support entity types other than 'node'. Will be fixed in
       //   https://www.drupal.org/node/2423093.
-      if ($entity_type == 'node' && $entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($entity_id)) {
+      if ($entity_type == 'node' && $entity = $this->entityTypeManager->getStorage($entity_type)->load($entity_id)) {
         $displayable_string = EntityAutocomplete::getEntityLabels([$entity]);
       }
     }

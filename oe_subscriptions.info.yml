@@ -7,4 +7,3 @@ dependencies:
   - message:message
   - message_subscribe:message_subscribe
   - flag:flag
-  - drupal:link

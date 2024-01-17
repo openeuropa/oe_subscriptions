@@ -4,4 +4,4 @@ oe_subscriptions.settings:
   mapping:
     introduction_text:
       type: text_format
-      label: 'Subscriptions page text'
+      label: 'Introduction text'
