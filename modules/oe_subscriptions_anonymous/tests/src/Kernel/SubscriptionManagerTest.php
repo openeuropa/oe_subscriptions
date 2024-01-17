@@ -117,6 +117,16 @@ class SubscriptionManagerTest extends KernelTestBase {
     // exist.
     $this->assertFalse($subscription_manager->subscribe('another@example.com', $page_flag, $nonexistent_id));
 
+    // Subscribe a decoupled user without the 'anonymous_subscriber' role.
+    $decoupled_user = $this->createUser([], 'decoupled_user');
+    $decoupled_user->decouple()->save();
+    $this->assertInstanceOf(DecoupledAuthUserInterface::class, $decoupled_user);
+    $this->assertTrue($decoupled_user->isDecoupled());
+    $this->assertFalse($decoupled_user->hasRole('anonymous_subscriber'));
+    $subscription_manager->subscribe('decoupled_user@example.com', $page_flag, $page->id());
+    $this->assertTrue($page_flag->isFlagged($page, $user));
+    $this->assertTrue($user->hasRole('anonymous_subscriber'));
+
     // The service returns an exception if we try to subscribe a coupled user.
     // A coupled user is a user with a full account, completely registered in
     // the platform.
