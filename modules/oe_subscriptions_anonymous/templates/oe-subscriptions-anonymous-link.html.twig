@@ -8,7 +8,4 @@
  * - attributes: associative array containing the properties of the element.
  */
 #}
-{% apply spaceless %}
-  {# Set set URL from variables #}
-  <a{{ attributes.addClass(['button', 'button--small']) }}>{{ title }}</a>
-{% endapply %}
+{{ link(title, url, attributes) }}

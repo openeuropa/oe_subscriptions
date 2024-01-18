@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Url;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\SubscriptionCreate;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\UserSubscriptionsAccess;
 
@@ -67,27 +66,4 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
       ],
     ],
   ];
-}
-
-/**
- * Prepares variables for link template.
- *
- * Default template: oe-subscriptions-anonymous-link.html.twig.
- *
- * @param array $variables
- *   An associative array containing:
- *   - link: The link text.
- *   - url: The link destination.
- *   - attributes: associative array containing the properties of the element.
- */
-function template_preprocess_oe_subscriptions_anonymous_link(&$variables) {
-  if (empty($variables['url'])) {
-    return;
-  }
-  /** @var \Drupal\Core\Url $url */
-  $url = $variables['url'];
-  if (!$url instanceof Url) {
-    return;
-  }
-  $variables['attributes']['href'] = $url->toString();
 }
