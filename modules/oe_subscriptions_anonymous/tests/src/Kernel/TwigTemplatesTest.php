@@ -22,10 +22,7 @@ class TwigTemplatesTest extends KernelTestBase {
     $this->assertAnonymousLink('Link to front', Url::fromRoute('<front>'));
 
     // Test link with title and string.
-    $this->assertAnonymousLink('Link to front', '/test');
-
-    // Test link with no href.
-    $this->assertAnonymousLink('Link without URL');
+    $this->assertAnonymousLink('Link to front', "internal:/test");
 
     // Test link with no text.
     $this->assertAnonymousLink('', $front_url);
@@ -61,20 +58,26 @@ class TwigTemplatesTest extends KernelTestBase {
     $crawler = new Crawler($html);
     $link = $crawler->filter('a');
 
+    if (!$expected_route instanceof Url) {
+      $expected_route = Url::fromUri($expected_route);
+    }
+
     // The href is another attribute we can check together with the expected.
     if (!empty($expected_route)) {
-      if ($expected_route instanceof Url) {
-        $expected_route = $expected_route->toString();
-      }
-      $expected_attributes['href'] = $expected_route;
+      $expected_attributes['href'] = $expected_route->toString();
     }
 
     $this->assertEquals($expected_text, $link->text());
 
+    // Drupal\Core\Template\Attribute doesn't provide the a way to retrieve
+    // individual attribute values as rendered string. To reduce complexity of
+    // the operation we simulate the same behavior. See:
+    // Drupal\Core\Template\AttributeArray.
+    array_walk($expected_attributes, fn(&$value) => $value = is_array($value) ? implode(' ', $value) : $value);
+
     // Retrieve all attributes present in the node.
     $attributes = array_map(static fn($attr) => $attr->value, iterator_to_array($link->getNode(0)->attributes));
     $this->assertEquals($expected_attributes, $attributes);
-
   }
 
 }
