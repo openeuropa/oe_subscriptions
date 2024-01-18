@@ -2,65 +2,62 @@
 
 declare(strict_types = 1);
 
-namespace Drupal\oe_subscriptions_anonymous\Form;
+namespace Drupal\oe_subscriptions_anonymous;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * The form for the configuration of the Anonymous subscription module.
+ * Class to manage anonymous settings.
+ *
+ * @internal
  */
-class SettingsForm extends ConfigFormBase {
+final class SettingsFormAlter implements ContainerInjectionInterface {
 
   /**
-   * Name of the config being edited.
+   * Name of the config.
    */
   const CONFIG_NAME = 'oe_subscriptions_anonymous.settings';
 
   /**
-   * {@inheritdoc}
-   */
-  public function getFormId(): string {
-    return 'oe_subscriptions_anonymous_settings_form';
-  }
-
-  /**
-   * Constructs a settings form.
+   * Creates a new instance of this class.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The factory for configuration objects.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entity manager.
+   *   The entity type manager.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The factory for configuration objects.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, protected EntityTypeManagerInterface $entityTypeManager) {
-    parent::__construct($config_factory);
-  }
+  public function __construct(protected EntityTypeManagerInterface $entityTypeManager, protected ConfigFactoryInterface $configFactory) {}
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('config.factory')
     );
   }
 
   /**
-   * {@inheritdoc}
+   * Alters the form to add anonymous settings.
+   *
+   * @param array $form
+   *   The form.
    */
-  public function buildForm(array $form, FormStateInterface $form_state): array {
-    $url = $this->config(static::CONFIG_NAME)->get('terms_url');
+  public function settingsFormAlter(&$form): void {
+    $url = $this->configFactory->get(static::CONFIG_NAME)->get('terms_url');
+
     $form['terms_url'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'node',
-      '#title' => $this->t('Terms page URL'),
+      '#title' => t('Terms page URL'),
       '#default_value' => !empty($url) ? $this->getUriAsDisplayableString($url) : '',
-      '#description' => $this->t('The URL to the terms and conditions page.'),
+      '#description' => t('The URL to the terms and conditions page.'),
       '#required' => TRUE,
       '#element_validate' => [
         [
@@ -73,19 +70,20 @@ class SettingsForm extends ConfigFormBase {
       ],
       '#process_default_value' => FALSE,
     ];
-
-    return parent::buildForm($form, $form_state);
+    $form['#submit'][] = [$this, 'settingsFormSubmit'];
   }
 
   /**
-   * {@inheritdoc}
+   * Submit to save anonymous settings.
+   *
+   * @param array $form
+   *   The form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
-  public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->config(static::CONFIG_NAME)
-      ->set('terms_url', $form_state->getValue('terms_url'))
-      ->save();
-
-    parent::submitForm($form, $form_state);
+  public function settingsFormSubmit($form, FormStateInterface $form_state): void {
+    $config = $this->configFactory->getEditable(static::CONFIG_NAME);
+    $config->set('terms_url', $form_state->getValue('terms_url'))->save();
   }
 
   /**
@@ -105,7 +103,7 @@ class SettingsForm extends ConfigFormBase {
    *
    * @see \Drupal\link\Plugin\Field\FieldWidget\LinkWidget::getUserEnteredStringAsUri()
    */
-  protected function getUriAsDisplayableString($uri): string {
+  private function getUriAsDisplayableString($uri): string {
     $scheme = parse_url($uri, PHP_URL_SCHEME);
 
     // By default, the displayable string is the URI.
@@ -139,13 +137,6 @@ class SettingsForm extends ConfigFormBase {
     }
 
     return $displayable_string;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getEditableConfigNames(): array {
-    return [static::CONFIG_NAME];
   }
 
 }

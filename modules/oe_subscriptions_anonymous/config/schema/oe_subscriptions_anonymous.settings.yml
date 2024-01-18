@@ -1,6 +1,6 @@
 oe_subscriptions_anonymous.settings:
   type: config_object
-  label: 'Terms page'
+  label: 'Anonymous subscriptions settings'
   mapping:
     terms_url:
       type: text

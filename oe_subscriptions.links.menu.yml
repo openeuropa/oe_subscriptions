@@ -1,0 +1,5 @@
+oe_subscriptions.settings:
+  title: Subscriptions
+  description: 'Configure subscriptions settings.'
+  route_name: oe_subscriptions.settings
+  parent: message.main_settings

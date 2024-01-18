@@ -97,6 +97,24 @@ class AnonymousUserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
   }
 
   /**
+   * Tests the rendering of the introduction text.
+   */
+  public function testFormPreface(): void {
+    $user = DecoupledAuthUser::create([
+      'mail' => $this->randomMachineName() . '@example.com',
+      'name' => NULL,
+      'status' => 1,
+      'roles' => ['anonymous_subscriber'],
+    ]);
+    $user->save();
+    $fn_get_path = function (UserInterface $user) {
+      return $this->getAnonymousUserSubscriptionsPageUrl($user->getEmail());
+    };
+
+    $this->doTestFormPreface($user, $fn_get_path);
+  }
+
+  /**
    * Retrieves the URL to access the subscriptions page for a user.
    *
    * This method will request the URL via the dedicated form.

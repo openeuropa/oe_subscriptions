@@ -73,4 +73,16 @@ class UserSubscriptionsPageTest extends UserSubscriptionsPageTestBase {
     $this->doTestUserPreferences($this->drupalCreateUser(), $fn_get_path);
   }
 
+  /**
+   * Tests the rendering of the introduction text.
+   */
+  public function testFormPreface(): void {
+    $fn_get_path = function ($user) {
+      $this->drupalLogin($user);
+      return "/user/{$user->id()}/subscriptions";
+    };
+
+    $this->doTestFormPreface($this->drupalCreateUser(), $fn_get_path);
+  }
+
 }

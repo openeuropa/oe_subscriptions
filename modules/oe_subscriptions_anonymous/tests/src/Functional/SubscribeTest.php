@@ -7,7 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\flag\FlagInterface;
-use Drupal\oe_subscriptions_anonymous\Form\SettingsForm;
+use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
@@ -229,7 +229,7 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-    $terms_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+    $terms_config = \Drupal::configFactory()->getEditable(SettingsFormAlter::CONFIG_NAME);
 
     // Assert that the link is not present if the configuration is not set.
     $this->visitSubscriptionRequestPageForEntity($flag, $article);

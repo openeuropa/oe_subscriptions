@@ -1,0 +1,7 @@
+oe_subscriptions.settings:
+  type: config_object
+  label: 'Subscription settings'
+  mapping:
+    introduction_text:
+      type: text_format
+      label: 'Introduction text'

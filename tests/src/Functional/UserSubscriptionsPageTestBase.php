@@ -8,8 +8,10 @@ use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
+use Drupal\filter\Entity\FilterFormat;
 use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
+use Drupal\oe_subscriptions\Form\SettingsForm;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\user\UserInterface;
@@ -269,6 +271,51 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     /** @var \Drupal\user\UserInterface $user */
     $user = $user_storage->load($user->id());
     $this->assertEquals('it', $user->getPreferredLangcode());
+  }
+
+  /**
+   * Tests the rendering of the introduction text.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   The user for the test.
+   * @param callable $fn_get_path
+   *   Callable that returns the path to visit for the test. It also needs to
+   *   take care of logging the user, or requesting a token in order to allow
+   *   visiting the path.
+   */
+  protected function doTestFormPreface(UserInterface $user, callable $fn_get_path): void {
+    $path = $fn_get_path($user);
+    $this->drupalGet($path);
+    $assert_session = $this->assertSession();
+    $subscriptions_config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+
+    // Test that text isn't present by default.
+    $this->drupalGet($path);
+    $assert_session->pageTextNotContains('Configurable text 1.');
+
+    // Test that the text is displayed after setting configuration.
+    $subscriptions_config
+      ->set('introduction_text', [
+        'value' => 'Configurable text 1.',
+        'format' => 'plain_text',
+      ])->save();
+    $this->drupalGet($path);
+    $assert_session->pageTextContains('Configurable text 1.');
+
+    // Test that the text with a link is displayed after updating configuration.
+    FilterFormat::create([
+      'format' => 'full_html',
+      'name' => 'Full HTML',
+    ])->save();
+    $subscriptions_config
+      ->set('introduction_text', [
+        'value' => 'Configurable text 2 <a href="/test">Terms and conditions</a>.',
+        'format' => 'full_html',
+      ])->save();
+    $this->drupalGet($path);
+    $assert_session->pageTextContains('Configurable text 2 Terms and conditions.');
+    $link = $assert_session->elementExists('xpath', '//a[text()="Terms and conditions"]');
+    $this->assertEquals('/test', $link->getAttribute('href'));
   }
 
   /**

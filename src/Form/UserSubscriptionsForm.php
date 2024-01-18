@@ -48,11 +48,14 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
+    $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('flag'),
       $container->get('current_user')
     );
+    $instance->setConfigFactory($container->get('config.factory'));
+
+    return $instance;
   }
 
   /**
@@ -77,6 +80,19 @@ class UserSubscriptionsForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
     $this->account = $user;
+    $subscriptions_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
+    $introduction_text = $subscriptions_config->get('introduction_text');
+
+    if (!empty($introduction_text['value'])) {
+      $form['introduction_text'] = [
+        '#theme' => 'oe_subscriptions_introduction',
+        '#text' => [
+          '#type' => 'processed_text',
+          '#text' => $introduction_text['value'],
+          '#format' => $introduction_text['format'] ?? '',
+        ],
+      ];
+    }
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
@@ -160,9 +176,7 @@ class UserSubscriptionsForm extends FormBase {
     ];
 
     if (empty($results)) {
-      $build['no_results'] = [
-        '#plain_text' => $this->t('No subscriptions found.'),
-      ];
+      $build['no_results'] = ['#theme' => 'oe_subscriptions_no_subscriptions'];
 
       return $build;
     }
