@@ -13,8 +13,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class to manage anonymous settings.
+ *
+ * @internal
  */
-class Settings implements ContainerInjectionInterface {
+final class SettingsFormAlter implements ContainerInjectionInterface {
 
   /**
    * Name of the config.
