@@ -41,12 +41,15 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     if ($account === FALSE) {
       /** @var \Drupal\user\UserInterface $account */
       $account = $this->entityTypeManager->getStorage('user')->create(['mail' => $mail]);
-      $account->addRole('anonymous_subscriber')->save();
     }
 
     /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $account */
     if ($account->isCoupled()) {
       throw new RegisteredUserEmailException(sprintf('The e-mail %s belongs to a fully registered user.', $mail));
+    }
+
+    if (!$account->hasRole('anonymous_subscriber')) {
+      $account->addRole('anonymous_subscriber')->save();
     }
 
     // Already flagged.
