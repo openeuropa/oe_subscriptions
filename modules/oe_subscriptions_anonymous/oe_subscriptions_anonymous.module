@@ -58,5 +58,12 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
     'oe_subscriptions_anonymous_message_confirm' => [
       'variables' => [],
     ],
+    'oe_subscriptions_anonymous_link' => [
+      'variables' => [
+        'title' => '',
+        'url' => '',
+        'attributes' => [],
+      ],
+    ],
   ];
 }
