@@ -19,61 +19,76 @@ class TwigTemplatesTest extends KernelTestBase {
     $front_url = Url::fromRoute('<front>');
 
     // Test link with title and URL.
-    $this->assertAnonymousLink('Link to front', Url::fromRoute('<front>'));
+    $this->assertAnonymousLink(
+      [
+        '#title' => 'Link to home',
+        '#url' => $front_url,
+      ],
+      'Link to home',
+      [
+        'href' => $front_url->toString(),
+      ]
+    );
 
-    // Test link with title and string.
-    $this->assertAnonymousLink('Link to front', "internal:/test");
+    // Test link with title and external url.
+    $this->assertAnonymousLink(
+      [
+        '#title' => 'Link to Drupal',
+        '#url' => 'https://www.drupal.org',
+      ],
+      'Link to Drupal',
+      [
+        'href' => 'https://www.drupal.org',
+      ]
+    );
 
     // Test link with no text.
-    $this->assertAnonymousLink('', $front_url);
-
-    // Test link with target '_blank'.
-    $this->assertAnonymousLink('Link with target', $front_url, ['target' => '_blank']);
+    $this->assertAnonymousLink(
+      [
+        '#url' => $front_url,
+      ],
+      '',
+      [
+        'href' => $front_url->toString(),
+      ]
+    );
 
     // Test link with attributes.
-    $this->assertAnonymousLink('Link with attributes', $front_url, [
-      'class' => ['class-1', 'class-2'],
-      'attribute-2' => 'attribute-2-value',
-    ]);
+    $this->assertAnonymousLink(
+      [
+        '#title' => 'Link to test',
+        '#url' => 'internal:/test',
+        '#attributes' => [
+          'target' => '_blank',
+          'class' => ['class-1', 'class-2'],
+        ],
+      ],
+      'Link to test',
+      [
+        'href' => '/test',
+        'target' => '_blank',
+        'class' => 'class-1 class-2',
+      ]
+    );
   }
 
   /**
    * Asserts that an anonymous link template is rendered with the given values.
    *
+   * @param array $variables
+   *   The theme variables.
    * @param string $expected_text
    *   The displayed text.
-   * @param string|Url $expected_route
-   *   The destination.
    * @param array $expected_attributes
-   *   The attributes.
+   *   The element attributes.
    */
-  protected function assertAnonymousLink(string $expected_text = '', string|Url $expected_route = '', array $expected_attributes = []): void {
-    $values = [
-      '#theme' => 'oe_subscriptions_anonymous_link',
-      '#title' => $expected_text,
-      '#url' => $expected_route,
-      '#attributes' => $expected_attributes,
-    ];
+  protected function assertAnonymousLink(array $variables, string $expected_text, array $expected_attributes): void {
+    $values = ['#theme' => 'oe_subscriptions_anonymous_link'] + $variables;
     $html = (string) $this->container->get('renderer')->renderRoot($values);
     $crawler = new Crawler($html);
     $link = $crawler->filter('a');
 
-    if (!$expected_route instanceof Url) {
-      $expected_route = Url::fromUri($expected_route);
-    }
-
-    // The href is another attribute we can check together with the expected.
-    if (!empty($expected_route)) {
-      $expected_attributes['href'] = $expected_route->toString();
-    }
-
     $this->assertEquals($expected_text, $link->text());
-
-    // Drupal\Core\Template\Attribute doesn't provide the a way to retrieve
-    // individual attribute values as rendered string. To reduce complexity of
-    // the operation we simulate the same behavior. See:
-    // Drupal\Core\Template\AttributeArray.
-    array_walk($expected_attributes, fn(&$value) => $value = is_array($value) ? implode(' ', $value) : $value);
 
     // Retrieve all attributes present in the node.
     $attributes = array_map(static fn($attr) => $attr->value, iterator_to_array($link->getNode(0)->attributes));
