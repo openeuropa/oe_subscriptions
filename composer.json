@@ -8,7 +8,7 @@
     "require": {
         "php": ">=8.1",
         "cweagans/composer-patches": "^1.7",
-        "drupal/core": "^10.1 || ^10.2",
+        "drupal/core": "^10.1",
         "drupal/decoupled_auth": "^2.0",
         "drupal/extra_field": "^2.3",
         "drupal/flag": "^4.0@beta",
@@ -18,8 +18,8 @@
     "require-dev": {
         "composer/installers": "^2.0",
         "drupal/config_devel": "^1.9",
-        "drupal/core-composer-scaffold": "^10.1 || ^10.2",
-        "drupal/core-dev": "^10.1 || ^10.2",
+        "drupal/core-composer-scaffold": "^10.1",
+        "drupal/core-dev": "^10.1",
         "drupal/datetime_testing": "^1.0@beta",
         "drush/drush": "^12.4",
         "openeuropa/code-review": "^2.0",
@@ -55,11 +55,6 @@
             "build/profiles/contrib/{$name}": ["type:drupal-profile"],
             "build/modules/contrib/{$name}": ["type:drupal-module"],
             "build/themes/contrib/{$name}": ["type:drupal-theme"]
-        },
-        "patches": {
-            "drupal/core": {
-                "Many calls to ContextRepository::getAvailableContexts() due to entity upcasting @see https://www.drupal.org/project/drupal/issues/3158130": "https://www.drupal.org/files/issues/2023-10-11/3158130-30.patch"
-            }
         },
         "drupal-scaffold": {
             "locations": {

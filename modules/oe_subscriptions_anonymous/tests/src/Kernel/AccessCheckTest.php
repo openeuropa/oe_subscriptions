@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\flag\FlagInterface;
@@ -39,7 +38,6 @@ class AccessCheckTest extends KernelTestBase {
 
     // Give access content permission to anonymous.
     $this->grantPermissions(Role::load('anonymous'), ['view test entity']);
-    $this->setCurrentUser(new AnonymousUserSession());
 
     $this->subscribeArticleFlag = $this->createFlagFromArray([
       'id' => 'subscribe_article',
@@ -54,6 +52,15 @@ class AccessCheckTest extends KernelTestBase {
       'entity_type' => 'entity_test_with_bundle',
       'bundles' => [],
     ]);
+
+    // Call the install hook of the User module which creates the Anonymous user
+    // and User 1. This is needed because the Anonymous user is loaded to
+    // provide the current User context which is needed in places like route
+    // enhancers.
+    // @see CurrentUserContext::getRuntimeContexts().
+    // @see EntityConverter::convert().
+    \Drupal::moduleHandler()->loadInclude('user', 'install');
+    user_install();
   }
 
   /**
