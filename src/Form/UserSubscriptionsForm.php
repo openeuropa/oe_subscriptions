@@ -62,7 +62,7 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'oe_subscriptions_anonymous_user_subscriptions_form';
+    return 'oe_subscriptions_user_subscriptions_form';
   }
 
   /**
