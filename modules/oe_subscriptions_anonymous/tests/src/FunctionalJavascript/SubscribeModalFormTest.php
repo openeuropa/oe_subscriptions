@@ -118,8 +118,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
-    $assert_session->assertWaitOnAjaxRequest();
-    $assert_session->elementNotExists('css', $modal_selector);
+    $assert_session->assertNoElementAfterWait('css', $modal_selector);
     $this->assertSubscriptionCreateMailStatusMessage();
     $this->assertCount(1, $this->getMails());
     $this->assertMailProperty('to', 'test@test.com');
@@ -136,7 +135,7 @@ class SubscribeModalFormTest extends WebDriverTestBase {
     $mail_field->setValue('test1@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me', $button_pane)->press();
-    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->assertNoElementAfterWait('css', $modal_selector);
     $this->assertSession()->pageTextContains('Status-messages template overriden by theme.');
   }
 
