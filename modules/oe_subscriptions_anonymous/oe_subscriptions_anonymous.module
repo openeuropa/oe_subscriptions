@@ -76,3 +76,14 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
 function oe_subscriptions_anonymous_form_oe_subscriptions_settings_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   \Drupal::classResolver(SettingsFormAlter::class)->settingsFormAlter($form);
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the request access form.
+ *
+ * @see oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter()
+ */
+function oe_subscriptions_anonymous_form_oe_subscriptions_anonymous_user_subscriptions_request_access_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $form['#theme_wrappers']['oe_subscriptions_user_subscriptions_page'] = [
+    '#attributes' => [],
+  ];
+}

@@ -53,7 +53,6 @@ class UserSubscriptionsForm extends FormBase {
       $container->get('flag'),
       $container->get('current_user')
     );
-    $instance->setConfigFactory($container->get('config.factory'));
 
     return $instance;
   }
@@ -62,7 +61,7 @@ class UserSubscriptionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'oe_subscriptions_anonymous_user_subscriptions_form';
+    return 'oe_subscriptions_user_subscriptions_form';
   }
 
   /**
@@ -80,19 +79,6 @@ class UserSubscriptionsForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
     $this->account = $user;
-    $subscriptions_config = $this->configFactory->get(SettingsForm::CONFIG_NAME);
-    $introduction_text = $subscriptions_config->get('introduction_text');
-
-    if (!empty($introduction_text['value'])) {
-      $form['introduction_text'] = [
-        '#theme' => 'oe_subscriptions_introduction',
-        '#text' => [
-          '#type' => 'processed_text',
-          '#text' => $introduction_text['value'],
-          '#format' => $introduction_text['format'] ?? '',
-        ],
-      ];
-    }
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
