@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
-use Drupal\Core\Session\AccountInterface;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\flag\FlagInterface;
+use Drupal\Tests\oe_subscriptions\Trait\RouteAccessTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
 
@@ -17,6 +17,7 @@ use Drupal\user\Entity\Role;
 class AccessCheckTest extends KernelTestBase {
 
   use UserCreationTrait;
+  use RouteAccessTrait;
 
   /**
    * A flag that allows to subscribe to articles.
@@ -161,30 +162,6 @@ class AccessCheckTest extends KernelTestBase {
       'oe_subscriptions_anonymous.subscription_request.cancel',
       $extra_parameters,
     ];
-  }
-
-  /**
-   * Returns access to the anonymous subscribe route with a set of parameters.
-   *
-   * @param string $route_name
-   *   The route name.
-   * @param array $route_parameters
-   *   The route parameters.
-   * @param \Drupal\Core\Session\AccountInterface|null $user
-   *   A user account to use for the check. Null to use anonymous.
-   *
-   * @return bool
-   *   True if access is allowed, false otherwise.
-   */
-  protected function checkRouteAccess(string $route_name, array $route_parameters, AccountInterface $user = NULL): bool {
-    $access_check = $this->container->get('access_manager')->checkNamedRoute(
-      $route_name,
-      $route_parameters,
-      $user,
-      TRUE,
-    );
-
-    return $access_check->isAllowed();
   }
 
 }
