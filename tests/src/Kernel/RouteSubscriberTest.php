@@ -76,13 +76,11 @@ class RouteSubscriberTest extends KernelTestBase {
     $this->container->get('current_user')->setAccount($user);
 
     // Check that the given routes work.
-    $this->assertTrue($this->checkRouteAccess('message_subscribe.admin_settings', [], $user));
     $this->assertTrue($this->checkRouteAccess('message_subscribe_ui.tab', [$user], $user));
     $this->assertTrue($this->checkRouteAccess('message_subscribe_ui.tab.flag', [$user, $flag], $user));
 
     // After enabling the module the routes return an access denied.
     $this->enableModules(['oe_subscriptions']);
-    $this->assertFalse($this->checkRouteAccess('message_subscribe.admin_settings', [], $user));
     $this->assertFalse($this->checkRouteAccess('message_subscribe_ui.tab', [$user], $user));
     $this->assertFalse($this->checkRouteAccess('message_subscribe_ui.tab.flag', [$user, $flag], $user));
   }

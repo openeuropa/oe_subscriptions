@@ -15,8 +15,6 @@ class SubscriptionsRouteSubscriber extends RouteSubscriberBase {
    */
   protected function alterRoutes(RouteCollection $collection) {
     $message_subscribe_routes = [
-      // Module: message_subscribe.
-      'message_subscribe.admin_settings',
       // Submodule: message_subscribe_ui.
       'message_subscribe_ui.tab',
       'message_subscribe_ui.tab.flag',
