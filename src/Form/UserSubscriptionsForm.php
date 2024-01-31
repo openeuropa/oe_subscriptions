@@ -99,7 +99,7 @@ class UserSubscriptionsForm extends FormBase {
     $form['message_digest'] = [
       '#type' => 'select',
       '#title' => $this->t('Notifications frequency'),
-      '#description' => $this->t("The frequency this account will receive notifications is subscribed to."),
+      '#description' => $this->t('The frequency this account will receive notifications is subscribed to.'),
       '#default_value' => $message_digest->value ?: '0',
       '#options' => message_digest_allowed_values_callback($storage_definition),
     ];
