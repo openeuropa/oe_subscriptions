@@ -14,7 +14,7 @@
         "drupal/flag": "^4.0@beta",
         "drupal/message": "^1.4",
         "drupal/message_digest": "^1.3",
-        "drupal/message_subscribe": "^1.2"
+        "drupal/message_subscribe": "^1.3"
     },
     "require-dev": {
         "composer/installers": "^2.0",
@@ -62,8 +62,6 @@
                 "Installing site from existing config fails when message_digest_ui module is part of the install @see https://www.drupal.org/project/message_digest/issues/3375308": "https://git.drupalcode.org/project/message_digest/-/merge_requests/12.diff"
             },
             "drupal/message_subscribe": {
-                "Fix the issues reported by phpcs @see https://www.drupal.org/project/message_subscribe/issues/3331903": "https://www.drupal.org/files/issues/2023-05-22/3331903-27.patch",
-                "addcslashes(): Passing null to parameter #1 ($string) of type string is deprecated @see https://www.drupal.org/project/message_subscribe/issues/3279287": "https://git.drupalcode.org/project/message_subscribe/-/merge_requests/1.diff",
                 "'An anonymous user must be identified by session ID' crash on Drupal 10 @see https://www.drupal.org/project/message_subscribe/issues/3388551": "https://git.drupalcode.org/project/message_subscribe/-/merge_requests/8.diff"
             }
         },
