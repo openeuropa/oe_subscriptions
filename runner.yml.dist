@@ -28,6 +28,8 @@ drupal:
     # Enable the modules.
     - "./vendor/bin/drush en config_devel -y"
     - "./vendor/bin/drush en oe_subscriptions -y"
+    # TODO: patch decoupled_auth to fix install
+    - "./vendor/bin/drush en oe_subscriptions_digest -y"
     - "./vendor/bin/drush en oe_subscriptions_anonymous -y"
     - "./vendor/bin/drush cr"
     # Simplify development by adding node view permission to the anonymous subscriber role.

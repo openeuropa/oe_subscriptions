@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Subscriptions digest module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
+
+/**
+ * Implements hook_flag_insert().
+ */
+function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
+  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
+    return;
+  }
+  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
+  if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+    return;
+  }
+  $entity->createDuplicate()
+    ->set('id', $email_flag_id)
+    ->set('label', $mail_prefix . ' - ' . $entity->label())
+    ->save();
+}
+
+/**
+ * Implements hook_flag_delete().
+ */
+function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
+  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
+    return;
+  }
+  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
+  if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+    $email_flag->delete();
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function oe_subscriptions_digest_form_oe_subscriptions_user_subscriptions_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /** @var \Drupal\user\UserInterface $user */
+  $user = $form_state->getBuildInfo()['args']['0'];
+  \Drupal::classResolver(SubscriptionsFormAlter::class)->subscriptionsFormAlter($form, $user);
+}

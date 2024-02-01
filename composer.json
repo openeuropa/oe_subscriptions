@@ -45,7 +45,8 @@
     "autoload-dev": {
         "psr-4": {
             "Drupal\\Tests\\oe_subscriptions\\": "./tests/src",
-            "Drupal\\Tests\\oe_subscriptions_anonymous\\": "./modules/oe_subscriptions_anonymous/tests/src/"
+            "Drupal\\Tests\\oe_subscriptions_anonymous\\": "./modules/oe_subscriptions_anonymous/tests/src/",
+            "Drupal\\Tests\\oe_subscriptions_digest\\": "./modules/oe_subscriptions_digest/tests/src/"
         }
     },
     "extra": {

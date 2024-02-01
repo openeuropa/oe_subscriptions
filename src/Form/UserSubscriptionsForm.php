@@ -7,7 +7,6 @@ namespace Drupal\oe_subscriptions\Form;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -38,14 +37,11 @@ class UserSubscriptionsForm extends FormBase {
    *   The flag service.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
-   *   The module handler.
    */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected FlagServiceInterface $flagService,
     protected AccountInterface $currentUser,
-    protected ModuleHandlerInterface $moduleHandler
   ) {}
 
   /**
@@ -56,7 +52,6 @@ class UserSubscriptionsForm extends FormBase {
       $container->get('entity_type.manager'),
       $container->get('flag'),
       $container->get('current_user'),
-      $container->get('module_handler')
     );
 
     return $instance;
@@ -83,25 +78,14 @@ class UserSubscriptionsForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
-    $this->account = $user;
-    $this->moduleHandler->loadInclude('message_digest_ui', 'module');
-    $message_digest = $user->get('message_digest');
-    $storage_definition = $message_digest->getFieldDefinition()->getFieldStorageDefinition();
+    $this->currentUser = $user;
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
       '#title' => $this->t('Preferred language'),
       '#languages' => LanguageInterface::STATE_CONFIGURABLE,
       '#description' => $this->t("The primary language of this account's profile information."),
-      '#default_value' => $this->account->getPreferredLangcode(),
-    ];
-
-    $form['message_digest'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Notifications frequency'),
-      '#description' => $this->t('The frequency this account will receive notifications is subscribed to.'),
-      '#default_value' => $message_digest->value ?: '0',
-      '#options' => message_digest_allowed_values_callback($storage_definition),
+      '#default_value' => $this->currentUser->getPreferredLangcode(),
     ];
 
     $form['flag_list'] = $this->buildFlagList();
@@ -124,10 +108,8 @@ class UserSubscriptionsForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // @see \Drupal\user\AccountForm::buildEntity()
     $preferred_language = $form_state->getValue('preferred_language');
-    $message_digest = $form_state->getValue('message_digest');
-    $this->account->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
-    $this->account->set('message_digest', $message_digest === '' ? NULL : $message_digest);
-    $this->account->save();
+    $this->currentUser->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
+    $this->currentUser->save();
 
     $this->messenger()->addStatus($this->t('Your preferences have been saved.'));
   }
@@ -162,7 +144,7 @@ class UserSubscriptionsForm extends FormBase {
     // @todo Add paging.
     $results = $flag_storage->getQuery()
       ->accessCheck()
-      ->condition('uid', $this->account->id())
+      ->condition('uid', $this->currentUser->id())
       ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
       ->sort('entity_type')
       // Sorting by flag ID is equivalent to sorting by creation time, as IDs
@@ -195,7 +177,7 @@ class UserSubscriptionsForm extends FormBase {
       }
       $flag = $flagging->getFlag();
 
-      $entity_access = $entity->access('view', $this->account, TRUE);
+      $entity_access = $entity->access('view', $this->currentUser, TRUE);
       $cacheability->addCacheableDependency($entity_access);
       // We don't render the row if the user has no view access to this entity
       // (e.g. it has been unpublished).
@@ -260,7 +242,7 @@ class UserSubscriptionsForm extends FormBase {
     // Unsubscribe only if the entity is found. It could have been deleted
     // while the user has the page open.
     if ($entity) {
-      $this->flagService->unflag($flag, $entity, $this->account);
+      $this->flagService->unflag($flag, $entity, $this->currentUser);
     }
 
     // We always show the correct message even if the entity was not found.

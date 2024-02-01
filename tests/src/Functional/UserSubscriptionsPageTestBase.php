@@ -11,7 +11,6 @@ use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
-use Drupal\message_digest\Entity\MessageDigestInterval;
 use Drupal\oe_subscriptions\Form\SettingsForm;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
@@ -243,23 +242,17 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
 
     \Drupal::service('module_installer')->install(['language']);
     $this->drupalGet($path);
-    $language_select = $assert_session->selectExists('Preferred language');
+    $select = $assert_session->selectExists('Preferred language');
     $this->assertEquals([
       'en' => 'English',
-    ], $this->getOptions($language_select));
-    $frequency_select = $assert_session->selectExists('Notifications frequency');
-    $this->assertEquals([
-      'Send immediately' => 'Send immediately',
-      'message_digest:daily' => 'Daily',
-      'message_digest:weekly' => 'Weekly',
-    ], $this->getOptions($frequency_select));
+    ], $this->getOptions($select));
 
     ConfigurableLanguage::createFromLangcode('it')->save();
     $this->drupalGet($path);
     $this->assertEquals([
       'en' => 'English',
       'it' => 'Italian',
-    ], $this->getOptions($language_select));
+    ], $this->getOptions($select));
 
     ConfigurableLanguage::createFromLangcode('es')->save();
     $this->drupalGet($path);
@@ -267,38 +260,9 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
       'en' => 'English',
       'it' => 'Italian',
       'es' => 'Spanish',
-    ], $this->getOptions($language_select));
+    ], $this->getOptions($select));
 
-    MessageDigestInterval::create([
-      'id' => 'bi_weekly',
-      'label' => 'Bi-weekly',
-      'interval' => '2 weeks',
-    ])->save();
-    $this->drupalGet($path);
-    $this->assertEquals([
-      'Send immediately' => 'Send immediately',
-      'message_digest:daily' => 'Daily',
-      'message_digest:weekly' => 'Weekly',
-      'message_digest:bi_weekly' => 'Bi-weekly',
-
-    ], $this->getOptions($frequency_select));
-
-    MessageDigestInterval::create([
-      'id' => 'monthly',
-      'label' => 'Monthly',
-      'interval' => '1 month',
-    ])->save();
-    $this->drupalGet($path);
-    $this->assertEquals([
-      'Send immediately' => 'Send immediately',
-      'message_digest:daily' => 'Daily',
-      'message_digest:weekly' => 'Weekly',
-      'message_digest:bi_weekly' => 'Bi-weekly',
-      'message_digest:monthly' => 'Monthly',
-    ], $this->getOptions($frequency_select));
-
-    $language_select->selectOption('Italian');
-    $frequency_select->selectOption('Daily');
+    $select->selectOption('Italian');
     $assert_session->buttonExists('Save')->press();
     $assert_session->statusMessageContains('Your preferences have been saved', 'status');
 
@@ -307,7 +271,6 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     /** @var \Drupal\user\UserInterface $user */
     $user = $user_storage->load($user->id());
     $this->assertEquals('it', $user->getPreferredLangcode());
-    $this->assertEquals('message_digest:daily', $user->get('message_digest')->value);
   }
 
   /**
