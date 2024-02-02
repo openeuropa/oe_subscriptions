@@ -144,6 +144,7 @@ class UserDigestTest extends BrowserTestBase {
     // User flags entities without setting the frequency.
     $flag_service = $this->container->get('flag');
     $flagging_storage = \Drupal::entityTypeManager()->getStorage('flagging');
+    $user->set('message_digest', NULL)->save();
 
     $flagging_page_one = $flag_service->flag($pages_flag, $page_one, $user);
     $this->assertTrue($pages_flag->isFlagged($page_one, $user));
@@ -166,7 +167,6 @@ class UserDigestTest extends BrowserTestBase {
     $this->assertTrue($flagging_page_two->get('message_digest')->isEmpty());
 
     $user->set('message_digest', 'message_digest:weekly')->save();
-    $flagging_storage->resetCache();
     $flagging_page_one = $flagging_storage->load($flagging_page_one->id());
     $this->assertEquals('message_digest:weekly', $flagging_page_one->get('message_digest')->value);
     $flagging_page_two = $flagging_storage->load($flagging_page_two->id());

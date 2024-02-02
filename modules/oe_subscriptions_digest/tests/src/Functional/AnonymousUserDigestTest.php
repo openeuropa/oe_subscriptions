@@ -26,7 +26,7 @@ class AnonymousUserDigestTest extends UserDigestTest {
   /**
    * Tests the anonymous user digest.
    */
-  public function testAnonymousUserDigest(): void {
+  public function testUserDigest(): void {
     $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,

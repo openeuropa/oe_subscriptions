@@ -41,7 +41,7 @@ class UserSubscriptionsForm extends FormBase {
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected FlagServiceInterface $flagService,
-    protected AccountInterface $currentUser,
+    protected AccountInterface $currentUser
   ) {}
 
   /**
@@ -78,14 +78,14 @@ class UserSubscriptionsForm extends FormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
-    $this->currentUser = $user;
+    $this->account = $user;
 
     $form['preferred_language'] = [
       '#type' => 'language_select',
       '#title' => $this->t('Preferred language'),
       '#languages' => LanguageInterface::STATE_CONFIGURABLE,
       '#description' => $this->t("The primary language of this account's profile information."),
-      '#default_value' => $this->currentUser->getPreferredLangcode(),
+      '#default_value' => $this->account->getPreferredLangcode(),
     ];
 
     $form['flag_list'] = $this->buildFlagList();
@@ -108,8 +108,8 @@ class UserSubscriptionsForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // @see \Drupal\user\AccountForm::buildEntity()
     $preferred_language = $form_state->getValue('preferred_language');
-    $this->currentUser->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
-    $this->currentUser->save();
+    $this->account->set('preferred_langcode', $preferred_language === '' ? NULL : $preferred_language);
+    $this->account->save();
 
     $this->messenger()->addStatus($this->t('Your preferences have been saved.'));
   }
@@ -144,7 +144,7 @@ class UserSubscriptionsForm extends FormBase {
     // @todo Add paging.
     $results = $flag_storage->getQuery()
       ->accessCheck()
-      ->condition('uid', $this->currentUser->id())
+      ->condition('uid', $this->account->id())
       ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
       ->sort('entity_type')
       // Sorting by flag ID is equivalent to sorting by creation time, as IDs
@@ -177,7 +177,7 @@ class UserSubscriptionsForm extends FormBase {
       }
       $flag = $flagging->getFlag();
 
-      $entity_access = $entity->access('view', $this->currentUser, TRUE);
+      $entity_access = $entity->access('view', $this->account, TRUE);
       $cacheability->addCacheableDependency($entity_access);
       // We don't render the row if the user has no view access to this entity
       // (e.g. it has been unpublished).
@@ -242,7 +242,7 @@ class UserSubscriptionsForm extends FormBase {
     // Unsubscribe only if the entity is found. It could have been deleted
     // while the user has the page open.
     if ($entity) {
-      $this->flagService->unflag($flag, $entity, $this->currentUser);
+      $this->flagService->unflag($flag, $entity, $this->account);
     }
 
     // We always show the correct message even if the entity was not found.
