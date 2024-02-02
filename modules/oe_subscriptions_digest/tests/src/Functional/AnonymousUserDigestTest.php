@@ -24,9 +24,9 @@ class AnonymousUserDigestTest extends UserDigestTest {
   ];
 
   /**
-   * Tests the anonymous user digest preference.
+   * Tests the anonymous user digest.
    */
-  public function testAnonymousUserPreference(): void {
+  public function testAnonymousUserDigest(): void {
     $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
@@ -39,6 +39,7 @@ class AnonymousUserDigestTest extends UserDigestTest {
     };
 
     $this->doTestDigestPreferences($user, $fn_get_path);
+    $this->doTestFlaggingDigest($user);
   }
 
   /**

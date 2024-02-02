@@ -42,6 +42,29 @@ function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
 }
 
 /**
+ * Implements hook_user_update().
+ */
+function oe_subscriptions_digest_user_update(EntityInterface $entity) {
+  if (!$entity->hasField('message_digest') ||
+    $entity->get('message_digest')->value === $entity->original->get('message_digest')->value) {
+    return;
+  }
+  $flagging_storage = \Drupal::service('entity_type.manager')->getStorage('flagging');
+  $query = $flagging_storage->getQuery();
+  $query
+    ->accessCheck(FALSE)
+    ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
+    ->condition('uid', $entity->id());
+
+  $flaggings = $flagging_storage->loadMultiple($query->execute());
+  foreach ($flaggings as $flagging) {
+    if ($flagging->hasField('message_digest')) {
+      $flagging->set('message_digest', $entity->get('message_digest')->value)->save();
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function oe_subscriptions_digest_form_oe_subscriptions_user_subscriptions_form_alter(&$form, FormStateInterface $form_state, $form_id) {

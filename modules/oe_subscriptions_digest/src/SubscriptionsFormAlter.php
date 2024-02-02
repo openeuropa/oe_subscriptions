@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\oe_subscriptions_digest;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
@@ -29,15 +30,18 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
-  public function __construct(protected ModuleHandlerInterface $moduleHandler) {}
+  public function __construct(protected ModuleHandlerInterface $moduleHandler, protected EntityTypeManagerInterface $entityTypeManager) {}
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('entity_type.manager'),
     );
   }
 
