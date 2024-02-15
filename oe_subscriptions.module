@@ -5,6 +5,8 @@
  * Subscriptions module.
  */
 
+declare(strict_types=1);
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\oe_subscriptions\Form\SettingsForm;
 

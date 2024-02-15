@@ -5,6 +5,8 @@
  * OE subscriptions anonymous module install.
  */
 
+declare(strict_types=1);
+
 use Drupal\Core\Render\Element\Email;
 
 /**

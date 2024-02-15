@@ -51,7 +51,7 @@ class UserSubscriptionsForm extends FormBase {
     $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('flag'),
-      $container->get('current_user'),
+      $container->get('current_user')
     );
 
     return $instance;

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Drupal\oe_subscriptions_digest;
 
@@ -8,6 +8,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -17,6 +18,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @internal
  */
 final class SubscriptionsFormAlter implements ContainerInjectionInterface {
+
+  use StringTranslationTrait;
 
   /**
    * The user account for which the form is being rendered.
@@ -50,19 +53,19 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
    *
    * @param array $form
    *   The form.
-   * @param \Drupal\user\UserInterface $user
-   *   The user whose digest is managed.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
-  public function subscriptionsFormAlter(array &$form, $user): void {
+  public function subscriptionsFormAlter(array &$form, $form_state): void {
     $this->moduleHandler->loadInclude('message_digest_ui', 'module');
-    $this->account = $user;
-    $message_digest = $user->get('message_digest');
+    $this->account = $form_state->getBuildInfo()['args']['0'];
+    $message_digest = $this->account->get('message_digest');
     $storage_definition = $message_digest->getFieldDefinition()->getFieldStorageDefinition();
 
     $form['message_digest'] = [
       '#type' => 'select',
-      '#title' => t('Notifications frequency'),
-      '#description' => t('The frequency this currentUser will receive notifications is subscribed to.'),
+      '#title' => $this->t('Notifications frequency'),
+      '#description' => $this->t('The frequency this currentUser will receive notifications is subscribed to.'),
       '#default_value' => $message_digest->value ?: '0',
       '#options' => message_digest_allowed_values_callback($storage_definition),
     ];
