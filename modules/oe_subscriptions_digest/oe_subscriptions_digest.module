@@ -14,9 +14,9 @@ use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 /**
  * Implements hook_flag_insert().
  *
- * Message-subscribe-email uses message-subscribe module to email subscribers
- * that want updates. Every flag that is prefixed with "subscribe_" (a
- * subscription flag) requires a flag that is prefixed with "email_" and the
+ * The message_subscribe_email module uses message_subscribe to email
+ * subscribers that want updates. Every flag that is prefixed with "subscribe_"
+ * (a subscription flag) requires a flag that is prefixed with "email_" and the
  * same suffix (e.g. "subscribe_node" and "email_node"). The flag should have at
  * least one bundle associated with it.
  */
@@ -76,10 +76,5 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity) {
  * Implements hook_form_FORM_ID_alter().
  */
 function oe_subscriptions_digest_form_oe_subscriptions_user_subscriptions_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  /** @var \Drupal\user\UserInterface $user */
-  $user = $form_state->getBuildInfo()['args']['0'];
-  if (!$user->hasField('message_digest')) {
-    return;
-  }
   \Drupal::classResolver(SubscriptionsFormAlter::class)->subscriptionsFormAlter($form, $form_state);
 }

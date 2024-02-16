@@ -22,13 +22,6 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
   use StringTranslationTrait;
 
   /**
-   * The user account for which the form is being rendered.
-   *
-   * @var \Drupal\user\UserInterface
-   */
-  protected UserInterface $account;
-
-  /**
    * Creates a new instance of this class.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
@@ -56,10 +49,15 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
-  public function subscriptionsFormAlter(array &$form, $form_state): void {
+  public function subscriptionsFormAlter(array &$form, FormStateInterface $form_state): void {
     $this->moduleHandler->loadInclude('message_digest_ui', 'module');
-    $this->account = $form_state->getBuildInfo()['args']['0'];
-    $message_digest = $this->account->get('message_digest');
+    $user = self::getUser($form_state);
+
+    if (!$user->hasField('message_digest')) {
+      return;
+    }
+
+    $message_digest = $user->get('message_digest');
     $storage_definition = $message_digest->getFieldDefinition()->getFieldStorageDefinition();
 
     $form['message_digest'] = [
@@ -82,8 +80,22 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
    *   The form state.
    */
   public function subscriptionsFormSubmit(array $form, FormStateInterface $form_state): void {
+    $user = self::getUser($form_state);
     $message_digest = $form_state->getValue('message_digest');
-    $this->account->set('message_digest', $message_digest === '' ? NULL : $message_digest)->save();
+    $user->set('message_digest', $message_digest === '' ? NULL : $message_digest)->save();
+  }
+
+  /**
+   * Returns the user from the form state.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   *
+   * @return \Drupal\user\UserInterface
+   *   The user.
+   */
+  protected static function getUser(FormStateInterface $form_state): UserInterface {
+    return $form_state->getBuildInfo()['args']['0'];
   }
 
 }

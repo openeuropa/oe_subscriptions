@@ -44,7 +44,7 @@ class MailFlagtest extends KernelTestBase {
     // Create a flag with wrong prefix.
     $flagStorage = $this->container->get('entity_type.manager')->getStorage('flag');
     $this->createFlagFromArray(['id' => 'another_flag']);
-    $this->assertNull($flagStorage->load('email_something'));
+    $this->assertCount(1, $flagStorage->loadMultiple());
 
     // Create a flag and assert that is mirrored.
     $flag = $this->createFlagFromArray(['id' => 'subscribe_content']);

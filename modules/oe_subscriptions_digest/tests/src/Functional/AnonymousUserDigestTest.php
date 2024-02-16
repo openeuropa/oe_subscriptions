@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_digest\Functional;
 
 use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
-use Drupal\Tests\oe_subscriptions_anonymous\Trait\SubscriptionsPageTrait;
 use Drupal\user\UserInterface;
 
 /**
  * Tests the user notifications frequency in subscriptions page.
  */
-class AnonymousUserDigestTest extends UserDigestTest {
-
-  use SubscriptionsPageTrait;
+class AnonymousUserDigestTest extends UserDigestTestBase {
 
   /**
    * {@inheritdoc}
    */
   protected static $modules = [
+    'node',
     'oe_subscriptions_anonymous',
     'oe_subscriptions_digest',
   ];
@@ -26,7 +24,7 @@ class AnonymousUserDigestTest extends UserDigestTest {
   /**
    * Tests the anonymous user digest.
    */
-  public function testUserDigest(): void {
+  public function testAnonymousUserDigest(): void {
     $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
