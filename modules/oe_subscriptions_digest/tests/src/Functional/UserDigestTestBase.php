@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions_digest\Functional;
 
-use Drupal\field\Entity\FieldConfig;
 use Drupal\message_digest\Entity\MessageDigestInterval;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
@@ -110,11 +109,6 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'entity_type' => 'node',
       'bundles' => ['page'],
     ]);
-    $another_flag = $this->createFlagFromArray([
-      'id' => 'another_flag',
-      'entity_type' => 'node',
-      'bundles' => [],
-    ]);
     $page_one = $this->drupalCreateNode([
       'type' => 'page',
       'status' => 1,
@@ -123,48 +117,29 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'type' => 'page',
       'status' => 1,
     ]);
-    FieldConfig::create([
-      'field_name' => 'message_digest',
-      'entity_type' => 'flagging',
-      'label' => 'Frequency',
-      'bundle' => 'subscribe_page',
-      'description' => '',
-      'required' => FALSE,
-      'settings' => [],
-    ])->save();
-    FieldConfig::create([
-      'field_name' => 'message_digest',
-      'entity_type' => 'flagging',
-      'label' => 'ABC',
-      'bundle' => 'another_flag',
-      'description' => '',
-      'required' => FALSE,
-      'settings' => [],
-    ])->save();
+
+    $flag_service = \Drupal::service('flag');
+    $flagging_storage = \Drupal::entityTypeManager()->getStorage('flagging');
+    $mail_flag = $flag_service->getFlagById('email_page');
 
     // User flags entities without setting the frequency.
-    $flag_service = $this->container->get('flag');
-    $flagging_storage = \Drupal::entityTypeManager()->getStorage('flagging');
     $user->set('message_digest', NULL)->save();
-
-    $flagging_page_one = $flag_service->flag($pages_flag, $page_one, $user);
+    $flag_service->flag($pages_flag, $page_one, $user);
     $this->assertTrue($pages_flag->isFlagged($page_one, $user));
+    $this->assertTrue($mail_flag->isFlagged($page_one, $user));
+    $flagging_page_one = $flag_service->getFlagging($mail_flag, $page_one, $user);
     $this->assertTrue($flagging_page_one->get('message_digest')->isEmpty());
-
-    $flagging_another_one = $flag_service->flag($another_flag, $page_one, $user);
-    $this->assertTrue($another_flag->isFlagged($page_one, $user));
-    $this->assertTrue($flagging_another_one->get('message_digest')->isEmpty());
 
     // Message digest preference is updated and all flaggings too.
     $user->set('message_digest', 'message_digest:daily')->save();
     $flagging_page_one = $flagging_storage->load($flagging_page_one->id());
     $this->assertEquals('message_digest:daily', $flagging_page_one->get('message_digest')->value);
-    $flagging_another_one = $flagging_storage->load($flagging_another_one->id());
-    $this->assertTrue($flagging_another_one->get('message_digest')->isEmpty());
 
     // Test that new flaggings are updated when frequency preference changes.
-    $flagging_page_two = $flag_service->flag($pages_flag, $page_two, $user);
+    $flag_service->flag($pages_flag, $page_two, $user);
     $this->assertTrue($pages_flag->isFlagged($page_two, $user));
+    $this->assertTrue($mail_flag->isFlagged($page_two, $user));
+    $flagging_page_two = $flag_service->getFlagging($mail_flag, $page_two, $user);
     $this->assertTrue($flagging_page_two->get('message_digest')->isEmpty());
 
     $user->set('message_digest', 'message_digest:weekly')->save();
@@ -172,8 +147,6 @@ abstract class UserDigestTestBase extends BrowserTestBase {
     $this->assertEquals('message_digest:weekly', $flagging_page_one->get('message_digest')->value);
     $flagging_page_two = $flagging_storage->load($flagging_page_two->id());
     $this->assertEquals('message_digest:weekly', $flagging_page_two->get('message_digest')->value);
-    $flagging_another_one = $flagging_storage->load($flagging_another_one->id());
-    $this->assertTrue($flagging_another_one->get('message_digest')->isEmpty());
   }
 
 }

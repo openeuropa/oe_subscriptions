@@ -19,9 +19,11 @@ class MailFlagtest extends KernelTestBase {
    */
   protected static $modules = [
     'flag',
+    'message_subscribe',
+    'message_notify',
     'message_subscribe_email',
     'node',
-    'oe_subscriptions',
+    'oe_subscriptions_digest',
     'system',
     'user',
   ];
@@ -33,18 +35,27 @@ class MailFlagtest extends KernelTestBase {
     parent::setUp();
     $this->installEntitySchema('flagging');
     $this->installConfig([
+      'message_subscribe',
+    ]);
+    $this->installConfig([
       'message_subscribe_email',
     ]);
   }
 
   /**
-   * Tests the flag for mails are created from subscribe flag.
+   * Tests duplication of subscribe flags with mail prefix.
    */
   public function testFlagMirroring(): void {
     // Create a flag with wrong prefix.
     $flagStorage = $this->container->get('entity_type.manager')->getStorage('flag');
     $this->createFlagFromArray(['id' => 'another_flag']);
-    $this->assertCount(1, $flagStorage->loadMultiple());
+    $this->assertEquals([
+      'another_flag',
+      'email_node',
+      'email_user',
+      'subscribe_node',
+      'subscribe_user',
+    ], array_keys($flagStorage->loadMultiple()));
 
     // Create a flag and assert that is mirrored.
     $flag = $this->createFlagFromArray(['id' => 'subscribe_content']);

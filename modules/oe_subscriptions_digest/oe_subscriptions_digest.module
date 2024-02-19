@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 
 /**
@@ -22,10 +23,11 @@ use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
  */
 function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
+  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
     return;
   }
-  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
+  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
   if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     return;
   }
@@ -33,6 +35,18 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
     ->set('id', $email_flag_id)
     ->set('label', $mail_prefix . ' - ' . $entity->label())
     ->save();
+
+  // Duplicated "email_" flags require the message_digest field provided by
+  // message_digest_ui to store users frequency.
+  FieldConfig::create([
+    'field_name' => 'message_digest',
+    'entity_type' => 'flagging',
+    'label' => 'Frequency',
+    'bundle' => $email_flag_id,
+    'description' => '',
+    'required' => FALSE,
+    'settings' => [],
+  ])->save();
 }
 
 /**
@@ -40,10 +54,11 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
  */
 function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || !str_starts_with($entity->id(), 'subscribe_')) {
+  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  if (empty($mail_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
     return;
   }
-  $email_flag_id = str_replace('subscribe_', $mail_prefix . '_', $entity->id());
+  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
   if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     $email_flag->delete();
   }
@@ -53,15 +68,18 @@ function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
  * Implements hook_user_update().
  */
 function oe_subscriptions_digest_user_update(EntityInterface $entity) {
-  if (!$entity->hasField('message_digest') ||
-    $entity->get('message_digest')->value === $entity->original->get('message_digest')->value) {
+  if (
+    !$entity->hasField('message_digest') ||
+    $entity->get('message_digest')->value === $entity->original->get('message_digest')->value
+  ) {
     return;
   }
+  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
   $flagging_storage = \Drupal::service('entity_type.manager')->getStorage('flagging');
   $query = $flagging_storage->getQuery();
   $query
     ->accessCheck(FALSE)
-    ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
+    ->condition('flag_id', $mail_prefix . '_', 'STARTS_WITH')
     ->condition('uid', $entity->id());
 
   $flaggings = $flagging_storage->loadMultiple($query->execute());
