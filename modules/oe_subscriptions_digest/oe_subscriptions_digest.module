@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\field\Entity\FieldConfig;
 use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 
 /**
@@ -35,18 +34,6 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
     ->set('id', $email_flag_id)
     ->set('label', $mail_prefix . ' - ' . $entity->label())
     ->save();
-
-  // Duplicated "email_" flags require the message_digest field provided by
-  // message_digest_ui to store users frequency.
-  FieldConfig::create([
-    'field_name' => 'message_digest',
-    'entity_type' => 'flagging',
-    'label' => 'Frequency',
-    'bundle' => $email_flag_id,
-    'description' => '',
-    'required' => FALSE,
-    'settings' => [],
-  ])->save();
 }
 
 /**
