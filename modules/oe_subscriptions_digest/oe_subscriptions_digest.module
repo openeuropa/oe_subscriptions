@@ -22,11 +22,11 @@ use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
  * least one bundle associated with it.
  */
 function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
-  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  $mail_prefix = FlagHelper::getFlagPrefix('message_subscribe_email');
   if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
     return;
   }
-  $subscribe_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  $subscribe_prefix = FlagHelper::getFlagPrefix('message_subscribe');
   $email_flag_id = str_replace($subscribe_prefix, $mail_prefix, $entity->id());
   if (\Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     return;
@@ -41,11 +41,11 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
  * Implements hook_flag_delete().
  */
 function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
-  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  $mail_prefix = FlagHelper::getFlagPrefix('message_subscribe_email');
   if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
     return;
   }
-  $subscribe_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  $subscribe_prefix = FlagHelper::getFlagPrefix('message_subscribe');
   $email_flag_id = str_replace($subscribe_prefix, $mail_prefix, $entity->id());
   if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     $email_flag->delete();
@@ -62,7 +62,7 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity) {
   ) {
     return;
   }
-  $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  $mail_prefix = FlagHelper::getFlagPrefix('message_subscribe_email');
   if (empty($mail_prefix)) {
     return;
   }

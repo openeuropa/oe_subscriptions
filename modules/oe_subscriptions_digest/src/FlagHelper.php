@@ -69,12 +69,25 @@ class FlagHelper {
    *   The configuration prefix.
    */
   protected static function isModuleFlagPrefix(string $module_name, FlagInterface $flag): bool {
-    $prefix = \Drupal::config("$module_name.settings")->get('flag_prefix');
+    $prefix = self::getFlagPrefix($module_name);
     if (empty($prefix) || !str_starts_with($flag->id(), $prefix . '_')) {
       return FALSE;
     }
 
     return TRUE;
+  }
+
+  /**
+   * Gets the flag prefix from a module configuration.
+   *
+   * @param string $module_name
+   *   The module name wher prefix configuration is set.
+   *
+   * @return string
+   *   The flag prefix.
+   */
+  public static function getFlagPrefix(string $module_name): string {
+    return \Drupal::config("$module_name.settings")->get('flag_prefix');
   }
 
 }
