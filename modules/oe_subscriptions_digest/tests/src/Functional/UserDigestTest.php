@@ -18,8 +18,11 @@ class UserDigestTest extends UserDigestTestBase {
       return "/user/{$user->id()}/subscriptions";
     };
 
-    $user = $this->drupalCreateUser([], NULL, FALSE, ['message_subscribe_email' => TRUE]);
-    $this->doTestDigestPreferences($user, $fn_get_path);
+    $this->doTestDigestPreferences($this->drupalCreateUser(), $fn_get_path);
+    $this->drupalLogout();
+
+    $user = $this->drupalCreateUser();
+    $this->drupalLogin($user);
     $this->doTestFlaggingDigest($user);
   }
 

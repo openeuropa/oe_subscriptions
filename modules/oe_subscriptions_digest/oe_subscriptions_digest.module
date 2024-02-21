@@ -23,7 +23,7 @@ use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
   $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
+  if (empty($mail_prefix) || empty($flag_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
     return;
   }
   $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
@@ -42,7 +42,7 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
 function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
   $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
+  if (empty($mail_prefix) || empty($flag_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
     return;
   }
   $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
@@ -62,6 +62,9 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity) {
     return;
   }
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
+  if (empty($mail_prefix)) {
+    return;
+  }
   $flagging_storage = \Drupal::service('entity_type.manager')->getStorage('flagging');
   $query = $flagging_storage->getQuery();
   $query

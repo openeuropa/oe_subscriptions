@@ -118,36 +118,33 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'type' => 'page',
       'status' => 1,
     ]);
-
     $email_node_message_digest = FieldConfig::loadByName('flagging', 'email_node', 'message_digest');
-    $email_node_message_digest->createDuplicate()->set('bundle', 'email_page',)->save();
+    $email_node_message_digest->createDuplicate()->set('bundle', 'email_page')->save();
 
     $flag_service = \Drupal::service('flag');
     $flagging_storage = \Drupal::entityTypeManager()->getStorage('flagging');
     $mail_flag = $flag_service->getFlagById('email_page');
 
-    // User flags entities without setting the frequency, gets send inmediatly.
-    $user->set('message_digest', NULL)->save();
+    // User flags entities without setting the digest, gets 'send inmediatly'.
     $flag_service->flag($pages_flag, $page_one, $user);
     $this->assertTrue($pages_flag->isFlagged($page_one, $user));
     $this->assertTrue($mail_flag->isFlagged($page_one, $user));
     $flagging_page_one = $flag_service->getFlagging($mail_flag, $page_one, $user);
     $this->assertEquals(0, $flagging_page_one->get('message_digest')->value);
 
-    // Message digest preference is updated and all existing flaggings too.
+    // Message digest preference is updated and flagging too.
     $user->set('message_digest', 'message_digest:daily')->save();
     $flagging_page_one = $flagging_storage->load($flagging_page_one->id());
     $this->assertEquals('message_digest:daily', $flagging_page_one->get('message_digest')->value);
 
-    // User flags an entity with a 'daily' frequency set.
+    // Test that new flaggins digest use the flagging user preference.
     $flag_service->flag($pages_flag, $page_two, $user);
     $this->assertTrue($pages_flag->isFlagged($page_two, $user));
     $this->assertTrue($mail_flag->isFlagged($page_two, $user));
     $flagging_page_two = $flag_service->getFlagging($mail_flag, $page_two, $user);
-    $this->assertTrue($flagging_page_two->hasField('message_digest'));
     $this->assertEquals('message_digest:daily', $flagging_page_two->get('message_digest')->value);
 
-    // Test that new flaggings are updated when frequency preference changes.
+    // Test that all flaggings are updated when user digest preference changes.
     $user->set('message_digest', 'message_digest:weekly')->save();
     $flagging_page_one = $flagging_storage->load($flagging_page_one->id());
     $this->assertEquals('message_digest:weekly', $flagging_page_one->get('message_digest')->value);

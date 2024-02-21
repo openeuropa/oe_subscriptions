@@ -17,21 +17,12 @@ class EntityTypeSubscriber implements EventSubscriberInterface {
   use EntityTypeEventSubscriberTrait;
 
   /**
-   * Extra field manager.
-   *
-   * @var \Drupal\extra_field\Plugin\ExtraFieldDisplayManager
-   */
-  protected $extraFieldManager;
-
-  /**
    * Constructs a EntityTypeSubscriber.
    *
    * @param \Drupal\extra_field\Plugin\ExtraFieldDisplayManager $extraFieldManager
    *   Extra field manager.
    */
-  public function __construct(ExtraFieldDisplayManager $extraFieldManager) {
-    $this->extraFieldManager = $extraFieldManager;
-  }
+  public function __construct(protected ExtraFieldDisplayManager $extraFieldManager) {}
 
   /**
    * {@inheritdoc}

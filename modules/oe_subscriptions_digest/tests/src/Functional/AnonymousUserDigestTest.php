@@ -25,19 +25,27 @@ class AnonymousUserDigestTest extends UserDigestTestBase {
    * Tests the anonymous user digest.
    */
   public function testAnonymousUserDigest(): void {
-    $user = DecoupledAuthUser::create([
+    $fn_get_path = function (UserInterface $user) {
+      return $this->getAnonymousUserSubscriptionsPageUrl($user->getEmail());
+    };
+
+    $user_one = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
       'status' => 1,
       'roles' => ['anonymous_subscriber'],
     ]);
-    $user->save();
-    $fn_get_path = function (UserInterface $user) {
-      return $this->getAnonymousUserSubscriptionsPageUrl($user->getEmail());
-    };
+    $user_one->save();
+    $this->doTestDigestPreferences($user_one, $fn_get_path);
 
-    $this->doTestDigestPreferences($user, $fn_get_path);
-    $this->doTestFlaggingDigest($user);
+    $user_two = DecoupledAuthUser::create([
+      'mail' => $this->randomMachineName() . '@example.com',
+      'name' => NULL,
+      'status' => 1,
+      'roles' => ['anonymous_subscriber'],
+    ]);
+    $user_two->save();
+    $this->doTestFlaggingDigest($user_two);
   }
 
 }
