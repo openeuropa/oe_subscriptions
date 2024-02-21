@@ -8,7 +8,7 @@ use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
 use Drupal\user\UserInterface;
 
 /**
- * Tests the user notifications frequency in subscriptions page.
+ * Tests the anonymous user digest.
  */
 class AnonymousUserDigestTest extends UserDigestTestBase {
 
@@ -22,30 +22,34 @@ class AnonymousUserDigestTest extends UserDigestTestBase {
   ];
 
   /**
-   * Tests the anonymous user digest.
+   * Tests the anonymous user digest preferences.
    */
-  public function testAnonymousUserDigest(): void {
+  public function testDigestPreferences(): void {
     $fn_get_path = function (UserInterface $user) {
       return $this->getAnonymousUserSubscriptionsPageUrl($user->getEmail());
     };
-
-    $user_one = DecoupledAuthUser::create([
+    $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
       'status' => 1,
       'roles' => ['anonymous_subscriber'],
     ]);
-    $user_one->save();
-    $this->doTestDigestPreferences($user_one, $fn_get_path);
+    $user->save();
+    $this->doTestDigestPreferences($user, $fn_get_path);
+  }
 
-    $user_two = DecoupledAuthUser::create([
+  /**
+   * Tests the anonymous user flagging digest.
+   */
+  public function testFlaggingDigest(): void {
+    $user = DecoupledAuthUser::create([
       'mail' => $this->randomMachineName() . '@example.com',
       'name' => NULL,
       'status' => 1,
       'roles' => ['anonymous_subscriber'],
     ]);
-    $user_two->save();
-    $this->doTestFlaggingDigest($user_two);
+    $user->save();
+    $this->doTestFlaggingDigest($user);
   }
 
 }

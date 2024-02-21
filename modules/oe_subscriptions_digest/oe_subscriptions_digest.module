@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\oe_subscriptions_digest\FlagHelper;
 use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 
 /**
@@ -22,12 +23,12 @@ use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
  */
 function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || empty($flag_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
+  if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
     return;
   }
-  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
-  if (Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
+  $subscribe_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  $email_flag_id = str_replace($subscribe_prefix, $mail_prefix, $entity->id());
+  if (\Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     return;
   }
   $entity->createDuplicate()
@@ -41,11 +42,11 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
  */
 function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
   $mail_prefix = \Drupal::config('message_subscribe_email.settings')->get('flag_prefix');
-  $flag_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
-  if (empty($mail_prefix) || empty($flag_prefix) || !str_starts_with($entity->id(), $flag_prefix . '_')) {
+  if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
     return;
   }
-  $email_flag_id = str_replace($flag_prefix, $mail_prefix, $entity->id());
+  $subscribe_prefix = \Drupal::config('message_subscribe.settings')->get('flag_prefix');
+  $email_flag_id = str_replace($subscribe_prefix, $mail_prefix, $entity->id());
   if ($email_flag = \Drupal::service('entity_type.manager')->getStorage('flag')->load($email_flag_id)) {
     $email_flag->delete();
   }
@@ -81,7 +82,7 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for oe_subscriptions_user_subscriptions_form.
  */
 function oe_subscriptions_digest_form_oe_subscriptions_user_subscriptions_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   \Drupal::classResolver(SubscriptionsFormAlter::class)->subscriptionsFormAlter($form, $form_state);

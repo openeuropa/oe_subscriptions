@@ -8,6 +8,7 @@ use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\flag\Event\FlagEvents;
 use Drupal\flag\Event\FlaggingEvent;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions_digest\FlagHelper;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -47,20 +48,12 @@ class AnonymousFlaggingEvent implements EventSubscriberInterface {
       return;
     }
     $flagging = $event->getFlagging();
-    $mail_prefix = $this->config_factory->get('message_subscribe_email.settings')->get('flag_prefix');
-    if (
-      !empty($mail_prefix) &&
-      strpos($flagging->getFlagId(), $mail_prefix . '_') === 0 &&
-      $flagging->hasField('message_digest') &&
-      !$flagging->get('message_digest')->isEmpty()
+    $flagging_owner = $flagging->getOwner();
+    if (FlagHelper::isDigestFlagging($flagging) &&
+      $flagging_owner->get('message_subscribe_email')->value &&
+      $flagging_owner->hasField('message_digest')
     ) {
-      $flagging_owner = $flagging->getOwner();
-      if (
-        $flagging_owner->get('message_subscribe_email')->value &&
-        $flagging_owner->hasField('message_digest')
-      ) {
-        $flagging->set('message_digest', $flagging_owner->get('message_digest')->value)->save();
-      }
+      $flagging->set('message_digest', $flagging_owner->get('message_digest')->value)->save();
     }
   }
 
