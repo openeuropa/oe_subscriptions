@@ -278,10 +278,11 @@ class SubscribeTest extends BrowserTestBase {
    */
   protected function assertSubscriptionConfirmationMail(array $mail_data, string $email, FlagInterface $flag, EntityInterface $entity): array {
     $this->assertMailProperty('to', $email, $mail_data);
-    $this->assertMailProperty('subject', 'Confirm your subscription to ' . $entity->label(), $mail_data);
-    $this->assertMailString('body', "{$entity->label()} [1]", $mail_data);
-    $this->assertMailString('body', 'Confirm subscription request [2]', $mail_data);
-    $this->assertMailString('body', 'Cancel subscription request [3]', $mail_data);
+    $this->assertMailProperty('subject', "Confirm your subscription to {$entity->label()}", $mail_data);
+    $this->assertMailString('body', "Thank you for showing interest in keeping up with the updates for {$entity->label()} [1]!", $mail_data);
+    $this->assertMailString('body', 'Click the following link to confirm your subscription: Confirm my subscription [2]', $mail_data);
+    $this->assertMailString('body', 'If you no longer wish to subscribe, click on the link bellow: Cancel the subscription request [3]', $mail_data);
+    $this->assertMailString('body', "If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. You will not be subscribed if you don't click on the confirmation link above.", $mail_data);
 
     $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
     $this->assertCount(3, $mail_urls);

@@ -66,11 +66,11 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       'email' => $mail,
       'hash' => $hash,
     ];
-    $confirm_link = Link::createFromRoute($this->t('Confirm subscription request'), 'oe_subscriptions_anonymous.subscription_request.confirm', $route_parameters, [
+    $confirm_link = Link::createFromRoute($this->t('Confirm my subscription'), 'oe_subscriptions_anonymous.subscription_request.confirm', $route_parameters, [
       'absolute' => TRUE,
     ])->toString();
 
-    $cancel_link = Link::createFromRoute($this->t('Cancel subscription request'), 'oe_subscriptions_anonymous.subscription_request.cancel', $route_parameters, [
+    $cancel_link = Link::createFromRoute($this->t('Cancel the subscription request'), 'oe_subscriptions_anonymous.subscription_request.cancel', $route_parameters, [
       'absolute' => TRUE,
     ])->toString();
 
@@ -81,7 +81,11 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       '@cancel_link' => $cancel_link,
     ];
 
-    $body = $this->t("@entity_link \r\n @confirm_link \r\n @cancel_link", $variables);
+    $body = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link! \r\n
+    Click the following link to confirm your subscription: @confirm_link \r\n
+    If you no longer wish to subscribe, click on the link bellow: @cancel_link \r\n
+    If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. \r\n
+    You will not be subscribed if you don't click on the confirmation link above.", $variables);
     $message['subject'] .= $this->t('Confirm your subscription to @label', [
       '@label' => $entity->label(),
     ]);
