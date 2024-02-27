@@ -10,7 +10,6 @@ declare(strict_types=1);
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\oe_subscriptions\FlagHelper;
-use Drupal\oe_subscriptions_digest\DigestFlagHelper;
 use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 
 /**
