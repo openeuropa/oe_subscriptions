@@ -36,7 +36,7 @@ class SubscriptionAccessCheck implements AccessInterface {
    *   The access result.
    */
   public function access(FlagInterface $flag, string $entity_id): AccessResultInterface {
-    if (!$flag->status() || FlagHelper::isSubscribeFlag($flag)) {
+    if (!$flag->status() || !FlagHelper::isSubscribeFlag($flag)) {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
 

@@ -51,7 +51,7 @@ class AnonymousSubscribeLinkDeriver extends DeriverBase implements ContainerDeri
     // Compose extra field allowed bundles.
     foreach ($flags as $flag) {
       // Disabled config, nothing to do.
-      if (!$flag->status() || FlagHelper::isSubscribeFlag($flag)) {
+      if (!$flag->status() || !FlagHelper::isSubscribeFlag($flag)) {
         continue;
       }
 
