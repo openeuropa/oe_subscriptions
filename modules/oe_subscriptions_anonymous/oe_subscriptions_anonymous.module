@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\oe_subscriptions\FlagHelper;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\SubscriptionCreate;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\UserSubscriptionsAccess;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
@@ -38,7 +39,7 @@ function oe_subscriptions_anonymous_flag_delete(EntityInterface $entity) {
  * Helper function to flush extra field cache().
  */
 function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) {
-  if (str_starts_with($entity->id(), 'subscribe_')) {
+  if (FlagHelper::isSubscribeFlag($entity)) {
     \Drupal::service('plugin.manager.extra_field_display')->clearCachedDefinitions();
   }
 }

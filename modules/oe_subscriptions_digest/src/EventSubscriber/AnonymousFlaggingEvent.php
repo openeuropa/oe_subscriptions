@@ -8,7 +8,7 @@ use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\flag\Event\FlagEvents;
 use Drupal\flag\Event\FlaggingEvent;
 use Drupal\flag\FlagServiceInterface;
-use Drupal\oe_subscriptions_digest\FlagHelper;
+use Drupal\oe_subscriptions_digest\DigestFlagHelper;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -49,7 +49,9 @@ class AnonymousFlaggingEvent implements EventSubscriberInterface {
     }
     $flagging = $event->getFlagging();
     $flagging_owner = $flagging->getOwner();
-    if (FlagHelper::isDigestFlagging($flagging) &&
+    if (
+      DigestFlagHelper::isDigestFlagging($flagging) &&
+      !$flagging->get('message_digest')->isEmpty() &&
       $flagging_owner->get('message_subscribe_email')->value &&
       $flagging_owner->hasField('message_digest')
     ) {

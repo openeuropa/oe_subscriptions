@@ -8,6 +8,7 @@ use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions\FlagHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -50,7 +51,7 @@ class AnonymousSubscribeLinkDeriver extends DeriverBase implements ContainerDeri
     // Compose extra field allowed bundles.
     foreach ($flags as $flag) {
       // Disabled config, nothing to do.
-      if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
+      if (!$flag->status() || FlagHelper::isSubscribeFlag($flag)) {
         continue;
       }
 

@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\oe_subscriptions_digest\FlagHelper;
+use Drupal\oe_subscriptions\FlagHelper;
+use Drupal\oe_subscriptions_digest\DigestFlagHelper;
 use Drupal\oe_subscriptions_digest\SubscriptionsFormAlter;
 
 /**
@@ -70,7 +71,7 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity) {
   $query = $flagging_storage->getQuery();
   $query
     ->accessCheck(FALSE)
-    ->condition('flag_id', $mail_prefix . '_', 'STARTS_WITH')
+    ->condition('flag_id', $mail_prefix, 'STARTS_WITH')
     ->condition('uid', $entity->id());
 
   $flaggings = $flagging_storage->loadMultiple($query->execute());

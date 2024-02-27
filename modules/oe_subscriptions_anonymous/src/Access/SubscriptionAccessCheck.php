@@ -9,6 +9,7 @@ use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions\FlagHelper;
 
 /**
  * Checks access for a given subscription id.
@@ -35,7 +36,7 @@ class SubscriptionAccessCheck implements AccessInterface {
    *   The access result.
    */
   public function access(FlagInterface $flag, string $entity_id): AccessResultInterface {
-    if (!$flag->status() || !str_starts_with($flag->id(), 'subscribe_')) {
+    if (!$flag->status() || FlagHelper::isSubscribeFlag($flag)) {
       return AccessResult::forbidden()->addCacheableDependency($flag);
     }
 

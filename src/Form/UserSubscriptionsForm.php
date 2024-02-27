@@ -13,6 +13,7 @@ use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\flag\FlagServiceInterface;
+use Drupal\oe_subscriptions\FlagHelper;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -140,12 +141,19 @@ class UserSubscriptionsForm extends FormBase {
    *   A render array.
    */
   protected function buildFlagList(): array {
+    $flag_prefix = FlagHelper::getFlagPrefix('message_subscribe');
+    if (empty($flag_prefix)) {
+      // No need to add the config cache dependency: the flag prefix shouldn't
+      // be changed without a full cache rebuild.
+      return [];
+    }
+
     $flag_storage = $this->entityTypeManager->getStorage('flagging');
     // @todo Add paging.
     $results = $flag_storage->getQuery()
       ->accessCheck()
       ->condition('uid', $this->account->id())
-      ->condition('flag_id', 'subscribe_', 'STARTS_WITH')
+      ->condition('flag_id', $flag_prefix, 'STARTS_WITH')
       ->sort('entity_type')
       // Sorting by flag ID is equivalent to sorting by creation time, as IDs
       // are incremental.
