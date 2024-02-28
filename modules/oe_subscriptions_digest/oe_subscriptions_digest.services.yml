@@ -1,0 +1,6 @@
+services:
+  oe_subscriptions_digest.anonymous_flagging_event:
+    class: Drupal\oe_subscriptions_digest\EventSubscriber\AnonymousFlaggingEvent
+    arguments: ['@current_user', '@module_handler', '@config.factory', '@flag']
+    tags:
+      - { name: 'event_subscriber' }

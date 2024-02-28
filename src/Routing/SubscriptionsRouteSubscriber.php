@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\oe_subscriptions\Routing;
 
 use Drupal\Core\Routing\RouteSubscriberBase;

@@ -29,6 +29,7 @@ drupal:
     - "./vendor/bin/drush en config_devel -y"
     - "./vendor/bin/drush en oe_subscriptions -y"
     - "./vendor/bin/drush en oe_subscriptions_anonymous -y"
+    - "./vendor/bin/drush en oe_subscriptions_digest -y"
     - "./vendor/bin/drush cr"
     # Simplify development by adding node view permission to the anonymous subscriber role.
     - "./vendor/bin/drush role:perm:add anonymous_subscriber 'access content'"
