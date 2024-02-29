@@ -87,9 +87,11 @@ class UserSubscriptionsForm extends FormBase {
       '#languages' => LanguageInterface::STATE_CONFIGURABLE,
       '#description' => $this->t("The primary language of this account's profile information."),
       '#default_value' => $this->account->getPreferredLangcode(),
+      '#weight' => 0,
     ];
 
     $form['flag_list'] = $this->buildFlagList();
+    $form['flag_list']['#weight'] = 1;
 
     $form['actions'] = [
       '#type' => 'actions',
@@ -98,6 +100,7 @@ class UserSubscriptionsForm extends FormBase {
         '#button_type' => 'primary',
         '#value' => $this->t('Save'),
       ],
+      '#weight' => 2,
     ];
 
     return $form;

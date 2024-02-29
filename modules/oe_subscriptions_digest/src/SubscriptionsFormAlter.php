@@ -60,12 +60,20 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
     $message_digest = $user->get('message_digest');
     $storage_definition = $message_digest->getFieldDefinition()->getFieldStorageDefinition();
 
+    // Move down all render elements except language preference.
+    array_walk($form, function (&$v, $k) {
+      if (isset($v['#weight']) && $k !== 'preferred_language') {
+        $v['#weight']++;
+      }
+    });
+
     $form['message_digest'] = [
       '#type' => 'select',
       '#title' => $this->t('Notifications frequency'),
       '#description' => $this->t('The frequency this currentUser will receive notifications is subscribed to.'),
       '#default_value' => $message_digest->value ?: '0',
       '#options' => message_digest_allowed_values_callback($storage_definition),
+      '#weight' => isset($form['preferred_language']['#weight']) ? $form['preferred_language']['#weight'] + 1 : 0,
     ];
 
     $form['#submit'][] = [$this, 'subscriptionsFormSubmit'];
