@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Render\RendererInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,10 +23,13 @@ class UserSubscriptionsRequestAccessForm extends FormBase {
    *   The mail manager.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
   public function __construct(
     protected MailManagerInterface $mailManager,
-    protected LanguageManagerInterface $languageManager
+    protected LanguageManagerInterface $languageManager,
+    protected RendererInterface $renderer
   ) {}
 
   /**
@@ -34,7 +38,8 @@ class UserSubscriptionsRequestAccessForm extends FormBase {
   public static function create(ContainerInterface $container) {
     $instance = new static(
       $container->get('plugin.manager.mail'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('renderer')
     );
     $instance->setMessenger($container->get('messenger'));
 
@@ -90,7 +95,9 @@ class UserSubscriptionsRequestAccessForm extends FormBase {
       return;
     }
 
-    $this->messenger()->addMessage($this->t('A confirmation e-email has been sent to your e-mail address.'));
+    $confirm_message = ['#theme' => 'oe_subscriptions_anonymous_message_confirm'];
+    $rendered_message = $this->renderer->render($confirm_message);
+    $this->messenger()->addWarning($rendered_message);
   }
 
 }

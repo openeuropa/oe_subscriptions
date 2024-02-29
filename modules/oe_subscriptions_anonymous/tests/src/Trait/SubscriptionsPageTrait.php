@@ -12,6 +12,7 @@ use Drupal\Core\Url;
 trait SubscriptionsPageTrait {
 
   use AssertMailTrait;
+  use StatusMessageTrait;
 
   /**
    * Retrieves the URL to access the subscriptions page for a user.
@@ -29,7 +30,7 @@ trait SubscriptionsPageTrait {
     $assert_session = $this->assertSession();
     $assert_session->fieldExists('Your e-mail')->setValue($email);
     $assert_session->buttonExists('Submit')->press();
-    $assert_session->statusMessageContains('A confirmation e-email has been sent to your e-mail address.', 'status');
+    $this->assertSubscriptionsPageMailStatusMessage();
 
     $mails = $this->getMails();
     $this->assertCount(1, $mails);

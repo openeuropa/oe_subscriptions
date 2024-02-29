@@ -1,2 +1,4 @@
-  <h4>{{ 'A confirmation email has been sent to your email address'|t }}</h4>
-  <p>{{ 'To confirm your subscription, <strong>please click on the confirmation link</strong> sent to your e-mail address.'|t }}</p>
+<h4>{{ title|default('A confirmation email has been sent to your email address'|t) }}</h4>
+{% if message is not empty %}
+  <p>{{ message }}</p>
+{% endif %}
