@@ -66,6 +66,7 @@ final class SubscriptionsFormAlter implements ContainerInjectionInterface {
       '#description' => $this->t('The frequency this currentUser will receive notifications is subscribed to.'),
       '#default_value' => $message_digest->value ?: '0',
       '#options' => message_digest_allowed_values_callback($storage_definition),
+      '#weight' => 5,
     ];
 
     $form['#submit'][] = [$this, 'subscriptionsFormSubmit'];
