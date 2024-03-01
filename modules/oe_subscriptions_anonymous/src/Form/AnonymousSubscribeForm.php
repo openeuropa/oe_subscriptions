@@ -175,7 +175,8 @@ class AnonymousSubscribeForm extends FormBase {
     }
 
     $confirm_message = [
-      '#theme' => 'oe_subscriptions_anonymous_message_confirm',
+      '#theme' => 'oe_subscriptions_anonymous_status_message',
+      '#title' => $this->t('A confirmation email has been sent to your email address'),
       '#message' => $this->t('To confirm your subscription, <strong>please click on the confirmation link</strong> sent to your e-mail address.'),
     ];
     $rendered_message = $this->renderer->render($confirm_message);
