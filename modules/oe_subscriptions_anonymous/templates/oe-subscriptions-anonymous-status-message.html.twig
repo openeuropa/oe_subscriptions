@@ -1,2 +1,6 @@
-<h4>{{ title }}</h4>
-<p>{{ message }}</p>
+{% if title is not empty %}
+  <h4>{{ title }}</h4>
+{% endif %}
+{% if message is not empty %}
+  <p>{{ message }}</p>
+{% endif %}
