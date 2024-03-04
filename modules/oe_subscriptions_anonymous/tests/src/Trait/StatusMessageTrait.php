@@ -21,6 +21,15 @@ trait StatusMessageTrait {
   }
 
   /**
+   * Asserts that the subscriptions page mail status message is shown.
+   */
+  protected function assertSubscriptionsPageMailStatusMessage(): void {
+    $this->assertHtmlStatusMessage([
+      'h4' => 'A confirmation email has been sent to your email address',
+    ], 'warning');
+  }
+
+  /**
    * Asserts that a status message contains a given tags/content.
    *
    * @param array $html
