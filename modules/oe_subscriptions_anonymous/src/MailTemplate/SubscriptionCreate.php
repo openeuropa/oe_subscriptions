@@ -42,12 +42,13 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
   /**
    * {@inheritdoc}
    */
-  public function prepare(array &$message, array $params): void {
+  public function prepare(array $params, bool $has_html = FALSE): array {
     [
       'email' => $mail,
       'flag' => $flag,
       'entity_id' => $entity_id,
     ] = $params;
+    $message = [];
 
     /** @var \Drupal\flag\FlagInterface $flag */
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
@@ -86,10 +87,12 @@ Click the following link to confirm your subscription: @confirm_link \r\n
 If you no longer wish to subscribe, click on the link bellow: @cancel_link \r\n
 If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. \r\n
 You will not be subscribed if you don't click on the confirmation link above.", $variables);
-    $message['subject'] .= $this->t('Confirm your subscription to @label', [
+    $message['subject'] = $this->t('Confirm your subscription to @label', [
       '@label' => $entity->label(),
     ]);
-    $message['body'][] = MailFormatHelper::htmlToText($body);
+    $message['body'] = $has_html ? $body : MailFormatHelper::htmlToText($body);
+
+    return $message;
   }
 
 }

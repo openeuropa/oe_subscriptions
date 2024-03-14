@@ -62,5 +62,19 @@ commands:
     - { task: "run", command: "drupal:drush-setup" }
     - { task: "run", command: "drupal:settings-setup" }
     - { task: "run", command: "setup:phpunit" }
+    - { task: "run", command: "setup:sendmail" }
   setup:phpunit:
     - { task: "process", source: "phpunit.xml.dist", destination: "phpunit.xml" }
+  setup:sendmail:
+    - task: "append"
+      file: "build/sites/default/settings.override.php"
+      text: |
+        // Configure the mailer module to use Mailpit.
+        // Note: never use direct SMTP connection for production websites!
+        // Direct connection will impact the page speed as mails will be sent
+        // synchronously.
+        $config['symfony_mailer.mailer_transport.sendmail']['plugin'] = 'smtp';
+        $config['symfony_mailer.mailer_transport.sendmail']['configuration']['user']='';
+        $config['symfony_mailer.mailer_transport.sendmail']['configuration']['pass']='';
+        $config['symfony_mailer.mailer_transport.sendmail']['configuration']['host']='mailpit';
+        $config['symfony_mailer.mailer_transport.sendmail']['configuration']['port']='1025';

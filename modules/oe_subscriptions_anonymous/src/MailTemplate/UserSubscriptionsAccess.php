@@ -39,10 +39,11 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   /**
    * {@inheritdoc}
    */
-  public function prepare(array &$message, array $params): void {
+  public function prepare(array $params, bool $has_html = FALSE): array {
     $mail = $params['email'];
     $hash = $this->tokenManager->get($mail, 'user_subscriptions_page');
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
+    $message = [];
 
     $variables = [
       '@site_url' => $site_url,
@@ -59,8 +60,10 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
 Click the following link to access your subscriptions page: @subscriptions_page_link \r\n
 If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.", $variables);
 
-    $message['subject'] .= $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
-    $message['body'][] = MailFormatHelper::htmlToText($text);
+    $message['subject'] = $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
+    $message['body'] = $has_html ? $text : MailFormatHelper::htmlToText($text);
+
+    return $message;
   }
 
 }
