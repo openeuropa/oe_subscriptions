@@ -52,7 +52,10 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
     'subscription_create' => SubscriptionCreate::class,
     'user_subscriptions_access' => UserSubscriptionsAccess::class
   };
-  \Drupal::classResolver($class)->prepare($message, $params);
+  $mail = \Drupal::classResolver($class)->prepare($params);
+
+  $message['subject'] .= $mail['subject'];
+  $message['body'][] = $mail['body'];
 }
 
 /**
