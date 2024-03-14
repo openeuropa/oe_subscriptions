@@ -40,6 +40,17 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public static function getParameters(): array {
+    return [
+      'email',
+      'flag',
+      'entity_id',
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function prepare(array $params, bool $has_html = FALSE): array {
