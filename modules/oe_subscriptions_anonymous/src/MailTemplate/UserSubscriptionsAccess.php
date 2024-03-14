@@ -37,6 +37,15 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public static function getParameters(): array {
+    return [
+      'email',
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function prepare(array $params, bool $has_html = FALSE): array {

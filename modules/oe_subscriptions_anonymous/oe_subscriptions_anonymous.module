@@ -10,8 +10,7 @@ declare(strict_types=1);
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\oe_subscriptions\FlagHelper;
-use Drupal\oe_subscriptions_anonymous\MailTemplate\SubscriptionCreate;
-use Drupal\oe_subscriptions_anonymous\MailTemplate\UserSubscriptionsAccess;
+use Drupal\oe_subscriptions_anonymous\MailTemplate\MailTemplateHelper;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 
 /**
@@ -48,14 +47,10 @@ function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) 
  * Implements hook_mail().
  */
 function oe_subscriptions_anonymous_mail($key, &$message, $params) {
-  $class = match ($key) {
-    'subscription_create' => SubscriptionCreate::class,
-    'user_subscriptions_access' => UserSubscriptionsAccess::class
-  };
-  $mail = \Drupal::classResolver($class)->prepare($params);
+  $processed_message = MailTemplateHelper::getMailTemplate($key)->prepare($params);
 
-  $message['subject'] .= $mail['subject'];
-  $message['body'][] = $mail['body'];
+  $message['subject'] .= $processed_message['subject'];
+  $message['body'][] = $processed_message['body'];
 }
 
 /**

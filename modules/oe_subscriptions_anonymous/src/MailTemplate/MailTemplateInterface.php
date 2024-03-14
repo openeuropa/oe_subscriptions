@@ -22,4 +22,12 @@ interface MailTemplateInterface {
    */
   public function prepare(array $params, bool $has_html): array;
 
+  /**
+   * Retrieves parameter keys used in the mail template.
+   *
+   * @return array
+   *   The parameter keys.
+   */
+  public static function getParameters(): array;
+
 }
