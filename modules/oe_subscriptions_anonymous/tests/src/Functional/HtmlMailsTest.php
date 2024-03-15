@@ -72,10 +72,12 @@ class HtmlMailsTest extends BrowserTestBase {
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to {$article->label()}");
+    $this->assertMailBreakLines(3, $mail);
     $this->assertMailContent([
       "Thank you for showing interest in keeping up with the updates for {$article->label()}!",
       "Click the following link to confirm your subscription: Confirm my subscription",
-      "If you no longer wish to subscribe, click on the link bellow: Cancel the subscription request If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. You will not be subscribed if you don't click on the confirmation link above.",
+      "If you no longer wish to subscribe, click on the link bellow: Cancel the subscription request",
+      "If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. You will not be subscribed if you don't click on the confirmation link above.",
     ], $mail);
 
     // Check link to entity using entity label.
@@ -117,8 +119,9 @@ class HtmlMailsTest extends BrowserTestBase {
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
     $this->assertTo('test@test.com');
     $this->assertSubject("Access your subscriptions page on $site_url");
+    $this->assertMailBreakLines(2, $mail);
     $this->assertMailContent([
-      "You are receiving this e-mail because you requested access to your subscriptions page on $site_url.",
+      "You are receiving this e-mail because you requested access to your subscriptions page on $site_url",
       "Click the following link to access your subscriptions page: Access my subscriptions page",
       "If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
     ], $mail);
@@ -142,7 +145,6 @@ class HtmlMailsTest extends BrowserTestBase {
    */
   protected function getMailLinks(Email $mail): array {
     $crawler = new Crawler($mail->getHtmlBody());
-
     return array_map(static fn($link) => $link->getNode(), $crawler->filter('a')->links());
   }
 
@@ -159,6 +161,19 @@ class HtmlMailsTest extends BrowserTestBase {
     foreach ($expected_texts as $expected) {
       $this->assertStringContainsString($expected, $crawler->text());
     }
+  }
+
+  /**
+   * Asserts a number of break lines in a mail.
+   *
+   * @param int $expected
+   *   The number of expected break lines.
+   * @param \Drupal\symfony_mailer\Email $mail
+   *   The mail.
+   */
+  protected function assertMailBreakLines(int $expected, Email $mail): void {
+    $crawler = new Crawler($mail->getHtmlBody());
+    $this->assertCount($expected, $crawler->filter('br'));
   }
 
 }

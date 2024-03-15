@@ -30,7 +30,7 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
    * @param \Drupal\symfony_mailer\EmailInterface $email
    *   The email to modify.
    * @param array $params
-   *   The recipient.
+   *   The email parameters.
    */
   public function createParams(EmailInterface $email, array $params = []): void {
     foreach (MailTemplateHelper::getKeyClass($email->getSubType())::getParameters() as $param) {

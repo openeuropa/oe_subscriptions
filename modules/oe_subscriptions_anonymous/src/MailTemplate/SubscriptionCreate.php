@@ -93,10 +93,10 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       '@cancel_link' => $cancel_link,
     ];
 
-    $body = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link! \r\n
-Click the following link to confirm your subscription: @confirm_link \r\n
-If you no longer wish to subscribe, click on the link bellow: @cancel_link \r\n
-If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. \r\n
+    $body = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link!<br>
+Click the following link to confirm your subscription: @confirm_link<br>
+If you no longer wish to subscribe, click on the link bellow: @cancel_link<br>
+If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it.
 You will not be subscribed if you don't click on the confirmation link above.", $variables);
     $message['subject'] = $this->t('Confirm your subscription to @label', [
       '@label' => $entity->label(),
