@@ -65,8 +65,8 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
         ])->toString(),
     ];
 
-    $text = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_url. \r\n
-Click the following link to access your subscriptions page: @subscriptions_page_link \r\n
+    $text = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_url.<br>
+Click the following link to access your subscriptions page: @subscriptions_page_link<br>
 If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.", $variables);
 
     $message['subject'] = $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
