@@ -25,7 +25,7 @@ use Drupal\symfony_mailer\Processor\EmailBuilderBase;
 class AnonymousEmailBuilder extends EmailBuilderBase {
 
   /**
-   * Saves the parameters for a newly created email.
+   * Creates the parameters for a newly created email.
    *
    * @param \Drupal\symfony_mailer\EmailInterface $email
    *   The email to modify.
@@ -33,7 +33,9 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
    *   The email parameters.
    */
   public function createParams(EmailInterface $email, array $params = []): void {
-    foreach (MailTemplateHelper::getKeyClass($email->getSubType())::getParameters() as $param) {
+    $mail_template = MailTemplateHelper::getKeyClass($email->getSubType());
+
+    foreach ($mail_template::getParameters() as $param) {
       assert($params[$param] != NULL);
       $email->setParam($param, $params[$param]);
     }

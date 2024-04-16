@@ -28,7 +28,7 @@ final class MailTemplateHelper {
   }
 
   /**
-   * Instantiates an object of the given mail template key.
+   * Gets an object of the given mail template key.
    */
   public static function getMailTemplate(string $key): MailTemplateInterface {
     return \Drupal::classResolver(self::getKeyClass($key));

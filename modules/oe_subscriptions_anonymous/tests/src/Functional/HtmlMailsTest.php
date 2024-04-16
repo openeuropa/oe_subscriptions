@@ -59,7 +59,7 @@ class HtmlMailsTest extends BrowserTestBase {
     ]);
     $assert_session = $this->assertSession();
 
-    // Test confim subcription HTML mail content.
+    // Test confirm subcription HTML mail content.
     // Subscribe to an article.
     $this->drupalGet($article->toUrl());
     $this->clickLink('Subscribe');
@@ -68,7 +68,7 @@ class HtmlMailsTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $this->assertSubscriptionCreateMailStatusMessage();
 
-    // Check the subscribe mail content.
+    // Check the subscription mail content.
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to {$article->label()}");
