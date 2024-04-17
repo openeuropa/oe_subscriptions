@@ -16,28 +16,28 @@ use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 /**
  * Implements hook_ENTITY_insert().
  */
-function oe_subscriptions_anonymous_flag_insert(EntityInterface $entity) {
+function oe_subscriptions_anonymous_flag_insert(EntityInterface $entity): void {
   _oe_subscriptions_anonymous_flush_extra_field($entity);
 }
 
 /**
  * Implements hook_ENTITY_update().
  */
-function oe_subscriptions_anonymous_flag_update(EntityInterface $entity) {
+function oe_subscriptions_anonymous_flag_update(EntityInterface $entity): void {
   _oe_subscriptions_anonymous_flush_extra_field($entity);
 }
 
 /**
  * Implements hook_ENTITY_delete().
  */
-function oe_subscriptions_anonymous_flag_delete(EntityInterface $entity) {
+function oe_subscriptions_anonymous_flag_delete(EntityInterface $entity): void {
   _oe_subscriptions_anonymous_flush_extra_field($entity);
 }
 
 /**
  * Helper function to flush extra field cache().
  */
-function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) {
+function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity): void {
   if (FlagHelper::isSubscribeFlag($entity)) {
     \Drupal::service('plugin.manager.extra_field_display')->clearCachedDefinitions();
   }
@@ -46,7 +46,7 @@ function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity) 
 /**
  * Implements hook_mail().
  */
-function oe_subscriptions_anonymous_mail($key, &$message, $params) {
+function oe_subscriptions_anonymous_mail(string $key, array &$message, array $params): void {
   $processed_message = MailTemplateHelper::getMailTemplate($key)->prepare($params);
 
   $message['subject'] .= $processed_message['subject'];
@@ -56,7 +56,7 @@ function oe_subscriptions_anonymous_mail($key, &$message, $params) {
 /**
  * Implements hook_theme().
  */
-function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
+function oe_subscriptions_anonymous_theme(array $existing, string $type, string $theme, string $path): array {
   return [
     'oe_subscriptions_anonymous_status_message' => [
       'variables' => [
@@ -77,7 +77,7 @@ function oe_subscriptions_anonymous_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function oe_subscriptions_anonymous_form_oe_subscriptions_settings_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+function oe_subscriptions_anonymous_form_oe_subscriptions_settings_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   \Drupal::classResolver(SettingsFormAlter::class)->settingsFormAlter($form);
 }
 
@@ -86,7 +86,7 @@ function oe_subscriptions_anonymous_form_oe_subscriptions_settings_form_alter(&$
  *
  * @see oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter()
  */
-function oe_subscriptions_anonymous_form_oe_subscriptions_anonymous_user_subscriptions_request_access_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+function oe_subscriptions_anonymous_form_oe_subscriptions_anonymous_user_subscriptions_request_access_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $form['#theme_wrappers']['oe_subscriptions_user_subscriptions_page'] = [
     '#attributes' => [],
   ];

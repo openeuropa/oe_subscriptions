@@ -20,7 +20,7 @@ interface MailTemplateInterface {
    * @return array
    *   The processed subject and body.
    */
-  public function prepare(array $params, bool $has_html): array;
+  public function prepare(array $params, bool $has_html = FALSE): array;
 
   /**
    * Gets parameter keys used in the mail template.

@@ -55,7 +55,7 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
     $message = [];
 
     $variables = [
-      '@site_url' => $site_url,
+      '@site_url' => Link::createFromRoute($site_url, '<front>', [], ['absolute' => TRUE])->toString(),
       '@subscriptions_page_link' => Link::createFromRoute(
         $this->t('Access my subscriptions page'), 'oe_subscriptions_anonymous.user_subscriptions.view', [
           'email' => $mail,

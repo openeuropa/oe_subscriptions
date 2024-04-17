@@ -128,8 +128,11 @@ class HtmlMailsTest extends BrowserTestBase {
 
     // Check subscriptions page link.
     $links = $this->getMailLinks($mail);
-    $this->assertEquals('Access my subscriptions page', $links[0]->textContent);
+    $this->assertEquals($site_url, $links[0]->textContent);
     $this->drupalGet($links[0]->getAttribute('href'));
+    $assert_session->addressEquals($site_url);
+    $this->assertEquals('Access my subscriptions page', $links[1]->textContent);
+    $this->drupalGet($links[1]->getAttribute('href'));
     $assert_session->titleEquals('Manage your subscriptions | Drupal');
     $assert_session->elementExists('css', 'table.user-subscriptions');
   }

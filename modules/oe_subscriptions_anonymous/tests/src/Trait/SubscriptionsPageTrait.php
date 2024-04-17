@@ -37,16 +37,17 @@ trait SubscriptionsPageTrait {
     $this->assertMailProperty('to', $email);
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
     $this->assertMailProperty('subject', "Access your subscriptions page on $site_url");
-    $this->assertMailString('body', "You are receiving this e-mail because you requested access to your subscriptions page on $site_url.");
-    $this->assertMailString('body', 'Click the following link to access your subscriptions page: Access my subscriptions page [1]');
+    $this->assertMailString('body', 'You are receiving this e-mail because you requested access to your subscriptions page on ' . $site_url . ' [1].');
+    $this->assertMailString('body', 'Click the following link to access your subscriptions page: Access my subscriptions page [2]');
     $this->assertMailString('body', "If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.");
     $mail_urls = $this->getMailFootNoteUrls($mails[0]['body']);
-    $this->assertCount(1, $mail_urls);
+    $this->assertCount(2, $mail_urls);
+    $this->assertEquals($site_url, $mail_urls[1]);
     $base_path = $this->getAbsoluteUrl('/user/subscriptions/' . rawurlencode($email));
-    $this->assertMatchesRegularExpression('@^' . preg_quote($base_path, '@') . '/.+$@', $mail_urls[1]);
+    $this->assertMatchesRegularExpression('@^' . preg_quote($base_path, '@') . '/.+$@', $mail_urls[2]);
     $this->resetMailCollector();
 
-    return $mail_urls[1];
+    return $mail_urls[2];
   }
 
 }
