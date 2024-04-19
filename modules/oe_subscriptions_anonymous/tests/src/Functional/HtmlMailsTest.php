@@ -167,10 +167,11 @@ class HtmlMailsTest extends BrowserTestBase {
     $assert_session->statusMessageContains("Your subscription request has been {$operation}.", 'status');
 
     // Check break lines.
-    $this->assertCount(3, $wrapper->filter('br'));
-    $this->assertStringContainsString($entity_link['text'] . '</a>!<br>', $mail_body);
-    $this->assertStringContainsString($confirm_link['text'] . '</a><br>', $mail_body);
-    $this->assertStringContainsString($cancel_link['text'] . '</a><br>', $mail_body);
+    $br = $wrapper->filter('br');
+    $this->assertCount(3, $br);
+    $this->assertStringContainsString($entity_link['text'] . '</a>!' . $br->html(), $mail_body);
+    $this->assertStringContainsString($confirm_link['text'] . '</a>' . $br->html(), $mail_body);
+    $this->assertStringContainsString($cancel_link['text'] . '</a>' . $br->html(), $mail_body);
 
     // Check the text.
     $this->assertEquals(
@@ -206,9 +207,10 @@ class HtmlMailsTest extends BrowserTestBase {
     $assert_session->elementExists('css', 'table.user-subscriptions');
 
     // Check break lines.
-    $this->assertCount(2, $wrapper->filter('br'));
-    $this->assertStringContainsString($site_link['text'] . '</a>.<br>', $mail_body);
-    $this->assertStringContainsString($subscriptions_link['text'] . '</a><br>', $mail_body);
+    $br = $wrapper->filter('br');
+    $this->assertCount(2, $br);
+    $this->assertStringContainsString($site_link['text'] . '</a>.' . $br->html(), $mail_body);
+    $this->assertStringContainsString($subscriptions_link['text'] . '</a>' . $br->html(), $mail_body);
 
     // Check the text.
     $this->assertEquals(
