@@ -137,7 +137,7 @@ class HtmlMailsTest extends BrowserTestBase {
   }
 
   /**
-   * Asserts HTML in body content with given texts.
+   * Asserts HTML in body for Confirm subscription mail.
    *
    * @param array $entity_link
    *   The link to the entity.
@@ -148,7 +148,7 @@ class HtmlMailsTest extends BrowserTestBase {
    * @param string $mail_body
    *   The mail body.
    * @param string $operation
-   *   Either confirmation or cancelation.
+   *   The operation test to do.
    */
   protected function assertConfirmMailHtml(array $entity_link, array $confirm_link, array $cancel_link, string $mail_body, string $operation): void {
     $crawler = new Crawler($mail_body);
@@ -162,7 +162,7 @@ class HtmlMailsTest extends BrowserTestBase {
     // Check that the links are in the text.
     $urls = $this->assertLinks([$entity_link, $confirm_link, $cancel_link], $wrapper);
 
-    // Asserts operation link either confirmation or cancelation.
+    // Asserts operation link confirmation or cancelation.
     $this->drupalGet($urls[$urls_index[$operation]]);
     $assert_session->statusMessageContains("Your subscription request has been {$operation}.", 'status');
 
@@ -184,7 +184,7 @@ class HtmlMailsTest extends BrowserTestBase {
   }
 
   /**
-   * Asserts HTML in body content with given texts.
+   * Asserts HTML in body for Subscriptions page mail.
    *
    * @param array $site_link
    *   The link to the site.
@@ -221,7 +221,7 @@ class HtmlMailsTest extends BrowserTestBase {
   }
 
   /**
-   * Asserts links.
+   * Asserts links skipping those without URL key value.
    *
    * @param array[] $expected_links
    *   A list links to check.
@@ -229,10 +229,10 @@ class HtmlMailsTest extends BrowserTestBase {
    *   The crawler where perform the checks.
    *
    * @return array
-   *   The links without URL key value.
+   *   The skipped urls.
    */
   protected function assertLinks(array $expected_links, Crawler $crawler): array {
-    $token_urls = [];
+    $skipped_urls = [];
 
     foreach ($expected_links as $expected_link) {
       $link = $crawler->filterXPath("//a[contains(text(),'{$expected_link['text']}')]");
@@ -241,10 +241,10 @@ class HtmlMailsTest extends BrowserTestBase {
         $this->assertEquals($expected_link['url'], $link->attr('href'));
         continue;
       }
-      $token_urls[] = $link->attr('href');
+      $skipped_urls[] = $link->attr('href');
     }
 
-    return $token_urls;
+    return $skipped_urls;
   }
 
 }
