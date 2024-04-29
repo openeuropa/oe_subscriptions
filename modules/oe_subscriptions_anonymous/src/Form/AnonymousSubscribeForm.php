@@ -46,7 +46,7 @@ class AnonymousSubscribeForm extends FormBase {
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
     protected LanguageManagerInterface $languageManager,
-    protected RendererInterface $renderer
+    protected RendererInterface $renderer,
   ) {}
 
   /**
