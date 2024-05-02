@@ -221,7 +221,7 @@ class HtmlMailsTest extends BrowserTestBase {
   }
 
   /**
-   * Asserts links skipping those without URL key value.
+   * Asserts links returning those without URL key value.
    *
    * @param array[] $expected_links
    *   A list links to check.
@@ -229,10 +229,10 @@ class HtmlMailsTest extends BrowserTestBase {
    *   The crawler where perform the checks.
    *
    * @return array
-   *   The skipped urls.
+   *   The text only urls.
    */
   protected function assertLinks(array $expected_links, Crawler $crawler): array {
-    $skipped_urls = [];
+    $text_only_urls = [];
 
     foreach ($expected_links as $expected_link) {
       $link = $crawler->filterXPath("//a[contains(text(),'{$expected_link['text']}')]");
@@ -241,10 +241,10 @@ class HtmlMailsTest extends BrowserTestBase {
         $this->assertEquals($expected_link['url'], $link->attr('href'));
         continue;
       }
-      $skipped_urls[] = $link->attr('href');
+      $text_only_urls[] = $link->attr('href');
     }
 
-    return $skipped_urls;
+    return $text_only_urls;
   }
 
 }
