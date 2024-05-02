@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Mail\MailFormatHelper;
 use Drupal\oe_subscriptions\FlagHelper;
 use Drupal\oe_subscriptions_anonymous\MailTemplate\MailTemplateHelper;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
@@ -50,7 +51,7 @@ function oe_subscriptions_anonymous_mail(string $key, array &$message, array $pa
   $processed_message = MailTemplateHelper::getMailTemplate($key)->prepare($params);
 
   $message['subject'] .= $processed_message['subject'];
-  $message['body'][] = $processed_message['body'];
+  $message['body'][] = MailFormatHelper::htmlToText($processed_message['body']);
 }
 
 /**

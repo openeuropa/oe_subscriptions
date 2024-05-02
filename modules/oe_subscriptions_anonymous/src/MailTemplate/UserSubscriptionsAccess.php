@@ -6,7 +6,6 @@ namespace Drupal\oe_subscriptions_anonymous\MailTemplate;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Mail\MailFormatHelper;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
@@ -48,7 +47,7 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   /**
    * {@inheritdoc}
    */
-  public function prepare(array $params, bool $has_html = FALSE): array {
+  public function prepare(array $params): array {
     $mail = $params['email'];
     $hash = $this->tokenManager->get($mail, 'user_subscriptions_page');
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
@@ -65,12 +64,10 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
         ])->toString(),
     ];
 
-    $text = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_url.<br>
+    $message['subject'] = $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
+    $message['body'] = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_url.<br>
 Click the following link to access your subscriptions page: @subscriptions_page_link<br>
 If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.", $variables);
-
-    $message['subject'] = $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
-    $message['body'] = $has_html ? $text : MailFormatHelper::htmlToText($text);
 
     return $message;
   }

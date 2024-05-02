@@ -14,13 +14,11 @@ interface MailTemplateInterface {
    *
    * @param array $params
    *   Mail parameters.
-   * @param bool $has_html
-   *   If the mail has HTML.
    *
    * @return array
    *   The processed subject and body.
    */
-  public function prepare(array $params, bool $has_html = FALSE): array;
+  public function prepare(array $params): array;
 
   /**
    * Gets parameter keys used in the mail template.

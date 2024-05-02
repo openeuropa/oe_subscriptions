@@ -6,7 +6,6 @@ namespace Drupal\oe_subscriptions_anonymous\MailTemplate;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Mail\MailFormatHelper;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
@@ -53,7 +52,7 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
   /**
    * {@inheritdoc}
    */
-  public function prepare(array $params, bool $has_html = FALSE): array {
+  public function prepare(array $params): array {
     [
       'email' => $mail,
       'flag' => $flag,
@@ -93,15 +92,14 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       '@cancel_link' => $cancel_link,
     ];
 
-    $body = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link!<br>
+    $message['subject'] = $this->t('Confirm your subscription to @label', [
+      '@label' => $entity->label(),
+    ]);
+    $message['body'] = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link!<br>
 Click the following link to confirm your subscription: @confirm_link<br>
 If you no longer wish to subscribe, click on the link bellow: @cancel_link<br>
 If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it.
 You will not be subscribed if you don't click on the confirmation link above.", $variables);
-    $message['subject'] = $this->t('Confirm your subscription to @label', [
-      '@label' => $entity->label(),
-    ]);
-    $message['body'] = $has_html ? $body : MailFormatHelper::htmlToText($body);
 
     return $message;
   }

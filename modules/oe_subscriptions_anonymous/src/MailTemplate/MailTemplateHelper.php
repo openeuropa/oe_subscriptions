@@ -20,4 +20,5 @@ final class MailTemplateHelper {
       'user_subscriptions_access' => UserSubscriptionsAccess::class,
     });
   }
+
 }
