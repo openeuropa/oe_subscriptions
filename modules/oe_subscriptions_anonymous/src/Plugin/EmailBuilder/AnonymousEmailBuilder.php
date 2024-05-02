@@ -33,10 +33,9 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
    *   The email parameters.
    */
   public function createParams(EmailInterface $email, array $params = []): void {
-    $mail_template = MailTemplateHelper::getKeyClass($email->getSubType());
+    $mail_template = MailTemplateHelper::getMailTemplate($email->getSubType());
 
     foreach ($mail_template::getParameters() as $param) {
-      assert($params[$param] != NULL);
       $email->setParam($param, $params[$param]);
     }
   }
