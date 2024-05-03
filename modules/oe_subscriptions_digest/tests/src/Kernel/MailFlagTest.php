@@ -10,7 +10,7 @@ use Drupal\Tests\flag\Traits\FlagCreateTrait;
 /**
  * Class to test mail flag.
  */
-class MailFlagtest extends KernelTestBase {
+class MailFlagTest extends KernelTestBase {
 
   use FlagCreateTrait;
 
