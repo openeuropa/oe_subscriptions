@@ -26,6 +26,7 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
   if ($entity->isSyncing()) {
     return;
   }
+
   $mail_prefix = FlagHelper::getFlagPrefix('message_subscribe_email');
   if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
     return;
@@ -45,6 +46,11 @@ function oe_subscriptions_digest_flag_insert(EntityInterface $entity) {
  * Implements hook_flag_delete().
  */
 function oe_subscriptions_digest_flag_delete(EntityInterface $entity) {
+  /** @var \Drupal\flag\Entity\Flag $entity */
+  if ($entity->isSyncing()) {
+    return;
+  }
+
   /** @var \Drupal\flag\Entity\Flag $entity */
   $mail_prefix = FlagHelper::getFlagPrefix('message_subscribe_email');
   if (empty($mail_prefix) || !FlagHelper::isSubscribeFlag($entity)) {
