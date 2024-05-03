@@ -36,7 +36,8 @@ final class FlagHelper {
    *   The flag prefix.
    */
   public static function getFlagPrefix(string $module_name): string {
-    return \Drupal::config("$module_name.settings")->get('flag_prefix') . '_';
+    $prefix = \Drupal::config("$module_name.settings")->get('flag_prefix');
+    return ($prefix === NULL || $prefix === '') ? '' : $prefix . '_';
   }
 
   /**
