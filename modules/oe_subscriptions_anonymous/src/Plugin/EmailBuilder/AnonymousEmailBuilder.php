@@ -15,11 +15,12 @@ use Drupal\symfony_mailer\Processor\EmailBuilderBase;
  *
  * @EmailBuilder(
  *   id = "oe_subscriptions_anonymous",
- *   label = @Translation("Anonymous subscription"),
+ *   label = @Translation("Anonymous subscriptions"),
  *   sub_types = {
- *     "subscription_create" = @Translation("Subscription creation"),
- *     "user_subscriptions_access" = @Translation("Subscriptions access request"),
+ *     "subscription_create" = @Translation("Subscription confirmation creation"),
+ *     "user_subscriptions_access" = @Translation("Subscriptions page access request"),
  *   },
+ *   override = TRUE,
  * )
  */
 class AnonymousEmailBuilder extends EmailBuilderBase {
@@ -54,11 +55,18 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
     $params = [];
     $mail_template = MailTemplateHelper::getMailTemplate($email->getSubType());
 
+    // Prepares parameters based on template parameters definition.
     foreach ($mail_template->getParameters() as $param) {
       $params[$param] = $email->getParam($param);
     }
 
     $message = $mail_template->prepare($params);
+
+    // Set variables based on translation arguments.
+    $arguments = $message['subject']->getArguments() + $message['body']->getArguments();
+    foreach ($arguments as $key => $value) {
+      $email->setVariable(preg_replace('/(@|%|:)/', '', $key), $value);
+    }
 
     $email
       ->setTo(new Address($params['email']))

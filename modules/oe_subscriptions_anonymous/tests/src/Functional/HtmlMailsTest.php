@@ -5,34 +5,12 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Url;
-use Drupal\symfony_mailer_test\MailerTestTrait;
-use Drupal\Tests\BrowserTestBase;
-use Drupal\Tests\flag\Traits\FlagCreateTrait;
-use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Tests the HTML in mails.
  */
-class HtmlMailsTest extends BrowserTestBase {
-
-  use FlagCreateTrait;
-  use StatusMessageTrait;
-  use MailerTestTrait;
-
-  /**
-   * {@inheritdoc}
-   */
-  protected static $modules = [
-    'node',
-    'oe_subscriptions_anonymous',
-    'symfony_mailer_test',
-  ];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected $defaultTheme = 'stark';
+class HtmlMailsTest extends SymfonyMailerTestBase {
 
   /**
    * Tests the mails.
@@ -42,29 +20,19 @@ class HtmlMailsTest extends BrowserTestBase {
    *  - user_subscriptions_access.
    */
   public function testMails(): void {
-    $this->drupalCreateContentType([
-      'type' => 'article',
-      'name' => 'Article',
-    ]);
-    $this->createFlagFromArray([
-      'id' => 'subscribe_article',
-      'flag_short' => 'Subscribe',
-      'entity_type' => 'node',
-      'bundles' => ['article'],
-    ]);
     $article = $this->drupalCreateNode([
       'type' => 'article',
       'status' => 1,
     ]);
-    $assert_session = $this->assertSession();
 
     // Test confirm subscription HTML mail content.
     // Asserts the mail content testing confirmation link.
     $this->drupalGet($article->toUrl());
     $this->clickLink('Subscribe');
-    $assert_session->fieldExists('Your e-mail')->setValue('test@test.com');
-    $assert_session->fieldExists('I have read and agree with the data protection terms.')->check();
-    $assert_session->buttonExists('Subscribe me')->press();
+    $this->submitForm([
+      'Your e-mail' => 'test@test.com',
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
     $mail = $this->readMail();
@@ -88,9 +56,10 @@ class HtmlMailsTest extends BrowserTestBase {
     // Asserts the mail content testing cancelation link.
     $this->drupalGet($article->toUrl());
     $this->clickLink('Subscribe');
-    $assert_session->fieldExists('Your e-mail')->setValue('test@test.com');
-    $assert_session->fieldExists('I have read and agree with the data protection terms.')->check();
-    $assert_session->buttonExists('Subscribe me')->press();
+    $this->submitForm([
+      'Your e-mail' => 'test@test.com',
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
     $mail = $this->readMail();
@@ -114,15 +83,13 @@ class HtmlMailsTest extends BrowserTestBase {
     // Test request access HTML mail content.
     // Asserts the mail content testing subscription link.
     $this->drupalGet('/user/subscriptions');
-    $assert_session->fieldExists('Your e-mail')->setValue('test@test.com');
-    $assert_session->buttonExists('Submit')->press();
+    $this->submitForm(['Your e-mail' => 'test@test.com'], 'Submit');
     $this->assertSubscriptionsPageMailStatusMessage();
 
-    $mail = $this->readMail();
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
+    $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Access your subscriptions page on $site_url");
-
     $this->assertSubscriptionsMailHtml(
       [
         'text' => $site_url,
@@ -133,7 +100,6 @@ class HtmlMailsTest extends BrowserTestBase {
       ],
       $mail->getHtmlBody(),
     );
-
   }
 
   /**
