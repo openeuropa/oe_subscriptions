@@ -31,6 +31,7 @@ abstract class KernelTestBase extends CoreKernelTestBase {
     'system',
     'text',
     'user',
+    'decoupled_auth',
   ];
 
   /**
