@@ -3,32 +3,26 @@
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 /**
- * Test Mailer overrides.
- *
- * @group symfony_mailer
+ * Test overrides integrated in HTML mails.
  */
-class OverrideTest extends SymfonyMailerTestBase {
+class HtmlMailsOverrideTest extends HtmlMailsTestBase {
 
   /**
-   * Test mailer override form.
+   * Test mailer override form and policies modification.
    */
   public function testOverride() {
-    $admin_user = $this->drupalCreateUser(['administer mailer', 'use text format email_html']);
     $assert_session = $this->assertSession();
-    $this->drupalLogin($admin_user);
+    $this->drupalLogin($this->adminUser);
 
     // Check the override info page with subscriptions overrides.
     $expected = [
       ['Anonymous subscriptions', 'Disabled', '', 'Enable'],
-      ['Update Manager', 'Disabled', 'Update notification addresses', 'Enable & Import'],
-      // phpcs:ignore Drupal.Arrays.Array.LongLineDeclaration
-      ['User', 'Disabled', 'Update notification addresses', "User email settings\nWarning: This overrides the default HTML messages with imported plain text versions"],
       ['*All*', '', '', 'Enable & import'],
     ];
     $this->drupalGet('admin/config/system/mailer/override');
     $this->checkOverrideInfo($expected);
 
-    // Force import the user override.
+    // Check that Anonymous subscriptions override can be enabled..
     $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
     $assert_session->pageTextContains('Are you sure you want to do Enable for override Anonymous subscriptions?');
     $assert_session->pageTextContains('Related Mailer Policy will be reset to default values.');
@@ -40,7 +34,7 @@ class OverrideTest extends SymfonyMailerTestBase {
     $assert_session->pageTextContains('Completed Enable for override Anonymous subscriptions');
     $this->checkOverrideInfo($expected);
 
-    // Check confirm override.
+    // Check subscription confirm mail policies.
     $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.subscription_create');
     $this->submitForm([
       'edit-config-email-body-content-value' => 'Anonymous subscriptions confirm subscription body override.',
@@ -48,11 +42,7 @@ class OverrideTest extends SymfonyMailerTestBase {
     ], 'Save');
     $this->drupalLogout();
 
-    $article = $this->drupalCreateNode([
-      'type' => 'article',
-      'status' => 1,
-    ]);
-    $this->drupalGet($article->toUrl());
+    $this->drupalGet($this->article->toUrl());
     $this->clickLink('Subscribe');
     $this->submitForm([
       'Your e-mail' => 'test@test.com',
@@ -65,8 +55,8 @@ class OverrideTest extends SymfonyMailerTestBase {
     $this->assertSubject('Anonymous subscriptions confirm subscription subject override.');
     $this->assertBodyContains('Anonymous subscriptions confirm subscription body override.');
 
-    // Check access override.
-    $this->drupalLogin($admin_user);
+    // Check subscriptions page mail policies.
+    $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.user_subscriptions_access');
     $this->submitForm([
       'edit-config-email-body-content-value' => 'Anonymous subscriptions access subscriptions page body override.',

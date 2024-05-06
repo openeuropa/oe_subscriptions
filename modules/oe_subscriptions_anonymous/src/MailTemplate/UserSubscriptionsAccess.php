@@ -36,7 +36,7 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function getParameters(): array {
     return [
@@ -47,15 +47,15 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   /**
    * {@inheritdoc}
    */
-  public function prepare(array $params): array {
+  public function getVariables(array $params): array {
     $mail = $params['email'];
     $hash = $this->tokenManager->get($mail, 'user_subscriptions_page');
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
-    $message = [];
 
-    $variables = [
-      '@site_url' => Link::createFromRoute($site_url, '<front>', [], ['absolute' => TRUE])->toString(),
-      '@subscriptions_page_link' => Link::createFromRoute(
+    return [
+      'site_url' => $site_url,
+      'site_link' => Link::createFromRoute($site_url, '<front>', [], ['absolute' => TRUE])->toString(),
+      'subscriptions_page_link' => Link::createFromRoute(
         $this->t('Access my subscriptions page'), 'oe_subscriptions_anonymous.user_subscriptions.view', [
           'email' => $mail,
           'token' => $hash,
@@ -63,11 +63,26 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
           'absolute' => TRUE,
         ])->toString(),
     ];
+  }
 
-    $message['subject'] = $this->t('Access your subscriptions page on @site_url', ['@site_url' => $site_url]);
-    $message['body'] = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_url.<br>
-Click the following link to access your subscriptions page: @subscriptions_page_link<br>
-If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.", $variables);
+  /**
+   * {@inheritdoc}
+   */
+  public function prepare(array $params): array {
+    $variables = $this->getVariables($params);
+
+    $message['subject'] = $this->t('Access your subscriptions page on @site_url',
+    [
+      '@site_url' => $variables['site_url'],
+    ]);
+
+    $message['body'] = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_link. \r\n
+Click the following link to access your subscriptions page: @subscriptions_page_link \r\n
+If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
+    [
+      '@site_link' => $variables['site_link'],
+      '@subscriptions_page_link' => $variables['subscriptions_page_link'],
+    ]);
 
     return $message;
   }

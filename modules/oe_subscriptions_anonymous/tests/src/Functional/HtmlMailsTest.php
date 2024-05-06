@@ -10,7 +10,7 @@ use Symfony\Component\DomCrawler\Crawler;
 /**
  * Tests the HTML in mails.
  */
-class HtmlMailsTest extends SymfonyMailerTestBase {
+class HtmlMailsTest extends HtmlMailsTestBase {
 
   /**
    * Tests the mails.
@@ -20,14 +20,22 @@ class HtmlMailsTest extends SymfonyMailerTestBase {
    *  - user_subscriptions_access.
    */
   public function testMails(): void {
-    $article = $this->drupalCreateNode([
-      'type' => 'article',
-      'status' => 1,
-    ]);
+    // Plugins with override annotation have to be enabled to use policies
+    // declared body and subject with HTML.
+    $this->drupalLogin($this->adminUser);
+    $assert_session = $this->assertSession();
+    $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
+    $assert_session->pageTextContains('Are you sure you want to do Enable for override Anonymous subscriptions?');
+    $assert_session->pageTextContains('Related Mailer Policy will be reset to default values.');
+    $this->submitForm([], 'Enable');
+    $assert_session->pageTextContains('Completed Enable for override Anonymous subscriptions');
+    $this->drupalLogout();
 
     // Test confirm subscription HTML mail content.
     // Asserts the mail content testing confirmation link.
-    $this->drupalGet($article->toUrl());
+    $article_label = $this->article->label();
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+    $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
       'Your e-mail' => 'test@test.com',
@@ -37,11 +45,11 @@ class HtmlMailsTest extends SymfonyMailerTestBase {
 
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
-    $this->assertSubject("Confirm your subscription to {$article->label()}");
+    $this->assertSubject("Confirm your subscription to $article_label");
     $this->assertConfirmMailHtml(
       [
-        'text' => $article->label(),
-        'url' => $article->toUrl()->setAbsolute()->toString(),
+        'text' => $article_label,
+        'url' => $article_url,
       ],
       [
         'text' => 'Confirm my subscription',
@@ -54,7 +62,7 @@ class HtmlMailsTest extends SymfonyMailerTestBase {
     );
 
     // Asserts the mail content testing cancelation link.
-    $this->drupalGet($article->toUrl());
+    $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
       'Your e-mail' => 'test@test.com',
@@ -64,11 +72,11 @@ class HtmlMailsTest extends SymfonyMailerTestBase {
 
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
-    $this->assertSubject("Confirm your subscription to {$article->label()}");
+    $this->assertSubject("Confirm your subscription to $article_label");
     $this->assertConfirmMailHtml(
       [
-        'text' => $article->label(),
-        'url' => $article->toUrl()->setAbsolute()->toString(),
+        'text' => $article_label,
+        'url' => $article_url,
       ],
       [
         'text' => 'Confirm my subscription',

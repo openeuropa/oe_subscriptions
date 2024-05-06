@@ -60,18 +60,10 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
       $params[$param] = $email->getParam($param);
     }
 
-    $message = $mail_template->prepare($params);
+    $email->setVariables($mail_template->getVariables($params));
 
-    // Set variables based on translation arguments.
-    $arguments = $message['subject']->getArguments() + $message['body']->getArguments();
-    foreach ($arguments as $key => $value) {
-      $email->setVariable(preg_replace('/(@|%|:)/', '', $key), $value);
-    }
+    $email->setTo(new Address($params['email']));
 
-    $email
-      ->setTo(new Address($params['email']))
-      ->setSubject($message['subject'])
-      ->setBody($message['body']);
   }
 
 }

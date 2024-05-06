@@ -10,7 +10,7 @@ configuration:
   email_body:
     content:
       value: |-
-        You are receiving this e-mail because you requested access to your subscriptions page on {{ site_url }}.<br>
+        You are receiving this e-mail because you requested access to your subscriptions page on {{ site_link }}.<br>
         Click the following link to access your subscriptions page: {{ subscriptions_page_link }}<br>
         If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.
       format: email_html

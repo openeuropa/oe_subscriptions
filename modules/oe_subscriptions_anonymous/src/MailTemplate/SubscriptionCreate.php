@@ -39,7 +39,7 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function getParameters(): array {
     return [
@@ -52,15 +52,13 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
   /**
    * {@inheritdoc}
    */
-  public function prepare(array $params): array {
+  public function getVariables(array $params): array {
     [
       'email' => $mail,
       'flag' => $flag,
       'entity_id' => $entity_id,
     ] = $params;
-    $message = [];
 
-    /** @var \Drupal\flag\FlagInterface $flag */
     $entity = $this->flagService->getFlaggableById($flag, $entity_id);
 
     // Generate scope for subscribe.
@@ -68,8 +66,8 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       $flag->id(),
       $entity_id,
     ]);
-
     $hash = $this->tokenManager->get($mail, $scope);
+
     // Generate mail links confirm and cancel.
     $route_parameters = [
       'flag' => $flag->id(),
@@ -85,21 +83,35 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
       'absolute' => TRUE,
     ])->toString();
 
-    // Links for subscription management.
-    $variables = [
-      '@entity_link' => $entity->toLink()->toString(),
-      '@confirm_link' => $confirm_link,
-      '@cancel_link' => $cancel_link,
+    return [
+      'entity_label' => $entity->label(),
+      'entity_link' => $entity->toLink()->toString(),
+      'confirm_link' => $confirm_link,
+      'cancel_link' => $cancel_link,
     ];
+  }
 
-    $message['subject'] = $this->t('Confirm your subscription to @entity_label', [
-      '@entity_label' => $entity->label(),
+  /**
+   * {@inheritdoc}
+   */
+  public function prepare(array $params): array {
+    $variables = $this->getVariables($params);
+
+    $message['subject'] = $this->t('Confirm your subscription to @entity_label',
+    [
+      '@entity_label' => $variables['entity_label'],
     ]);
-    $message['body'] = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link!<br>
-Click the following link to confirm your subscription: @confirm_link<br>
-If you no longer wish to subscribe, click on the link bellow: @cancel_link<br>
+
+    $message['body'] = $this->t("Thank you for showing interest in keeping up with the updates for @entity_link! \r\n
+Click the following link to confirm your subscription: @confirm_link \r\n
+If you no longer wish to subscribe, click on the link bellow: @cancel_link \r\n
 If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it.
-You will not be subscribed if you don't click on the confirmation link above.", $variables);
+You will not be subscribed if you don't click on the confirmation link above.",
+    [
+      '@entity_link' => $variables['entity_link'],
+      '@confirm_link' => $variables['confirm_link'],
+      '@cancel_link' => $variables['cancel_link'],
+    ]);
 
     return $message;
   }

@@ -10,9 +10,9 @@ use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 
 /**
- * Tests the HTML in mails.
+ * Base class for integrations of HTML mails.
  */
-abstract class SymfonyMailerTestBase extends BrowserTestBase {
+abstract class HtmlMailsTestBase extends BrowserTestBase {
 
   use FlagCreateTrait;
   use StatusMessageTrait;
@@ -33,6 +33,20 @@ abstract class SymfonyMailerTestBase extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
+   * A user with permission to manage mailer settings.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $adminUser;
+
+  /**
+   * Node to subscribe.
+   *
+   * @var \Drupal\node\NodeInterface
+   */
+  protected $article;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -42,11 +56,21 @@ abstract class SymfonyMailerTestBase extends BrowserTestBase {
       'type' => 'article',
       'name' => 'Article',
     ]);
+
     $this->createFlagFromArray([
       'id' => 'subscribe_article',
       'flag_short' => 'Subscribe',
       'entity_type' => 'node',
       'bundles' => ['article'],
+    ]);
+
+    $this->adminUser = $this->drupalCreateUser([
+      'administer mailer',
+      'use text format email_html',
+    ]);
+    $this->article = $this->drupalCreateNode([
+      'type' => 'article',
+      'status' => 1,
     ]);
   }
 
