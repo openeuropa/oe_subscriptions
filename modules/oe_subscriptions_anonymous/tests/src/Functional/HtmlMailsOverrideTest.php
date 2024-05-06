@@ -22,7 +22,7 @@ class HtmlMailsOverrideTest extends HtmlMailsTestBase {
     $this->drupalGet('admin/config/system/mailer/override');
     $this->checkOverrideInfo($expected);
 
-    // Check that Anonymous subscriptions override can be enabled..
+    // Check that Anonymous subscriptions override can be enabled.
     $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
     $assert_session->pageTextContains('Are you sure you want to do Enable for override Anonymous subscriptions?');
     $assert_session->pageTextContains('Related Mailer Policy will be reset to default values.');
@@ -34,12 +34,27 @@ class HtmlMailsOverrideTest extends HtmlMailsTestBase {
     $assert_session->pageTextContains('Completed Enable for override Anonymous subscriptions');
     $this->checkOverrideInfo($expected);
 
-    // Check subscription confirm mail policies.
+    // Test subscription confirm mail policies.
     $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.subscription_create');
-    $this->submitForm([
-      'edit-config-email-body-content-value' => 'Anonymous subscriptions confirm subscription body override.',
-      'edit-config-email-subject-value' => 'Anonymous subscriptions confirm subscription subject override.',
-    ], 'Save');
+    $body_field = $assert_session->fieldExists('edit-config-email-body-content-value');
+    $subject_field = $assert_session->fieldExists('edit-config-email-subject-value');
+    // Check default content with available variables.
+    $this->assertEquals(
+      'Confirm your subscription to {{ entity_label }}',
+      $subject_field->getValue()
+    );
+    $this->assertEquals(
+      "Thank you for showing interest in keeping up with the updates for {{ entity_link }}!<br>
+Click the following link to confirm your subscription: {{ confirm_link }}<br>
+If you no longer wish to subscribe, click on the link bellow: {{ cancel_link }}<br>
+If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it.
+You will not be subscribed if you don't click on the confirmation link above.",
+      $body_field->getValue()
+    );
+    // Check modification of subject and body with new values.
+    $subject_field->setValue('Anonymous subscriptions confirm subscription subject override.');
+    $body_field->setValue('Anonymous subscriptions confirm subscription body override.');
+    $assert_session->buttonExists('Save')->press();
     $this->drupalLogout();
 
     $this->drupalGet($this->article->toUrl());
@@ -55,13 +70,24 @@ class HtmlMailsOverrideTest extends HtmlMailsTestBase {
     $this->assertSubject('Anonymous subscriptions confirm subscription subject override.');
     $this->assertBodyContains('Anonymous subscriptions confirm subscription body override.');
 
-    // Check subscriptions page mail policies.
+    // Test subscriptions page mail policies.
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.user_subscriptions_access');
-    $this->submitForm([
-      'edit-config-email-body-content-value' => 'Anonymous subscriptions access subscriptions page body override.',
-      'edit-config-email-subject-value' => 'Anonymous subscriptions access subscriptions page subject override.',
-    ], 'Save');
+    // Check default content with available variables.
+    $this->assertEquals(
+      'Access your subscriptions page on {{ site_url }}',
+      $subject_field->getValue()
+    );
+    $this->assertEquals(
+      "You are receiving this e-mail because you requested access to your subscriptions page on {{ site_link }}.<br>
+Click the following link to access your subscriptions page: {{ subscriptions_page_link }}<br>
+If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
+      $body_field->getValue()
+    );
+    // Check modification of subject and body with new values.
+    $subject_field->setValue('Anonymous subscriptions access subscriptions page subject override.');
+    $body_field->setValue('Anonymous subscriptions access subscriptions page body override.');
+    $assert_session->buttonExists('Save')->press();
     $this->drupalLogout();
 
     $this->drupalGet('user/subscriptions');

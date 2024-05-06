@@ -20,8 +20,8 @@ class HtmlMailsTest extends HtmlMailsTestBase {
    *  - user_subscriptions_access.
    */
   public function testMails(): void {
-    // Plugins with override annotation have to be enabled to use policies
-    // declared body and subject with HTML.
+    // Plugins with override annotation have to be enabled to use policies such
+    // as body and subject.
     $this->drupalLogin($this->adminUser);
     $assert_session = $this->assertSession();
     $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
