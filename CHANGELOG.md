@@ -1,8 +1,16 @@
 # Change Log
 
+## [1.0.0-alpha2](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha2) (2024-05-07)
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha1...1.0.0-alpha2)
+
+**Merged pull requests:**
+
+- OEL-2941: Check if flag is syncing before duplicating email flags [\#32](https://github.com/openeuropa/oe_subscriptions/pull/32) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
+
 ## [1.0.0-alpha1](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha1) (2024-03-12)
 **Merged pull requests:**
 
+- Prepare changelog for release 1.0.0-alpha1. [\#30](https://github.com/openeuropa/oe_subscriptions/pull/30) ([brummbar](https://github.com/brummbar))
 - OEL-2845: Move patches to static files. [\#29](https://github.com/openeuropa/oe_subscriptions/pull/29) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 - OEL-0: Move submodule dependencies to dev. [\#28](https://github.com/openeuropa/oe_subscriptions/pull/28) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 - OEL-2806: Use the same warning message for user subscriptions request token email. [\#27](https://github.com/openeuropa/oe_subscriptions/pull/27) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
