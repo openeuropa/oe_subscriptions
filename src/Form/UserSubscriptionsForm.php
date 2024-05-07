@@ -42,7 +42,7 @@ class UserSubscriptionsForm extends FormBase {
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected FlagServiceInterface $flagService,
-    protected AccountInterface $currentUser
+    protected AccountInterface $currentUser,
   ) {}
 
   /**

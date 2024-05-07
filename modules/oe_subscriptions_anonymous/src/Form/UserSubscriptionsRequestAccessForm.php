@@ -29,7 +29,7 @@ class UserSubscriptionsRequestAccessForm extends FormBase {
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected LanguageManagerInterface $languageManager,
-    protected RendererInterface $renderer
+    protected RendererInterface $renderer,
   ) {}
 
   /**

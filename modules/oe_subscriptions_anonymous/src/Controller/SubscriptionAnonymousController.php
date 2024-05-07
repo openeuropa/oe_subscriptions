@@ -42,7 +42,7 @@ class SubscriptionAnonymousController extends ControllerBase {
     protected TokenManagerInterface $tokenManager,
     protected AnonymousSubscriptionManager $subscriptionManager,
     FormBuilderInterface $formBuilder,
-    EntityTypeManagerInterface $entityTypeManager
+    EntityTypeManagerInterface $entityTypeManager,
   ) {
     // These two properties are declared in ControllerBase class, so we cannot
     // use constructor property promotion.
