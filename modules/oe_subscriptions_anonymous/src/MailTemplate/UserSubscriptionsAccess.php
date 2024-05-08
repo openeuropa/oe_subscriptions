@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\oe_subscriptions_anonymous\MailTemplate;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
@@ -38,7 +37,7 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   /**
    * {@inheritdoc}
    */
-  public static function getParameters(): array {
+  public function getParameters(): array {
     return [
       'email',
     ];
@@ -49,19 +48,16 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
    */
   public function getVariables(array $params): array {
     $mail = $params['email'];
-    $hash = $this->tokenManager->get($mail, 'user_subscriptions_page');
     $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
+    $subscriptions_page_url = Url::fromRoute('oe_subscriptions_anonymous.user_subscriptions.view', [
+      'email' => $params['email'],
+      'token' => $this->tokenManager->get($mail, 'user_subscriptions_page'),
+    ])->setAbsolute()->toString();
 
     return [
-      'site_url' => $site_url,
-      'site_link' => Link::createFromRoute($site_url, '<front>', [], ['absolute' => TRUE])->toString(),
-      'subscriptions_page_link' => Link::createFromRoute(
-        $this->t('Access my subscriptions page'), 'oe_subscriptions_anonymous.user_subscriptions.view', [
-          'email' => $mail,
-          'token' => $hash,
-        ], [
-          'absolute' => TRUE,
-        ])->toString(),
+      // Mimic the [site:url-brief] token.
+      'site_url_brief' => preg_replace(['!^https?://!', '!/$!'], '', $site_url),
+      'subscriptions_page_url' => $subscriptions_page_url,
     ];
   }
 
@@ -71,17 +67,16 @@ class UserSubscriptionsAccess implements ContainerInjectionInterface, MailTempla
   public function prepare(array $params): array {
     $variables = $this->getVariables($params);
 
-    $message['subject'] = $this->t('Access your subscriptions page on @site_url',
-    [
-      '@site_url' => $variables['site_url'],
+    $message['subject'] = $this->t('Access your subscriptions page on @site_url_brief', [
+      '@site_url_brief' => $variables['site_url_brief'],
     ]);
 
-    $message['body'] = $this->t("You are receiving this e-mail because you requested access to your subscriptions page on @site_link. \r\n
-Click the following link to access your subscriptions page: @subscriptions_page_link \r\n
-If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
+    $message['body'] = $this->t('You are receiving this e-mail because you requested access to your subscriptions page on @site_url_brief.<br>
+Click the following link to access your subscriptions page: <a href=":subscriptions_page_url">Access my subscriptions page</a>.<br>
+If you didn\'t request access to your subscriptions page or you\'re not sure why you received this e-mail, you can delete it.',
     [
-      '@site_link' => $variables['site_link'],
-      '@subscriptions_page_link' => $variables['subscriptions_page_link'],
+      '@site_url_brief' => $variables['site_url_brief'],
+      ':subscriptions_page_url' => $variables['subscriptions_page_url'],
     ]);
 
     return $message;

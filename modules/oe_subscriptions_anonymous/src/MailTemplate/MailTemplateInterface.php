@@ -15,7 +15,7 @@ interface MailTemplateInterface {
    * @return array
    *   The parameter keys.
    */
-  public static function getParameters(): array;
+  public function getParameters(): array;
 
   /**
    * Gets processed variables used the mail template.

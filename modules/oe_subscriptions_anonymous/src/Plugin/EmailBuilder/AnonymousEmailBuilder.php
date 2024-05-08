@@ -9,6 +9,7 @@ use Drupal\symfony_mailer\Address;
 use Drupal\symfony_mailer\EmailFactoryInterface;
 use Drupal\symfony_mailer\EmailInterface;
 use Drupal\symfony_mailer\Processor\EmailBuilderBase;
+use Drupal\symfony_mailer\Processor\TokenProcessorTrait;
 
 /**
  * Defines the Email Builder plug-in for oe_subscriptions_anonymous module.
@@ -25,6 +26,8 @@ use Drupal\symfony_mailer\Processor\EmailBuilderBase;
  */
 class AnonymousEmailBuilder extends EmailBuilderBase {
 
+  use TokenProcessorTrait;
+
   /**
    * Creates the parameters for a newly created email.
    *
@@ -36,7 +39,7 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
   public function createParams(EmailInterface $email, array $params = []): void {
     $mail_template = MailTemplateHelper::getMailTemplate($email->getSubType());
 
-    foreach ($mail_template::getParameters() as $param) {
+    foreach ($mail_template->getParameters() as $param) {
       $email->setParam($param, $params[$param]);
     }
   }
