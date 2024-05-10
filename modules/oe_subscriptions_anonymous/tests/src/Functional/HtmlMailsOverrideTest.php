@@ -22,16 +22,12 @@ class HtmlMailsOverrideTest extends HtmlMailsTestBase {
     $this->drupalGet('admin/config/system/mailer/override');
     $this->checkOverrideInfo($expected);
 
-    // Check that Anonymous subscriptions override can be enabled.
-    $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
-    $assert_session->pageTextContains('Are you sure you want to do Enable for override Anonymous subscriptions?');
-    $assert_session->pageTextContains('Related Mailer Policy will be reset to default values.');
-    $this->submitForm([], 'Enable');
+    \Drupal::service('symfony_mailer.override_manager')->action('oe_subscriptions_anonymous', 'enable');
 
     // Check the override info page again.
+    $this->drupalGet('admin/config/system/mailer/override');
     $expected[0][1] = 'Enabled';
     $expected[0][3] = 'Disable';
-    $assert_session->pageTextContains('Completed Enable for override Anonymous subscriptions');
     $this->checkOverrideInfo($expected);
 
     // Test subscription confirm mail policies.

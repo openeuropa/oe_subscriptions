@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\user\Entity\Role;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -13,24 +15,120 @@ use Symfony\Component\DomCrawler\Crawler;
 class HtmlMailsTest extends HtmlMailsTestBase {
 
   /**
-   * Tests the mails.
-   *
-   * Mail keys:
-   *  - subscription_create.
-   *  - user_subscriptions_access.
+   * Tests that mails are sent with HTML when a compatible mailer is installed.
    */
-  public function testMails(): void {
-    // Plugins with override annotation have to be enabled to use policies such
-    // as body and subject.
-    $this->drupalLogin($this->adminUser);
+  public function testHtmlMails(): void {
+    $this->doTestDefaultHtmlEmailContents();
+  }
+
+  /**
+   * Tests variables and overrides for Symfony Mailer module.
+   */
+  public function testSymfonyMailerOverrides(): void {
+    // Enable the overrides for this module.
+    \Drupal::service('symfony_mailer.override_manager')->action('oe_subscriptions_anonymous', 'enable');
+
+    // The overrides output by default the same exact e-mail content.
+    $this->doTestDefaultHtmlEmailContents();
+
+    // Override the mail templates to test the exposed variables.
+    $admin_user = $this->drupalCreateUser([
+      'administer mailer',
+      'use text format email_html',
+    ]);
+    $this->drupalLogin($admin_user);
+    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.subscription_create');
     $assert_session = $this->assertSession();
-    $this->drupalGet('admin/config/system/mailer/override/oe_subscriptions_anonymous/enable');
-    $assert_session->pageTextContains('Are you sure you want to do Enable for override Anonymous subscriptions?');
-    $assert_session->pageTextContains('Related Mailer Policy will be reset to default values.');
-    $this->submitForm([], 'Enable');
-    $assert_session->pageTextContains('Completed Enable for override Anonymous subscriptions');
+    $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for create');
+    // Set the body to output all the available variables.
+    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
+<span>{{ entity_label }}</span>
+<span>{{ entity_url }}</span>
+<span>{{ confirm_url }}</span>
+<span>{{ cancel_url }}</span>
+BODY);
+    $assert_session->buttonExists('Save')->press();
     $this->drupalLogout();
 
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+    $this->drupalGet($article_url);
+    $this->clickLink('Subscribe');
+    $this->submitForm([
+      'Your e-mail' => 'anothertest@test.com',
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
+    $this->assertSubscriptionCreateMailStatusMessage();
+
+    $mail = $this->readMail();
+    $this->assertTo('anothertest@test.com');
+    $this->assertSubject('Overridden subject for create');
+    $crawler = new Crawler($mail->getHtmlBody());
+    // The HTML should consist of 4 <span> tags.
+    $spans = $crawler->filter('.email-sub-type-subscription-create div.clearfix *');
+    $this->assertCount(4, $spans);
+    $this->assertEquals(['span'], array_unique(array_map(static fn ($tag) => $tag->nodeName, iterator_to_array($spans->getIterator()))));
+    $this->assertEquals($this->article->label(), $spans->eq(0)->html());
+    $this->assertEquals($article_url, $spans->eq(1)->html());
+
+    // We need to test that the variables for the confirm and cancel URLs work
+    // correctly. We can do this only one at the time, as clicking on one
+    // invalidates the other.
+    $this->drupalGet($spans->eq(2)->html());
+    $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
+
+    $this->drupalGet($article_url);
+    $this->clickLink('Subscribe');
+    $this->submitForm([
+      'Your e-mail' => 'secondtest@test.com',
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
+    $this->assertSubscriptionCreateMailStatusMessage();
+
+    $mail = $this->readMail();
+    $this->assertTo('secondtest@test.com');
+    $crawler = new Crawler($mail->getHtmlBody());
+    $spans = $crawler->filter('.email-sub-type-subscription-create div.clearfix *');
+    $this->drupalGet($spans->eq(3)->html());
+    $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
+
+    // Override the templates for the subscriptions access mail.
+    $this->drupalLogin($admin_user);
+    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.user_subscriptions_access');
+    $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for access');
+    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
+<span>{{ subscriptions_page_url }}</span>
+BODY);
+    $assert_session->buttonExists('Save')->press();
+    $this->drupalLogout();
+
+    // Test the e-mail content.
+    $this->drupalGet('user/subscriptions');
+    $this->submitForm(['Your e-mail' => 'anothertest@test.com'], 'Submit');
+    $this->assertSubscriptionsPageMailStatusMessage();
+    $mail = $this->readMail();
+    $this->assertTo('anothertest@test.com');
+    $this->assertSubject('Overridden subject for access');
+    $crawler = new Crawler($mail->getHtmlBody());
+    // The HTML should consist of 1 <span> tag.
+    $spans = $crawler->filter('.email-sub-type-user-subscriptions-access div.clearfix *');
+    $this->assertCount(1, $spans);
+    $this->assertEquals('span', $spans->eq(0)->nodeName());
+
+    Role::load('anonymous_subscriber')
+      ->grantPermission('access content')
+      ->save();
+
+    $this->drupalGet($spans->eq(0)->html());
+    $assert_session->elementExists('xpath', $assert_session->buildXPathQuery('//a[@href=:href][.=:text]', [
+      ':href' => $this->article->toUrl()->toString(),
+      ':text' => $this->article->label(),
+    ]));
+  }
+
+  /**
+   * Tests the content of the HTML e-mails shipped as default.
+   */
+  protected function doTestDefaultHtmlEmailContents(): void {
     // Test confirm subscription HTML mail content.
     // Asserts the mail content testing confirmation link.
     $article_label = $this->article->label();
@@ -46,22 +144,9 @@ class HtmlMailsTest extends HtmlMailsTestBase {
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
-    $this->assertConfirmMailHtml(
-      [
-        'text' => $article_label,
-        'url' => $article_url,
-      ],
-      [
-        'text' => 'Confirm my subscription',
-      ],
-      [
-        'text' => 'Cancel the subscription request',
-      ],
-      $mail->getHtmlBody(),
-      'confirmed'
-    );
+    $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'confirmed');
 
-    // Asserts the mail content testing cancelation link.
+    // Asserts the mail content testing cancellation link.
     $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
@@ -73,20 +158,7 @@ class HtmlMailsTest extends HtmlMailsTestBase {
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
-    $this->assertConfirmMailHtml(
-      [
-        'text' => $article_label,
-        'url' => $article_url,
-      ],
-      [
-        'text' => 'Confirm my subscription',
-      ],
-      [
-        'text' => 'Cancel the subscription request',
-      ],
-      $mail->getHtmlBody(),
-      'canceled'
-    );
+    $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'canceled');
 
     // Test request access HTML mail content.
     // Asserts the mail content testing subscription link.
@@ -94,37 +166,23 @@ class HtmlMailsTest extends HtmlMailsTestBase {
     $this->submitForm(['Your e-mail' => 'test@test.com'], 'Submit');
     $this->assertSubscriptionsPageMailStatusMessage();
 
-    $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
-    $this->assertSubject("Access your subscriptions page on $site_url");
-    $this->assertSubscriptionsMailHtml(
-      [
-        'text' => $site_url,
-        'url' => $site_url,
-      ],
-      [
-        'text' => 'Access my subscriptions page',
-      ],
-      $mail->getHtmlBody(),
-    );
+    $this->assertSubject('Access your subscriptions page on ' . $this->getSiteUrlBrief());
+    $this->assertSubscriptionsMailHtml($mail->getHtmlBody());
   }
 
   /**
    * Asserts HTML in body for Confirm subscription mail.
    *
-   * @param array $entity_link
-   *   The link to the entity.
-   * @param array $confirm_link
-   *   The link to confirm the subscription.
-   * @param array $cancel_link
-   *   The link to cancel the subscription.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity the user is subscribing to.
    * @param string $mail_body
    *   The mail body.
    * @param string $operation
    *   The operation test to do.
    */
-  protected function assertConfirmMailHtml(array $entity_link, array $confirm_link, array $cancel_link, string $mail_body, string $operation): void {
+  protected function assertConfirmMailHtml(EntityInterface $entity, string $mail_body, string $operation): void {
     $crawler = new Crawler($mail_body);
     $wrapper = $crawler->filter('.email-sub-type-subscription-create div.clearfix');
     $assert_session = $this->assertSession();
@@ -134,24 +192,35 @@ class HtmlMailsTest extends HtmlMailsTestBase {
     ];
 
     // Check that the links are in the text.
-    $urls = $this->assertLinks([$entity_link, $confirm_link, $cancel_link], $wrapper);
+    $urls = $this->assertLinks([
+      [
+        'text' => $this->article->label(),
+        'url' => $this->article->toUrl()->setAbsolute()->toString(),
+      ],
+      [
+        'text' => 'Confirm my subscription',
+      ],
+      [
+        'text' => 'Cancel the subscription request',
+      ],
+    ], $wrapper);
 
-    // Asserts operation link confirmation or cancelation.
+    // Asserts operation link confirmation or cancellation.
     $this->drupalGet($urls[$urls_index[$operation]]);
     $assert_session->statusMessageContains("Your subscription request has been {$operation}.", 'status');
 
     // Check break lines.
     $br = $wrapper->filter('br');
     $this->assertCount(3, $br);
-    $this->assertStringContainsString($entity_link['text'] . '</a>!' . $br->html(), $mail_body);
-    $this->assertStringContainsString($confirm_link['text'] . '</a>' . $br->html(), $mail_body);
-    $this->assertStringContainsString($cancel_link['text'] . '</a>' . $br->html(), $mail_body);
+    $this->assertStringContainsString($entity->label() . '</a>!' . $br->html(), $mail_body);
+    $this->assertStringContainsString('Confirm my subscription</a>' . $br->html(), $mail_body);
+    $this->assertStringContainsString('Cancel the subscription request</a>' . $br->html(), $mail_body);
 
     // Check the text.
     $this->assertEquals(
-      "Thank you for showing interest in keeping up with the updates for {$entity_link['text']}! " .
-      "Click the following link to confirm your subscription: {$confirm_link['text']} " .
-      "If you no longer wish to subscribe, click on the link bellow: {$cancel_link['text']} " .
+      "Thank you for showing interest in keeping up with the updates for {$entity->label()}! " .
+      "Click the following link to confirm your subscription: Confirm my subscription. " .
+      "If you no longer wish to subscribe, click on the link below: Cancel the subscription request. " .
       "If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. " .
       "You will not be subscribed if you don't click on the confirmation link above.",
       $wrapper->text());
@@ -160,36 +229,32 @@ class HtmlMailsTest extends HtmlMailsTestBase {
   /**
    * Asserts HTML in body for Subscriptions page mail.
    *
-   * @param array $site_link
-   *   The link to the site.
-   * @param array $subscriptions_link
-   *   The link to the subscriptions page.
    * @param string $mail_body
    *   The mail body.
    */
-  protected function assertSubscriptionsMailHtml(array $site_link, array $subscriptions_link, string $mail_body): void {
+  protected function assertSubscriptionsMailHtml(string $mail_body): void {
+    // Check that the links are in the text.
     $crawler = new Crawler($mail_body);
     $wrapper = $crawler->filter('.email-sub-type-user-subscriptions-access div.clearfix');
-    $assert_session = $this->assertSession();
-
-    // Check that the links are in the text.
-    [$subscriptions_url] = $this->assertLinks([$site_link, $subscriptions_link], $wrapper);
+    $links = $wrapper->filterXPath("//a");
+    $this->assertCount(1, $links);
+    $this->assertEquals('Access my subscriptions page', $links->eq(0)->text());
 
     // Assert subscription link.
-    $this->drupalGet($subscriptions_url);
+    $this->drupalGet($links->eq(0)->attr('href'));
+    $assert_session = $this->assertSession();
     $assert_session->titleEquals('Manage your subscriptions | Drupal');
     $assert_session->elementExists('css', 'table.user-subscriptions');
 
     // Check break lines.
     $br = $wrapper->filter('br');
     $this->assertCount(2, $br);
-    $this->assertStringContainsString($site_link['text'] . '</a>.' . $br->html(), $mail_body);
-    $this->assertStringContainsString($subscriptions_link['text'] . '</a>' . $br->html(), $mail_body);
+    $this->assertStringContainsString('Access my subscriptions page</a>.' . $br->html(), $mail_body);
 
     // Check the text.
     $this->assertEquals(
-      "You are receiving this e-mail because you requested access to your subscriptions page on {$site_link['text']}. " .
-      "Click the following link to access your subscriptions page: {$subscriptions_link['text']} " .
+      "You are receiving this e-mail because you requested access to your subscriptions page on {$this->getSiteUrlBrief()}. " .
+      "Click the following link to access your subscriptions page: Access my subscriptions page. " .
       "If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
       $wrapper->text());
   }
@@ -219,6 +284,18 @@ class HtmlMailsTest extends HtmlMailsTestBase {
     }
 
     return $text_only_urls;
+  }
+
+  /**
+   * Returns the site URL without protocol, like the [site:url-brief] token.
+   *
+   * @return string
+   *   The brief site URL.
+   */
+  protected function getSiteUrlBrief(): string {
+    $site_url = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
+
+    return preg_replace(['!^https?://!', '!/$!'], '', $site_url);
   }
 
 }

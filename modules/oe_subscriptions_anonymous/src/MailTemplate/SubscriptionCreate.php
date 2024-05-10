@@ -104,7 +104,7 @@ class SubscriptionCreate implements ContainerInjectionInterface, MailTemplateInt
 
     $message['body'] = $this->t('Thank you for showing interest in keeping up with the updates for <a href=":entity_url">@entity_label</a>!<br>
 Click the following link to confirm your subscription: <a href=":confirm_url">Confirm my subscription</a>.<br>
-If you no longer wish to subscribe, click on the link bellow: <a href=":cancel_url">Cancel my subscription</a>.<br>
+If you no longer wish to subscribe, click on the link below: <a href=":cancel_url">Cancel the subscription request</a>.<br>
 If you didn\'t subscribe to these updates or you\'re not sure why you received this e-mail, you can delete it.
 You will not be subscribed if you don\'t click on the confirmation link above.',
     [
