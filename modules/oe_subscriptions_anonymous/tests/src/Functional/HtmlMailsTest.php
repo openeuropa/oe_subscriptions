@@ -6,13 +6,66 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\symfony_mailer_test\MailerTestTrait;
+use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 use Drupal\user\Entity\Role;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Tests the HTML in mails.
  */
-class HtmlMailsTest extends HtmlMailsTestBase {
+class HtmlMailsTest extends BrowserTestBase {
+
+  use FlagCreateTrait;
+  use StatusMessageTrait;
+  use MailerTestTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected static $modules = [
+    'node',
+    'oe_subscriptions_anonymous',
+    'symfony_mailer_test',
+  ];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * Node to subscribe.
+   *
+   * @var \Drupal\node\NodeInterface
+   */
+  protected $article;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
+
+    $this->drupalCreateContentType([
+      'type' => 'article',
+      'name' => 'Article',
+    ]);
+
+    $this->createFlagFromArray([
+      'id' => 'subscribe_article',
+      'flag_short' => 'Subscribe',
+      'entity_type' => 'node',
+      'bundles' => ['article'],
+    ]);
+
+    $this->article = $this->drupalCreateNode([
+      'type' => 'article',
+      'status' => 1,
+    ]);
+  }
 
   /**
    * Tests that mails are sent with HTML when a compatible mailer is installed.
@@ -194,8 +247,8 @@ BODY);
     // Check that the links are in the text.
     $urls = $this->assertLinks([
       [
-        'text' => $this->article->label(),
-        'url' => $this->article->toUrl()->setAbsolute()->toString(),
+        'text' => $entity->label(),
+        'url' => $entity->toUrl()->setAbsolute()->toString(),
       ],
       [
         'text' => 'Confirm my subscription',
