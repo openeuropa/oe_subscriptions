@@ -13,7 +13,7 @@ use Drupal\oe_subscriptions\Form\SettingsForm;
 /**
  * Implements hook_theme().
  */
-function oe_subscriptions_theme($existing, $type, $theme, $path) {
+function oe_subscriptions_theme(array $existing, string $type, string $theme, string $path): array {
   return [
     'oe_subscriptions_no_subscriptions' => [
       'variables' => [],
@@ -36,7 +36,7 @@ function oe_subscriptions_theme($existing, $type, $theme, $path) {
  *   An associative array containing:
  *   - elements: An associative array containing the content of the page.
  */
-function template_preprocess_oe_subscriptions_user_subscriptions_page(&$variables): void {
+function template_preprocess_oe_subscriptions_user_subscriptions_page(array &$variables): void {
   $subscriptions_config = \Drupal::configFactory()->get(SettingsForm::CONFIG_NAME);
   $introduction_text = $subscriptions_config->get('introduction_text');
 
@@ -58,7 +58,7 @@ function template_preprocess_oe_subscriptions_user_subscriptions_page(&$variable
  * This is added in a hook so the standard form wrappers will be added normally,
  * and our wrapper only appended later on.
  */
-function oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+function oe_subscriptions_form_oe_subscriptions_user_subscriptions_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
   $form['#theme_wrappers']['oe_subscriptions_user_subscriptions_page'] = [
     '#attributes' => [],
   ];

@@ -10,13 +10,33 @@ namespace Drupal\oe_subscriptions_anonymous\MailTemplate;
 interface MailTemplateInterface {
 
   /**
-   * Prepares the mail template.
+   * Gets parameter keys needed for the mail template.
    *
-   * @param array $message
-   *   Message parts.
+   * @return array
+   *   The parameter keys.
+   */
+  public function getParameters(): array;
+
+  /**
+   * Gets processed variables used the mail template.
+   *
    * @param array $params
    *   Mail parameters.
+   *
+   * @return array
+   *   The processed associative array.
    */
-  public function prepare(array &$message, array $params): void;
+  public function getVariables(array $params): array;
+
+  /**
+   * Prepares the mail template.
+   *
+   * @param array $params
+   *   Mail parameters.
+   *
+   * @return array
+   *   The processed subject and body.
+   */
+  public function prepare(array $params): array;
 
 }

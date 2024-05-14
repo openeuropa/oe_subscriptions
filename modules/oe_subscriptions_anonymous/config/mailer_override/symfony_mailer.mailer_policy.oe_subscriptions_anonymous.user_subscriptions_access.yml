@@ -1,0 +1,16 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - oe_subscriptions_anonymous
+id: oe_subscriptions_anonymous.user_subscriptions_access
+configuration:
+  email_subject:
+    value: 'Access your subscriptions page on [site:url-brief]'
+  email_body:
+    content:
+      value: |-
+        You are receiving this e-mail because you requested access to your subscriptions page on [site:url-brief].<br>
+        Click the following link to access your subscriptions page: <a href="{{ subscriptions_page_url }}">Access my subscriptions page</a>.<br>
+        If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.
+      format: email_html
