@@ -1,10 +1,19 @@
 # Change Log
 
+## [1.0.0-alpha3](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha3) (2024-07-17)
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha2...1.0.0-alpha3)
+
+**Merged pull requests:**
+
+- OEL-3115: Update to Drupal 10.3 [\#35](https://github.com/openeuropa/oe_subscriptions/pull/35) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
+- OEL-2853: Add support for HTML emails [\#31](https://github.com/openeuropa/oe_subscriptions/pull/31) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
+
 ## [1.0.0-alpha2](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha2) (2024-05-07)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha1...1.0.0-alpha2)
 
 **Merged pull requests:**
 
+- Update changelog for release 1.0.0-alpha2. [\#33](https://github.com/openeuropa/oe_subscriptions/pull/33) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 - OEL-2941: Check if flag is syncing before duplicating email flags [\#32](https://github.com/openeuropa/oe_subscriptions/pull/32) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 
 ## [1.0.0-alpha1](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha1) (2024-03-12)
