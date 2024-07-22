@@ -46,7 +46,7 @@ function _oe_subscriptions_anonymous_flush_extra_field(EntityInterface $entity):
 /**
  * Implements hook_mail().
  */
-function oe_subscriptions_anonymous_mail(string $key, array &$message, array $params): void {
+function _oe_subscriptions_anonymous_mail(string $key, array &$message, array $params): void {
   $processed_message = MailTemplateHelper::getMailTemplate($key)->prepare($params);
 
   $message['subject'] .= $processed_message['subject'];
