@@ -160,18 +160,22 @@ class AnonymousSubscribeForm extends FormBase {
      */
     [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
 
+    $mail_key = 'subscription_create';
+    $mail_params = [
+      'email' => $mail,
+      'flag' => $flag,
+      'entity_id' => $entity_id,
+    ];
+
     // @todo Send a different e-mail when the user is already subscribed.
     // @todo Send a different e-mail if the user is coupled.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
-      'subscription_create',
+      $mail_key,
       $mail,
       $this->languageManager->getCurrentLanguage()->getId(),
-      [
-        'email' => $mail,
-        'flag' => $flag,
-        'entity_id' => $entity_id,
-      ]);
+      $mail_params,
+    );
 
     if (!$result) {
       $this->messenger()->addError($this->t('An error occurred when sending the confirmation e-mail. Please contact the administrator.'));
