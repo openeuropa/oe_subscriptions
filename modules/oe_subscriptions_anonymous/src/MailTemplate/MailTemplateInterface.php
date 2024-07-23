@@ -29,7 +29,9 @@ interface MailTemplateInterface {
   public function getVariables(array $params): array;
 
   /**
-   * Prepares the mail template.
+   * Prepares the mail content if the core mailer is used.
+   *
+   * This method has no effect if the emails are sent with symfony_mailer.
    *
    * @param array $params
    *   Mail parameters.
