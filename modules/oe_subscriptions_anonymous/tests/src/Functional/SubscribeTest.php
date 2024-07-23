@@ -141,12 +141,7 @@ class SubscribeTest extends BrowserTestBase {
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
     // Visit the subscribe form directly, without going to the node first.
-    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
-    $assert_session->fieldExists($mail_label)->setValue('another@example.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertSubscriptionCreateMailStatusMessage();
-    $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
+    $this->requestSubscriptionForEntity($pages_flag, $page, 'another@example.com');
 
     // Receive a subscription confirm email.
     $mails = $this->getMails();
@@ -174,12 +169,7 @@ class SubscribeTest extends BrowserTestBase {
       'status' => 1,
     ]);
     $this->resetMailCollector();
-    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
-    $assert_session->fieldExists($mail_label)->setValue('another@example.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertSubscriptionCreateMailStatusMessage();
-    $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
+    $this->requestSubscriptionForEntity($pages_flag, $page_two, 'another@example.com');
 
     // Receive a subscription confirm email.
     $mails = $this->getMails();
@@ -200,16 +190,8 @@ class SubscribeTest extends BrowserTestBase {
 
     // Test that a user can have multiple pending subscription requests.
     $this->resetMailCollector();
-    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
-    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertSubscriptionCreateMailStatusMessage();
-    $this->visitSubscriptionRequestPageForEntity($pages_flag, $page_two);
-    $assert_session->fieldExists($mail_label)->setValue('multiple@example.com');
-    $assert_session->fieldExists($terms_label)->check();
-    $assert_session->buttonExists('Subscribe me')->press();
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->requestSubscriptionForEntity($pages_flag, $page, 'multiple@example.com');
+    $this->requestSubscriptionForEntity($pages_flag, $page_two, 'multiple@example.com');
 
     // Receive two subscription confirm emails.
     $mails = $this->getMails();
@@ -315,6 +297,34 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '/.+$@', $mail_urls[3]);
 
     return $mail_urls;
+  }
+
+  /**
+   * Visits and submits a subscription form.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The subscription flag.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to subscribe to.
+   * @param string $email
+   *   The email address to use in the subscribe form.
+   */
+  protected function requestSubscriptionForEntity(FlagInterface $flag, EntityInterface $entity, string $email): void {
+    $assert_session = $this->assertSession();
+    $mail_label = 'Your e-mail';
+    $terms_label = 'I have read and agree with the data protection terms.';
+
+    // Visit the subscribe form directly, without going to the entity first.
+    $this->visitSubscriptionRequestPageForEntity($flag, $entity);
+
+    // Fill the subscribe form, and submit.
+    $assert_session->fieldExists($mail_label)->setValue($email);
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+
+    // Arrive on the entity page with a status message.
+    $this->assertSubscriptionCreateMailStatusMessage();
+    $assert_session->addressEquals($entity->toUrl()->setAbsolute()->toString());
   }
 
   /**
