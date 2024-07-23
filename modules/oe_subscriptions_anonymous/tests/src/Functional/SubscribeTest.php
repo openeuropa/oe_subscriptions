@@ -78,10 +78,13 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     $assert_session = $this->assertSession();
-    $this->drupalGet($article->toUrl());
 
-    // Click subscribe link.
+    // Visit the article node, and click subscribe.
+    $this->drupalGet($article->toUrl());
     $this->clickLink('Subscribe to this article');
+
+    // Without javascript, the subscribe form opens in a new page.
+    // With javascript, it would open in a modal.
     $assert_session->addressEquals(Url::fromRoute('oe_subscriptions_anonymous.subscription_request', [
       'flag' => $article_flag->id(),
       'entity_id' => $article->id(),
@@ -95,39 +98,49 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonNotExists('No thanks');
     $assert_session->elementsCount('css', '.form-actions input[type="submit"]', 1);
 
-    // Verify that mail and terms field are marked as required.
+    // Submit the subscribe form with empty required fields mail and terms.
     $assert_session->buttonExists('Subscribe me')->press();
+    // The form fails validation.
     // The modal was not closed, and the errors are rendered inside it.
     $assert_session->statusMessageContains("$mail_label field is required.", 'error');
     $assert_session->statusMessageContains("$terms_label field is required.", 'error');
     $this->assertEmpty($this->getMails());
 
+    // Fill the required fields, and submit again.
     $mail_field->setValue('test@test.com');
     $terms_field->check();
     $assert_session->buttonExists('Subscribe me')->press();
+
+    // The user is redirected to the node page.
+    // A status message contains instructions about the confirm email.
     $this->assertSubscriptionCreateMailStatusMessage();
     $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
 
-    // Test the e-mail sent.
+    // Receive the subscription confirm email.
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
     $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'test@test.com', $article_flag, $article);
 
-    // Confirm the subscription request.
+    // Visit the confirm link from the email.
     $this->drupalGet($mail_urls[2]);
+    // The link opens the node page with a success message.
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
+
+    // An account was created for the email address.
+    // The account is subscribed to the article.
     $account = user_load_by_mail('test@test.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($article_flag->isFlagged($article, $account));
 
-    // The cancel link is now invalid.
+    // The cancel link from the confirm email is now invalid.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals('/');
 
     // Subscribe to a different flag and node.
     $this->resetMailCollector();
+    // Visit the subscribe form directly, without going to the node first.
     $this->visitSubscriptionRequestPageForEntity($pages_flag, $page);
     $assert_session->fieldExists($mail_label)->setValue('another@example.com');
     $assert_session->fieldExists($terms_label)->check();
@@ -135,23 +148,27 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertSubscriptionCreateMailStatusMessage();
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
 
-    // Test the e-mail sent.
+    // Receive a subscription confirm email.
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
     $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page);
 
+    // Visit the subscription confirm link from the email.
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
+    // An account was created with the new email address.
+    // The account is subscribed to the flag and node.
     $account = user_load_by_mail('another@example.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
 
-    // The cancel link is now invalid.
+    // The cancel link from the confirm email is now invalid.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals('/');
 
+    // Create and subscribe to another page node.
     $page_two = $this->drupalCreateNode([
       'type' => 'page',
       'status' => 1,
@@ -164,18 +181,19 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertSubscriptionCreateMailStatusMessage();
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
 
-    // Test the e-mail sent.
+    // Receive a subscription confirm email.
     $mails = $this->getMails();
     $this->assertCount(1, $mails);
     $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'another@example.com', $pages_flag, $page_two);
 
-    // Use the cancel link first.
+    // Visit the cancel link from the email.
     $this->drupalGet($mail_urls[3]);
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
     $assert_session->addressEquals('/');
+    // The user is not subscribed.
     $this->assertFalse($pages_flag->isFlagged($page_two, $account));
 
-    // The confirm link is now invalid.
+    // The confirm link from the email is now invalid.
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('You have tried to use a link that has been used or is no longer valid. Please request a new link.', 'warning');
     $assert_session->addressEquals($page_two->toUrl()->setAbsolute()->toString());
@@ -193,17 +211,20 @@ class SubscribeTest extends BrowserTestBase {
     $assert_session->buttonExists('Subscribe me')->press();
     $this->assertSubscriptionCreateMailStatusMessage();
 
+    // Receive two subscription confirm emails.
     $mails = $this->getMails();
     $this->assertCount(2, $mails);
     $first_mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'multiple@example.com', $pages_flag, $page);
     $second_mail_urls = $this->assertSubscriptionConfirmationMail($mails[1], 'multiple@example.com', $pages_flag, $page_two);
 
+    // Visit the confirm link from the first email.
     $this->drupalGet($first_mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $account = user_load_by_mail('multiple@example.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
 
+    // Visit the confirm link from the second email.
     $this->drupalGet($second_mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $this->assertTrue($pages_flag->isFlagged($page_two, $account));
