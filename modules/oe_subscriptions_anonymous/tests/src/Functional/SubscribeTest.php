@@ -217,6 +217,46 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
+   * Tests a case where an email is already taken when a request is submitted.
+   */
+  public function testEmailTakenOnSubscribeRequest(): void {
+    // Create flag and page.
+    $pages_flag = $this->createFlagFromArray([
+      'id' => 'subscribe_page',
+      'entity_type' => 'node',
+      'bundles' => ['page'],
+    ]);
+    $entity = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
+    // Create a regular user account.
+    $user = $this->createUser(values: ['mail' => 'conflict@example.com']);
+    $this->assertInstanceOf(DecoupledAuthUserInterface::class, $user);
+    $this->assertTrue($user->isCoupled());
+
+    // Request to subscribe as anonymous, with the same email address.
+    $this->requestSubscriptionForEntity($pages_flag, $entity, 'conflict@example.com');
+
+    // Receive a failure email.
+    $mails = $this->getMails();
+    $this->assertCount(1, $mails);
+    $mail_data = $mails[0];
+    $this->assertMailProperty('to', 'conflict@example.com', $mail_data);
+    $this->assertMailProperty('subject', "Cannot subscribe to {$entity->label()}", $mail_data);
+
+    $this->assertMailString('body', "Thank you for showing interest in keeping up with the updates for {$entity->label()} [1]!", $mail_data);
+    $this->assertMailString('body', 'The email address you were using to subscribe is already associated with a regular account on this website.', $mail_data);
+    $this->assertMailString('body', 'If you still want to subscribe to content updates for this item, you should log into the website, using your existing account, and then subscribe as a regular user.', $mail_data);
+    $this->assertMailString('body', 'If you do not want to subscribe, you can ignore this message.', $mail_data);
+
+    $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
+    $this->assertCount(1, $mail_urls);
+    $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
+  }
+
+  /**
    * Tests the terms and conditions link.
    */
   public function testTermsAndConditionsLink() {
