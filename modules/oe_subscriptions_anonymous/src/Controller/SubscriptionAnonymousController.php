@@ -96,9 +96,10 @@ class SubscriptionAnonymousController extends ControllerBase {
       return $response;
     }
 
-    $this->subscriptionManager->subscribe($email, $flag, $entity_id);
     // The token has been used, so we need to invalidate it.
     $this->tokenManager->delete($email, $scope);
+
+    $this->subscriptionManager->subscribe($email, $flag, $entity_id);
     // Success message and redirection to entity.
     $this->messenger()->addMessage($this->t('Your subscription request has been confirmed.'));
 
