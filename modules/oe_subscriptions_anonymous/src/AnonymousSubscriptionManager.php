@@ -22,7 +22,10 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
-  public function __construct(protected FlagServiceInterface $flagService, protected EntityTypeManagerInterface $entityTypeManager) {}
+  public function __construct(
+    protected readonly FlagServiceInterface $flagService,
+    protected readonly EntityTypeManagerInterface $entityTypeManager,
+  ) {}
 
   /**
    * {@inheritdoc}
