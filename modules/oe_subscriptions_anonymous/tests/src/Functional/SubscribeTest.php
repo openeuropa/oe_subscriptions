@@ -6,6 +6,9 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\decoupled_auth\DecoupledAuthUserInterface;
+use Drupal\flag\FlagInterface;
+use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\AssertMailTrait;
@@ -247,6 +250,43 @@ class SubscribeTest extends BrowserTestBase {
     $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
     $this->assertCount(1, $mail_urls);
     $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
+  }
+
+  /**
+   * Tests a case where an email is taken when a reqest is confirmed.
+   */
+  public function testEmailTakenOnConfirm(): void {
+    // Create flag and page.
+    $pages_flag = $this->createFlagFromArray([
+      'id' => 'subscribe_page',
+      'entity_type' => 'node',
+      'bundles' => ['page'],
+    ]);
+    $page = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
+    // Request to subscribe as anonymous, at a time when no account exists yet
+    // with this email address.
+    $this->requestSubscriptionForEntity($pages_flag, $page, 'conflict@example.com');
+
+    // Receive the confirm email.
+    $mails = $this->getMails();
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'conflict@example.com', $pages_flag, $page);
+
+    // Create a regular user account with the same email address.
+    // Do this before visiting the confirm link.
+    $this->createUser(values: ['mail' => 'conflict@example.com']);
+
+    // Visit the confirm link from the email.
+    $this->drupalGet($mail_urls[2]);
+
+    $assert_session = $this->assertSession();
+    $assert_session->statusMessageContains('You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.', 'warning');
+    $assert_session->statusMessageContains('If you still want to subscribe, you should log in and subscribe as a regular user.', 'warning');
+    $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
   }
 
   /**
