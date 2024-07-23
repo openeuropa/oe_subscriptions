@@ -6,6 +6,7 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\decoupled_auth\DecoupledAuthUserInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 use Drupal\Tests\BrowserTestBase;
@@ -132,6 +133,9 @@ class SubscribeTest extends BrowserTestBase {
     $account = user_load_by_mail('test@test.com');
     $this->assertNotEmpty($account);
     $this->assertTrue($article_flag->isFlagged($article, $account));
+    // The account is not a full account, but a "decoupled" account.
+    $this->assertInstanceOf(DecoupledAuthUserInterface::class, $account);
+    $this->assertFalse($account->isCoupled());
 
     // The cancel link from the confirm email is now invalid.
     $this->drupalGet($mail_urls[3]);
