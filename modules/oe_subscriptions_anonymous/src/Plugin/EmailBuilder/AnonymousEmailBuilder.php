@@ -20,6 +20,7 @@ use Drupal\symfony_mailer\Processor\TokenProcessorTrait;
  *   sub_types = {
  *     "subscription_create" = @Translation("Subscription confirmation creation"),
  *     "email_taken" = @Translation("Subscription confirmation - email address already taken"),
+ *     "already_subscribed" = @Translation("Already subscribed"),
  *     "user_subscriptions_access" = @Translation("Subscriptions page access request"),
  *   },
  *   override = TRUE,

@@ -18,6 +18,7 @@ final class MailTemplateHelper {
     return \Drupal::classResolver(match ($key) {
       'subscription_create' => SubscriptionCreate::class,
       'email_taken' => EmailTaken::class,
+      'already_subscribed' => AlreadySubscribed::class,
       'user_subscriptions_access' => UserSubscriptionsAccess::class,
     });
   }

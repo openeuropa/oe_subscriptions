@@ -186,6 +186,15 @@ class AnonymousSubscribeForm extends FormBase {
           'entity_id' => $entity_id,
         ];
       }
+      else {
+        // The email address belongs to a "decoupled" account.
+        // Check if the email is already subscribed.
+        $entity = $this->flagService->getFlaggableById($flag, (int) $entity_id);
+        if ($flag->isFlagged($entity, $account)) {
+          // The email address is already subscribed.
+          $mail_key = 'already_subscribed';
+        }
+      }
     }
 
     // @todo Send a different e-mail when the user is already subscribed.

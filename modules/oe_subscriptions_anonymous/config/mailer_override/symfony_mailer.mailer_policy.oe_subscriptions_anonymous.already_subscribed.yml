@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - oe_subscriptions_anonymous
+id: oe_subscriptions_anonymous.already_subscribed
+configuration:
+  email_subject:
+    value: 'Already subscribed to {{ entity_label }}'
+  email_body:
+    content:
+      value: |-
+        <p>Thank you for showing interest in keeping up with the updates for <a href=":entity_url">@entity_label</a>!</p>
+        <p>You are already subscribed to this item.</p>
+        <p>If you no longer wish to receive updates for this item, you can <a href="{{ cancel_url }}">Unsubscribe</a>.</p>
+        <p>If you want to remain subscribed, you can ignore this message.</p>
+      format: email_html
