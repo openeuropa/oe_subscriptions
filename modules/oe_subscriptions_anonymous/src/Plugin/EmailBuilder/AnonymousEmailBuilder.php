@@ -67,7 +67,6 @@ class AnonymousEmailBuilder extends EmailBuilderBase {
     $email->setVariables($mail_template->getVariables($params));
 
     $email->setTo(new Address($params['email']));
-
   }
 
 }
