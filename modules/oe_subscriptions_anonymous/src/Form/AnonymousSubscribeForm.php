@@ -154,6 +154,10 @@ class AnonymousSubscribeForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $mail = $form_state->getValue('email');
+    /**
+     * @var \Drupal\flag\FlagInterface $flag
+     * @var string|int $entity_id
+     */
     [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
 
     // @todo Send a different e-mail when the user is already subscribed.
