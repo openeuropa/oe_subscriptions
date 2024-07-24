@@ -212,7 +212,8 @@ BODY);
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
-    $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'confirmed');
+    $urls = $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody());
+    $this->visitConfirmUrl($urls['confirm']);
 
     // Visit the article, and submit a subscribe request, again.
     // This is needed to get a fresh cancel url.
@@ -228,7 +229,8 @@ BODY);
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
-    $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'canceled');
+    $urls = $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody());
+    $this->visitCancelUrl($urls['cancel']);
 
     // Visit the manage subscriptions url.
     // Access to this page requires email confirmation.
@@ -244,23 +246,19 @@ BODY);
   }
 
   /**
-   * Asserts HTML in body for Confirm subscription mail.
+   * Asserts the confirm email contents, and returns the link urls.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity the user is subscribing to.
    * @param string $mail_body
    *   The mail body.
-   * @param string $operation
-   *   The operation test to do.
+   *
+   * @return array{string, string, string}
+   *   The entity url, confirm url, and cancel url.
    */
-  protected function assertConfirmMailHtml(EntityInterface $entity, string $mail_body, string $operation): void {
+  protected function assertConfirmMailHtml(EntityInterface $entity, string $mail_body): array {
     $crawler = new Crawler($mail_body);
     $wrapper = $crawler->filter('.email-sub-type-subscription-create div.clearfix');
-    $assert_session = $this->assertSession();
-    $urls_index = [
-      'confirmed' => 0,
-      'canceled' => 1,
-    ];
 
     // Check that the links are in the text.
     $urls = $this->assertLinks([
@@ -275,10 +273,6 @@ BODY);
         'text' => 'Cancel the subscription request',
       ],
     ], $wrapper);
-
-    // Asserts operation link confirmation or cancellation.
-    $this->drupalGet($urls[$urls_index[$operation]]);
-    $assert_session->statusMessageContains("Your subscription request has been {$operation}.", 'status');
 
     // Check break lines.
     $br = $wrapper->filter('br');
@@ -295,6 +289,37 @@ BODY);
       "If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. " .
       "You will not be subscribed if you don't click on the confirmation link above.",
       $wrapper->text());
+
+    return [
+      'confirm' => $urls[0],
+      'cancel' => $urls[1],
+    ];
+  }
+
+  /**
+   * Visits the confirm url from the confirm email, and asserts success.
+   *
+   * @param string $url
+   *   Confirm url.
+   */
+  protected function visitConfirmUrl(string $url): void {
+    $assert_session = $this->assertSession();
+    // Visit the confirm or cancel link from the email.
+    $this->drupalGet($url);
+    $assert_session->statusMessageContains("Your subscription request has been confirmed.", 'status');
+  }
+
+  /**
+   * Visits the cancel url, and asserts success.
+   *
+   * @param string $url
+   *   Cancel url.
+   */
+  protected function visitCancelUrl(string $url): void {
+    $assert_session = $this->assertSession();
+    // Visit the confirm or cancel link from the email.
+    $this->drupalGet($url);
+    $assert_session->statusMessageContains("Your subscription request has been canceled.", 'status');
   }
 
   /**
