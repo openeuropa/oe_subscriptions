@@ -333,13 +333,15 @@ BODY);
   /**
    * Asserts links returning those without URL key value.
    *
-   * @param array[] $expected_links
-   *   A list links to check.
+   * @param list<array{text: string, url?: string}> $expected_links
+   *   Expected link texts and urls.
+   *   If no expected url is provided for a link, the actual url will be in the
+   *   return value.
    * @param \Symfony\Component\DomCrawler\Crawler $crawler
    *   The crawler where perform the checks.
    *
-   * @return array
-   *   The text only urls.
+   * @return list<string>
+   *   Urls for the links where no expected url was provided.
    */
   protected function assertLinks(array $expected_links, Crawler $crawler): array {
     $text_only_urls = [];
