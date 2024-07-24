@@ -103,6 +103,7 @@ BODY);
     $assert_session->buttonExists('Save')->press();
     $this->drupalLogout();
 
+    // Visit the article, and submit a subscribe request.
     $article_url = $this->article->toUrl()->setAbsolute()->toString();
     $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
@@ -112,6 +113,8 @@ BODY);
     ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
+    // Receive the subscribe confirm email.
+    // The email content now follows the overridden template.
     $mail = $this->readMail();
     $this->assertTo('anothertest@test.com');
     $this->assertSubject('Overridden subject for create');
@@ -123,12 +126,15 @@ BODY);
     $this->assertEquals($this->article->label(), $spans->eq(0)->html());
     $this->assertEquals($article_url, $spans->eq(1)->html());
 
-    // We need to test that the variables for the confirm and cancel URLs work
-    // correctly. We can do this only one at the time, as clicking on one
-    // invalidates the other.
+    // Visit the confirm url from the email.
+    // This verifies that the confirm url still works with the overridden email
+    // template.
+    // Doing this invalidates the cancel url.
     $this->drupalGet($spans->eq(2)->html());
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
 
+    // Visit the article, and submit a subscribe request, again.
+    // This is needed to get a fresh cancel url.
     $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
@@ -137,10 +143,13 @@ BODY);
     ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
+    // Receive the confirm email.
     $mail = $this->readMail();
     $this->assertTo('secondtest@test.com');
     $crawler = new Crawler($mail->getHtmlBody());
     $spans = $crawler->filter('.email-sub-type-subscription-create div.clearfix *');
+
+    // Visit the cancel url from the email.
     $this->drupalGet($spans->eq(3)->html());
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
 
@@ -154,10 +163,13 @@ BODY);
     $assert_session->buttonExists('Save')->press();
     $this->drupalLogout();
 
-    // Test the e-mail content.
+    // Request access to the manage subscriptions page.
     $this->drupalGet('user/subscriptions');
     $this->submitForm(['Your e-mail' => 'anothertest@test.com'], 'Submit');
     $this->assertSubscriptionsPageMailStatusMessage();
+
+    // Receive the manage subscriptions access email.
+    // The email content now follows the overridden template.
     $mail = $this->readMail();
     $this->assertTo('anothertest@test.com');
     $this->assertSubject('Overridden subject for access');
@@ -171,7 +183,9 @@ BODY);
       ->grantPermission('access content')
       ->save();
 
+    // Visit the manage subscriptions access link from the email.
     $this->drupalGet($spans->eq(0)->html());
+    // The manage subscriptions page contains a link to the article.
     $assert_session->elementExists('xpath', $assert_session->buildXPathQuery('//a[@href=:href][.=:text]', [
       ':href' => $this->article->toUrl()->toString(),
       ':text' => $this->article->label(),
@@ -182,10 +196,10 @@ BODY);
    * Tests the content of the HTML e-mails shipped as default.
    */
   protected function doTestDefaultHtmlEmailContents(): void {
-    // Test confirm subscription HTML mail content.
-    // Asserts the mail content testing confirmation link.
     $article_label = $this->article->label();
     $article_url = $this->article->toUrl()->setAbsolute()->toString();
+
+    // Visit the article, and submit a subscribe request.
     $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
@@ -194,12 +208,14 @@ BODY);
     ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
+    // Receive the confirm email, and visit the confirm link.
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
     $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'confirmed');
 
-    // Asserts the mail content testing cancellation link.
+    // Visit the article, and submit a subscribe request, again.
+    // This is needed to get a fresh cancel url.
     $this->drupalGet($article_url);
     $this->clickLink('Subscribe');
     $this->submitForm([
@@ -208,17 +224,19 @@ BODY);
     ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
 
+    // Receive the confirm email, and visit the cancel link.
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
     $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'canceled');
 
-    // Test request access HTML mail content.
-    // Asserts the mail content testing subscription link.
+    // Visit the manage subscriptions url.
+    // Access to this page requires email confirmation.
     $this->drupalGet('/user/subscriptions');
     $this->submitForm(['Your e-mail' => 'test@test.com'], 'Submit');
     $this->assertSubscriptionsPageMailStatusMessage();
 
+    // Receive the email that provides access to the manage subscriptions page.
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject('Access your subscriptions page on ' . $this->getSiteUrlBrief());
