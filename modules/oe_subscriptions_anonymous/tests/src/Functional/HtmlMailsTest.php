@@ -260,8 +260,8 @@ BODY);
    * @param string $mail_body
    *   The mail body.
    *
-   * @return array{string, string, string}
-   *   The entity url, confirm url, and cancel url.
+   * @return array{confirm: string, cancel: string}
+   *   The confirm url and cancel url found in the email body.
    */
   protected function assertConfirmMailHtml(EntityInterface $entity, string $mail_body): array {
     $crawler = new Crawler($mail_body);
@@ -273,10 +273,10 @@ BODY);
         'text' => $entity->label(),
         'url' => $entity->toUrl()->setAbsolute()->toString(),
       ],
-      [
+      'confirm' => [
         'text' => 'Confirm my subscription',
       ],
-      [
+      'cancel' => [
         'text' => 'Cancel the subscription request',
       ],
     ], $wrapper);
@@ -297,10 +297,7 @@ BODY);
       "You will not be subscribed if you don't click on the confirmation link above.",
       $wrapper->text());
 
-    return [
-      'confirm' => $urls[0],
-      'cancel' => $urls[1],
-    ];
+    return $urls;
   }
 
   /**
@@ -364,27 +361,26 @@ BODY);
   /**
    * Asserts links returning those without URL key value.
    *
-   * @param list<array{text: string, url?: string}> $expected_links
+   * @param array<array{text: string, url?: string}> $expected_links
    *   Expected link texts and urls.
-   *   If no expected url is provided for a link, the actual url will be in the
-   *   return value.
+   *   The expected url is optional.
    * @param \Symfony\Component\DomCrawler\Crawler $crawler
    *   The crawler where perform the checks.
    *
-   * @return list<string>
-   *   Urls for the links where no expected url was provided.
+   * @return string[]
+   *   Actual urls, for which no expected url was provided.
+   *   The array keys are the same as in $expected_links.
    */
   protected function assertLinks(array $expected_links, Crawler $crawler): array {
     $text_only_urls = [];
 
-    foreach ($expected_links as $expected_link) {
+    foreach ($expected_links as $key => $expected_link) {
       $link = $crawler->filterXPath("//a[contains(text(),'{$expected_link['text']}')]");
       $this->assertCount(1, $link);
       if (isset($expected_link['url'])) {
         $this->assertEquals($expected_link['url'], $link->attr('href'));
-        continue;
       }
-      $text_only_urls[] = $link->attr('href');
+      $text_only_urls[$key] = $link->attr('href');
     }
 
     return $text_only_urls;
