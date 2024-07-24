@@ -242,7 +242,14 @@ BODY);
     $mail = $this->readMail();
     $this->assertTo('test@test.com');
     $this->assertSubject('Access your subscriptions page on ' . $this->getSiteUrlBrief());
-    $this->assertSubscriptionsMailHtml($mail->getHtmlBody());
+    $url = $this->assertSubscriptionsMailHtml($mail->getHtmlBody());
+
+    // Visit the url from the access email.
+    // The manage subscriptions page shows up.
+    $this->drupalGet($url);
+    $assert_session = $this->assertSession();
+    $assert_session->titleEquals('Manage your subscriptions | Drupal');
+    $assert_session->elementExists('css', 'table.user-subscriptions');
   }
 
   /**
@@ -327,20 +334,17 @@ BODY);
    *
    * @param string $mail_body
    *   The mail body.
+   *
+   * @return string
+   *   The url that provides access to the manage subscriptions page.
    */
-  protected function assertSubscriptionsMailHtml(string $mail_body): void {
+  protected function assertSubscriptionsMailHtml(string $mail_body): string {
     // Check that the links are in the text.
     $crawler = new Crawler($mail_body);
     $wrapper = $crawler->filter('.email-sub-type-user-subscriptions-access div.clearfix');
     $links = $wrapper->filterXPath("//a");
     $this->assertCount(1, $links);
     $this->assertEquals('Access my subscriptions page', $links->eq(0)->text());
-
-    // Assert subscription link.
-    $this->drupalGet($links->eq(0)->attr('href'));
-    $assert_session = $this->assertSession();
-    $assert_session->titleEquals('Manage your subscriptions | Drupal');
-    $assert_session->elementExists('css', 'table.user-subscriptions');
 
     // Check break lines.
     $br = $wrapper->filter('br');
@@ -353,6 +357,8 @@ BODY);
       "Click the following link to access your subscriptions page: Access my subscriptions page. " .
       "If you didn't request access to your subscriptions page or you're not sure why you received this e-mail, you can delete it.",
       $wrapper->text());
+
+    return $links->eq(0)->attr('href');
   }
 
   /**
