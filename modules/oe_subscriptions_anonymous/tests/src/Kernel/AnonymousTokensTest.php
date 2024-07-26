@@ -19,46 +19,30 @@ class AnonymousTokensTest extends KernelTestBase {
   use MessageTemplateCreateTrait;
 
   /**
-   * Tests token for subscriptions page.
+   * Tests user tokens.
    */
-  public function testSubscriptionsPageToken() {
-    // Create message template to test token rendering.
-    $message_template = $this->createMessageTemplate(
-      'test_message',
-      'Test message',
-      '',
-      [
-        '[oe_subscriptions_anonymous:subscriptions_page]',
-      ],
-      [
-        'token options' => [
-          'clear' => FALSE,
-          'token replace' => TRUE,
-        ],
-      ],
-    );
-
-    // Create different users to check the output for decoupled and coupled.
+  public function testUserTokens() {
+    // Check token with a decoupled user.
     $decoupled_user = DecoupledAuthUser::create([
       'mail' => 'decoupled_user@example.com',
       'name' => NULL,
       'status' => 0,
     ]);
     $decoupled_user->save();
-    $coupled_user = $this->createUser([], 'coupled_user');
+    $message_template = $this->createMessageTemplate();
+    $message = Message::create(['template' => $message_template->id()]);
+    $message->save();
 
-    // Check token rendering in messages with different owners.
-    $message_decoupled_owner = Message::create(['template' => $message_template->id()])
-      ->setOwnerId($decoupled_user->id());
-    $message_decoupled_owner->save();
-    $expected_url = Url::fromUserInput('/user/subscriptions')->setAbsolute()->toString();
-    $this->assertEquals($expected_url, (string) $message_decoupled_owner);
+    $this->assertTokens('user', ['user' => $decoupled_user, 'message' => $message], [
+      'subscriptions-page-url' => Url::fromUserInput('/user/subscriptions')->setAbsolute()->toString(),
+    ]);
 
-    $message_coupled_owner = Message::create(['template' => $message_template->id()])
-      ->setOwnerId($coupled_user->id());
-    $message_coupled_owner->save();
-    $expected_url = Url::fromUserInput("/user/login?destination=/user/{$coupled_user->id()}/subscriptions")->setAbsolute()->toString();
-    $this->assertEquals($expected_url, (string) $message_coupled_owner);
+    // Check that the token still behaves the same for coupled.
+    $coupled_user = $this->createUser();
+
+    $this->assertTokens('user', ['user' => $coupled_user, 'message' => $message], [
+      'subscriptions-page-url' => Url::fromUserInput("/user/login?destination=/user/{$coupled_user->id()}/subscriptions")->setAbsolute()->toString(),
+    ]);
   }
 
 }
