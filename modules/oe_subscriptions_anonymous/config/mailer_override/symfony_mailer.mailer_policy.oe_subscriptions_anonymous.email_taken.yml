@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - oe_subscriptions_anonymous
+id: oe_subscriptions_anonymous.email_taken
+configuration:
+  email_subject:
+    value: 'Cannot subscribe to {{ entity_label }}'
+  email_body:
+    content:
+      value: |-
+        <p>Thank you for showing interest in keeping up with the updates for <a href="{{ entity_url }}">{{ entity_label }}</a>!</p>
+        <p>The email address you were using to subscribe is already associated with a regular account on this website.</p>
+        <p>If you still want to subscribe to content updates for this item, you should log into the website, using your existing account, and then subscribe as a regular user.</p>
+        <p>If you do not want to subscribe, you can ignore this message.</p>
+      format: email_html
