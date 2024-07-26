@@ -11,6 +11,7 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\StatusMessageTrait;
 use Drupal\user\Entity\Role;
+use Drupal\user\UserInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -42,6 +43,13 @@ class HtmlMailsTest extends BrowserTestBase {
    * @var \Drupal\node\NodeInterface
    */
   protected $article;
+
+  /**
+   * User with permission to override email templates.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected UserInterface $adminUser;
 
   /**
    * {@inheritdoc}
@@ -85,23 +93,16 @@ class HtmlMailsTest extends BrowserTestBase {
     $this->doTestDefaultHtmlEmailContents();
 
     // Override the mail templates to test the exposed variables.
-    $admin_user = $this->drupalCreateUser([
-      'administer mailer',
-      'use text format email_html',
-    ]);
-    $this->drupalLogin($admin_user);
-    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.subscription_create');
-    $assert_session = $this->assertSession();
-    $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for create');
-    // Set the body to output all the available variables.
-    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
+    $this->overrideEmailTemplate(
+      'subscription_create',
+      'Overridden subject for create',
+      <<<BODY
 <span>{{ entity_label }}</span>
 <span>{{ entity_url }}</span>
 <span>{{ confirm_url }}</span>
 <span>{{ cancel_url }}</span>
-BODY);
-    $assert_session->buttonExists('Save')->press();
-    $this->drupalLogout();
+BODY,
+    );
 
     // Visit the article, and submit a subscribe request.
     $this->requestSubscriptionForArticle('anothertest@test.com');
@@ -125,6 +126,7 @@ BODY);
     // template.
     // Doing this invalidates the cancel url.
     $this->drupalGet($spans->eq(2)->html());
+    $assert_session = $this->assertSession();
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
 
     // Visit the article, and submit a subscribe request, again.
@@ -142,14 +144,13 @@ BODY);
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
 
     // Override the templates for the subscriptions access mail.
-    $this->drupalLogin($admin_user);
-    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.user_subscriptions_access');
-    $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for access');
-    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
+    $this->overrideEmailTemplate(
+      'user_subscriptions_access',
+      'Overridden subject for access',
+      <<<BODY
 <span>{{ subscriptions_page_url }}</span>
-BODY);
-    $assert_session->buttonExists('Save')->press();
-    $this->drupalLogout();
+BODY,
+    );
 
     // Request access to the manage subscriptions page.
     $this->drupalGet('user/subscriptions');
@@ -244,6 +245,31 @@ BODY);
       'I have read and agree with the data protection terms.' => '1',
     ], 'Subscribe me');
     $this->assertSubscriptionCreateMailStatusMessage();
+  }
+
+  /**
+   * Overrides an email template.
+   *
+   * @param string $template_id
+   *   Template id.
+   * @param string $subject
+   *   Overridden email subject.
+   * @param string $body
+   *   Overridden email body.
+   */
+  protected function overrideEmailTemplate(string $template_id, string $subject, string $body): void {
+    // Create the admin user, if it does not exist yet.
+    $this->adminUser ??= $this->drupalCreateUser([
+      'administer mailer',
+      'use text format email_html',
+    ]);
+    $assert_session = $this->assertSession();
+    $this->drupalLogin($this->adminUser);
+    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.' . $template_id);
+    $assert_session->fieldExists('edit-config-email-subject-value')->setValue($subject);
+    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue($body);
+    $assert_session->buttonExists('Save')->press();
+    $this->drupalLogout();
   }
 
   /**
