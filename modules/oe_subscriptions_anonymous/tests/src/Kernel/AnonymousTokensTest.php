@@ -33,13 +33,18 @@ class AnonymousTokensTest extends KernelTestBase {
     $message = Message::create(['template' => $message_template->id()]);
     $message->save();
 
+    // No user and message present, token is not generated.
+    $this->assertNoTokens('user', [], ['subscriptions-page-url']);
+    // Only user present, token is not generated.
+    $this->assertNoTokens('user', ['user' => $decoupled_user], ['subscriptions-page-url']);
+    // Only message present, token is not generated.
+    $this->assertNoTokens('user', ['message' => $message], ['subscriptions-page-url']);
+    // Valid user and message.
     $this->assertTokens('user', ['user' => $decoupled_user, 'message' => $message], [
       'subscriptions-page-url' => Url::fromUserInput('/user/subscriptions')->setAbsolute()->toString(),
     ]);
-
-    // Check that the token still behaves the same for coupled.
+    // Check that the token still provides the same URL for coupled.
     $coupled_user = $this->createUser();
-
     $this->assertTokens('user', ['user' => $coupled_user, 'message' => $message], [
       'subscriptions-page-url' => Url::fromUserInput("/user/login?destination=/user/{$coupled_user->id()}/subscriptions")->setAbsolute()->toString(),
     ]);

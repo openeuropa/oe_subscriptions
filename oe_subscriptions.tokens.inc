@@ -47,9 +47,11 @@ function oe_subscriptions_tokens(string $type, array $tokens, array $data, array
           'user' => $data['user']->id(),
         ])->toString(),
       ],
-    ]);
+    ])->toString(TRUE);
 
-    $replacements[$tokens['subscriptions-page-url']] = $url->toString();
+    $bubbleable_metadata->addCacheableDependency($url);
+
+    $replacements[$tokens['subscriptions-page-url']] = $url->getGeneratedUrl();
   }
 
   return $replacements;
