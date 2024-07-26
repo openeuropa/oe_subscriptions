@@ -226,6 +226,25 @@ BODY);
   }
 
   /**
+   * Requests a subscription to the article.
+   *
+   * @param string $email
+   *   The email address to use in the subscribe form.
+   */
+  protected function requestSubscriptionForArticle(string $email): void {
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+
+    // Visit the article, and submit a subscribe request.
+    $this->drupalGet($article_url);
+    $this->clickLink('Subscribe');
+    $this->submitForm([
+      'Your e-mail' => $email,
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
+    $this->assertSubscriptionCreateMailStatusMessage();
+  }
+
+  /**
    * Asserts HTML in body for Confirm subscription mail.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
