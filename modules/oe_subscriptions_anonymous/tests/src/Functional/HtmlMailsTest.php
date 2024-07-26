@@ -65,6 +65,9 @@ class HtmlMailsTest extends BrowserTestBase {
       'type' => 'article',
       'status' => 1,
     ]);
+
+    // Create a user account, to set up an email conflict.
+    $this->createUser(values: ['mail' => 'conflict@example.com']);
   }
 
   /**
@@ -144,6 +147,34 @@ BODY);
     $this->drupalGet($spans->eq(3)->html());
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
 
+    // Override the 'email_taken' email template.
+    $this->drupalLogin($admin_user);
+    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.email_taken');
+    $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for email taken');
+    $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
+<span>{{ entity_label }}</span>
+<span>{{ entity_url }}</span>
+BODY);
+    $assert_session->buttonExists('Save')->press();
+    $this->drupalLogout();
+
+    // Visit the article, and subscribe with a conflicting email address.
+    $this->requestSubscriptionForArticle('conflict@example.com');
+
+    // Receive the failure email.
+    $this->readMail();
+    $this->assertTo('conflict@example.com');
+    $article_label = $this->article->label();
+    $this->assertSubject('Overridden subject for email taken');
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+    $this->assertSame(
+      <<<BODY
+<span>$article_label</span>
+<span>$article_url</span>
+BODY,
+      $this->getMailBodyWithoutWrapper('email_taken'),
+    );
+
     // Override the templates for the subscriptions access mail.
     $this->drupalLogin($admin_user);
     $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.user_subscriptions_access');
@@ -212,6 +243,24 @@ BODY);
     $this->assertTo('test@test.com');
     $this->assertSubject("Confirm your subscription to $article_label");
     $this->assertConfirmMailHtml($this->article, $mail->getHtmlBody(), 'canceled');
+
+    // Visit the article, and subscribe with a conflicting email address.
+    $this->requestSubscriptionForArticle('conflict@example.com');
+
+    // Receive the failure email.
+    $this->readMail();
+    $this->assertTo('conflict@example.com');
+    $this->assertSubject("Cannot subscribe to $article_label");
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+    $this->assertSame(
+      <<<BODY
+<p>Thank you for showing interest in keeping up with the updates for <a href="$article_url">$article_label</a>!</p>
+<p>The email address you were using to subscribe is already associated with a regular account on this website.</p>
+<p>If you still want to subscribe to content updates for this item, you should log into the website, using your existing account, and then subscribe as a regular user.</p>
+<p>If you do not want to subscribe, you can ignore this message.</p>
+BODY,
+      $this->getMailBodyWithoutWrapper('email_taken'),
+    );
 
     // Test request access HTML mail content.
     // Asserts the mail content testing subscription link.
@@ -296,6 +345,31 @@ BODY);
       "If you didn't subscribe to these updates or you're not sure why you received this e-mail, you can delete it. " .
       "You will not be subscribed if you don't click on the confirmation link above.",
       $wrapper->text());
+  }
+
+  /**
+   * Gets the mail body without the wrapper divs.
+   *
+   * Also asserts the CSS class in the outer wrapper, that derives from the
+   * mail key and module name.
+   *
+   * @param string $mail_id
+   *   Expected mail id/key within oe_subscriptions_anonymous.
+   *
+   * @return string
+   *   Trimmed mail body content without wrapper divs.
+   */
+  protected function getMailBodyWithoutWrapper(string $mail_id): string {
+    $crawler = new Crawler($this->email->getHtmlBody());
+    $outer_div = $crawler->filter('body > div');
+    // The module name and thus "email-type" is the same for all emails within
+    // this test. Only the sub-type differs.
+    $this->assertSame(
+      'email-type-oe-subscriptions-anonymous email-sub-type-' . str_replace('_', '-', $mail_id),
+      $outer_div->attr('class'),
+    );
+    $content_div = $outer_div->filter('table div.clearfix');
+    return trim($content_div->html());
   }
 
   /**

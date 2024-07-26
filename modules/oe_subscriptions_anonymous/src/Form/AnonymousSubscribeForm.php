@@ -17,6 +17,7 @@ use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\decoupled_auth\DecoupledAuthUserInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
@@ -167,8 +168,27 @@ class AnonymousSubscribeForm extends FormBase {
       'entity_id' => $entity_id,
     ];
 
+    // Check if a user with this email already exists.
+    // @todo Use dependency injection instead of function call.
+    $account = user_load_by_mail($mail);
+
+    if ($account !== FALSE) {
+      // The decoupled_auth module is installed, which replaces the class for
+      // user entities.
+      \assert($account instanceof DecoupledAuthUserInterface);
+      if ($account->isCoupled()) {
+        // The email address belongs to a regular user account, which requires
+        // regular login.
+        $mail_key = 'email_taken';
+        $mail_params = [
+          'email' => $mail,
+          'entity_type' => $flag->getFlaggableEntityTypeId(),
+          'entity_id' => $entity_id,
+        ];
+      }
+    }
+
     // @todo Send a different e-mail when the user is already subscribed.
-    // @todo Send a different e-mail if the user is coupled.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
       $mail_key,
