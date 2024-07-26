@@ -104,14 +104,7 @@ BODY);
     $this->drupalLogout();
 
     // Visit the article, and submit a subscribe request.
-    $article_url = $this->article->toUrl()->setAbsolute()->toString();
-    $this->drupalGet($article_url);
-    $this->clickLink('Subscribe');
-    $this->submitForm([
-      'Your e-mail' => 'anothertest@test.com',
-      'I have read and agree with the data protection terms.' => '1',
-    ], 'Subscribe me');
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->requestSubscriptionForArticle('anothertest@test.com');
 
     // Receive the subscribe confirm email.
     // The email content now follows the overridden template.
@@ -124,6 +117,7 @@ BODY);
     $this->assertCount(4, $spans);
     $this->assertEquals(['span'], array_unique(array_map(static fn ($tag) => $tag->nodeName, iterator_to_array($spans->getIterator()))));
     $this->assertEquals($this->article->label(), $spans->eq(0)->html());
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
     $this->assertEquals($article_url, $spans->eq(1)->html());
 
     // Visit the confirm url from the email.
@@ -135,13 +129,7 @@ BODY);
 
     // Visit the article, and submit a subscribe request, again.
     // This is needed to get a fresh cancel url.
-    $this->drupalGet($article_url);
-    $this->clickLink('Subscribe');
-    $this->submitForm([
-      'Your e-mail' => 'secondtest@test.com',
-      'I have read and agree with the data protection terms.' => '1',
-    ], 'Subscribe me');
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->requestSubscriptionForArticle('secondtest@test.com');
 
     // Receive the confirm email.
     $mail = $this->readMail();
@@ -197,16 +185,9 @@ BODY);
    */
   protected function doTestDefaultHtmlEmailContents(): void {
     $article_label = $this->article->label();
-    $article_url = $this->article->toUrl()->setAbsolute()->toString();
 
     // Visit the article, and submit a subscribe request.
-    $this->drupalGet($article_url);
-    $this->clickLink('Subscribe');
-    $this->submitForm([
-      'Your e-mail' => 'test@test.com',
-      'I have read and agree with the data protection terms.' => '1',
-    ], 'Subscribe me');
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->requestSubscriptionForArticle('test@test.com');
 
     // Receive the confirm email, and visit the confirm link.
     $mail = $this->readMail();
@@ -217,13 +198,7 @@ BODY);
 
     // Visit the article, and submit a subscribe request, again.
     // This is needed to get a fresh cancel url.
-    $this->drupalGet($article_url);
-    $this->clickLink('Subscribe');
-    $this->submitForm([
-      'Your e-mail' => 'test@test.com',
-      'I have read and agree with the data protection terms.' => '1',
-    ], 'Subscribe me');
-    $this->assertSubscriptionCreateMailStatusMessage();
+    $this->requestSubscriptionForArticle('test@test.com');
 
     // Receive the confirm email, and visit the cancel link.
     $mail = $this->readMail();
@@ -250,6 +225,25 @@ BODY);
     $assert_session = $this->assertSession();
     $assert_session->titleEquals('Manage your subscriptions | Drupal');
     $assert_session->elementExists('css', 'table.user-subscriptions');
+  }
+
+  /**
+   * Requests a subscription to the article.
+   *
+   * @param string $email
+   *   The email address to use in the subscribe form.
+   */
+  protected function requestSubscriptionForArticle(string $email): void {
+    $article_url = $this->article->toUrl()->setAbsolute()->toString();
+
+    // Visit the article, and submit a subscribe request.
+    $this->drupalGet($article_url);
+    $this->clickLink('Subscribe');
+    $this->submitForm([
+      'Your e-mail' => $email,
+      'I have read and agree with the data protection terms.' => '1',
+    ], 'Subscribe me');
+    $this->assertSubscriptionCreateMailStatusMessage();
   }
 
   /**
