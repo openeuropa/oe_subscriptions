@@ -18,7 +18,6 @@ function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $co
   if (
     $context['type'] === 'user' &&
     !empty($context['data']['user']) &&
-    !empty($context['data']['message']) &&
     isset($context['tokens']['subscriptions-page-url']) &&
     !$context['data']['user']->isCoupled()
   ) {

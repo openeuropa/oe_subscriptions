@@ -4,8 +4,6 @@ namespace Drupal\Tests\oe_subscriptions\Kernel;
 
 use Drupal\Core\Url;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\message\Entity\Message;
-use Drupal\Tests\message\Kernel\MessageTemplateCreateTrait;
 use Drupal\Tests\token\Functional\TokenTestTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 
@@ -16,7 +14,6 @@ class TokensTest extends KernelTestBase {
 
   use TokenTestTrait;
   use UserCreationTrait;
-  use MessageTemplateCreateTrait;
 
   /**
    * {@inheritdoc}
@@ -55,18 +52,11 @@ class TokensTest extends KernelTestBase {
    */
   public function testUserTokens() {
     $user = $this->createUser();
-    $message_template = $this->createMessageTemplate();
-    $message = Message::create(['template' => $message_template->id()]);
-    $message->save();
 
-    // No user and message present, token is not generated.
+    // No user present, token is not generated.
     $this->assertNoTokens('user', [], ['subscriptions-page-url']);
-    // Only user present, token is not generated.
-    $this->assertNoTokens('user', ['user' => $user], ['subscriptions-page-url']);
-    // Only message present, token is not generated.
-    $this->assertNoTokens('user', ['message' => $message], ['subscriptions-page-url']);
-    // Valid user and message.
-    $this->assertTokens('user', ['user' => $user, 'message' => $message], [
+    // Valid user, token is generated.
+    $this->assertTokens('user', ['user' => $user], [
       'subscriptions-page-url' => Url::fromUserInput("/user/login?destination=/user/{$user->id()}/subscriptions")->setAbsolute()->toString(),
     ]);
   }

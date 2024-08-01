@@ -18,7 +18,7 @@ function oe_subscriptions_token_info(): array {
 
   $info['tokens']['user']['subscriptions-page-url'] = [
     'name' => t('Subscriptions page'),
-    'description' => t('URL to subscriptions page based on the user, to be used in message entities.'),
+    'description' => t('URL to subscriptions page based on the user.'),
     'type' => 'url',
   ];
 
@@ -34,7 +34,6 @@ function oe_subscriptions_tokens(string $type, array $tokens, array $data, array
   if (
     $type === 'user' &&
     !empty($data['user']) &&
-    !empty($data['message']) &&
     isset($tokens['subscriptions-page-url'])
   ) {
     // Adding the URL to the subscriptions page will lead into an 403 for
