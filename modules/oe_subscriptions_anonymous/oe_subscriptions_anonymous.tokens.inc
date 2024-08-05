@@ -14,18 +14,24 @@ use Drupal\Core\Url;
  * Implements hook_tokens_alter().
  */
 function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $context, BubbleableMetadata $bubbleable_metadata) {
-  // Alter the token URL to subscriptions page for anonymous users.
+  // Alter the tokens URL to subscriptions page for anonymous users.
   if (
     $context['type'] === 'user' &&
     !empty($context['data']['user']) &&
-    isset($context['tokens']['subscriptions-page-url']) &&
     !$context['data']['user']->isCoupled()
   ) {
-    $url = Url::fromRoute('oe_subscriptions_anonymous.user_subscriptions.request_access', [], ['absolute' => TRUE])
-      ->toString(TRUE);
+    $url = Url::fromRoute('oe_subscriptions_anonymous.user_subscriptions.request_access');
 
-    $bubbleable_metadata->addCacheableDependency($url);
+    if (isset($context['tokens']['subscriptions-page'])) {
+      $result = $url->setAbsolute()->toString(TRUE);
+      $bubbleable_metadata->addCacheableDependency($result);
+      $replacements[$context['tokens']['subscriptions-page']] = $result->getGeneratedUrl();
+    }
 
-    $replacements[$context['tokens']['subscriptions-page-url']] = $url->getGeneratedUrl();
+    // Chained token relationships.
+    if (($url_tokens = \Drupal::token()->findWithPrefix($context['tokens'], 'subscriptions-page'))) {
+      $anonymous_replacements = \Drupal::token()->generate('url', $url_tokens, ['url' => $url], $context['options'], $bubbleable_metadata);
+      $replacements = array_merge($replacements, $anonymous_replacements);
+    }
   }
 }

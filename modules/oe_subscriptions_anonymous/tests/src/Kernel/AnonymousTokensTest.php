@@ -25,17 +25,41 @@ class AnonymousTokensTest extends KernelTestBase {
       'status' => 0,
     ]);
     $decoupled_user->save();
+    $url = Url::fromUserInput('/user/subscriptions');
 
     // No user present, token is not generated.
-    $this->assertNoTokens('user', [], ['subscriptions-page-url']);
+    $this->assertNoTokens('user', [], ['subscriptions-page']);
     // Valid user, token is generated.
-    $this->assertTokens('user', ['user' => $decoupled_user], [
-      'subscriptions-page-url' => Url::fromUserInput('/user/subscriptions')->setAbsolute()->toString(),
+    $this->assertTokens('user', ['user' => $decoupled_user],
+    [
+      'subscriptions-page' => $url->setAbsolute()->toString(),
+      'subscriptions-page:path' => '/user/subscriptions',
+      'subscriptions-page:alias' => '/user/subscriptions',
+      'subscriptions-page:absolute' => $url->setAbsolute()->toString(),
+      'subscriptions-page:relative' => $url->setAbsolute(FALSE)->toString(),
+      'subscriptions-page:brief' => preg_replace(['!^https?://!', '!/$!'], '', $url->setAbsolute()->toString()),
+      'subscriptions-page:unaliased' => $url->toString(),
+      'subscriptions-page:args:value:0' => 'user',
+      'subscriptions-page:args:value:1' => 'subscriptions',
+      'subscriptions-page:args:value:2' => NULL,
     ]);
+
     // Check that the token still provides the same URL for coupled.
     $coupled_user = $this->createUser();
-    $this->assertTokens('user', ['user' => $coupled_user], [
-      'subscriptions-page-url' => Url::fromUserInput("/user/login?destination=/user/{$coupled_user->id()}/subscriptions")->setAbsolute()->toString(),
+    $url = Url::fromUserInput("/user/login?destination=/user/{$coupled_user->id()}/subscriptions");
+    // Valid user, token is generated.
+    $this->assertTokens('user', ['user' => $coupled_user],
+    [
+      'subscriptions-page' => $url->setAbsolute()->toString(),
+      'subscriptions-page:path' => '/user/login',
+      'subscriptions-page:alias' => '/user/login',
+      'subscriptions-page:absolute' => $url->setAbsolute()->toString(),
+      'subscriptions-page:relative' => $url->setAbsolute(FALSE)->toString(),
+      'subscriptions-page:brief' => preg_replace(['!^https?://!', '!/$!'], '', $url->setAbsolute()->toString()),
+      'subscriptions-page:unaliased' => $url->toString(),
+      'subscriptions-page:args:value:0' => 'user',
+      'subscriptions-page:args:value:1' => 'login',
+      'subscriptions-page:args:value:2' => NULL,
     ]);
   }
 

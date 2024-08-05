@@ -16,9 +16,9 @@ use Drupal\Core\Url;
 function oe_subscriptions_token_info(): array {
   $info = [];
 
-  $info['tokens']['user']['subscriptions-page-url'] = [
-    'name' => t('Subscriptions page'),
-    'description' => t('URL to subscriptions page based on the user.'),
+  $info['tokens']['user']['subscriptions-page'] = [
+    'name' => t('Subscriptions page URL'),
+    'description' => t('The URL to subscriptions page.'),
     'type' => 'url',
   ];
 
@@ -33,24 +33,29 @@ function oe_subscriptions_tokens(string $type, array $tokens, array $data, array
 
   if (
     $type === 'user' &&
-    !empty($data['user']) &&
-    isset($tokens['subscriptions-page-url'])
+    !empty($data['user'])
   ) {
     // Adding the URL to the subscriptions page will lead into an 403 for
     // non-logged users, we add a login URL with the subscriptions page
     // destination.
     $url = Url::fromRoute('user.login', [], [
-      'absolute' => TRUE,
       'query' => [
         'destination' => Url::fromRoute('oe_subscriptions.user.subscriptions', [
           'user' => $data['user']->id(),
         ])->toString(),
       ],
-    ])->toString(TRUE);
+    ]);
 
-    $bubbleable_metadata->addCacheableDependency($url);
+    if (isset($tokens['subscriptions-page'])) {
+      $result = $url->setAbsolute()->toString(TRUE);
+      $bubbleable_metadata->addCacheableDependency($result);
+      $replacements[$tokens['subscriptions-page']] = $result->getGeneratedUrl();
+    }
 
-    $replacements[$tokens['subscriptions-page-url']] = $url->getGeneratedUrl();
+    // Chained token relationships.
+    if (($url_tokens = \Drupal::token()->findWithPrefix($tokens, 'subscriptions-page'))) {
+      $replacements += \Drupal::token()->generate('url', $url_tokens, ['url' => $url], $options, $bubbleable_metadata);
+    }
   }
 
   return $replacements;
