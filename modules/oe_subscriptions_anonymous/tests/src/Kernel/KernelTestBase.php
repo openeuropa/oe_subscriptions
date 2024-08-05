@@ -31,9 +31,6 @@ abstract class KernelTestBase extends CoreKernelTestBase {
     'system',
     'text',
     'user',
-    'decoupled_auth',
-    'path_alias',
-    'token',
   ];
 
   /**
@@ -44,7 +41,6 @@ abstract class KernelTestBase extends CoreKernelTestBase {
 
     $this->installEntitySchema('user');
     $this->installEntitySchema('flagging');
-    $this->installEntitySchema('path_alias');
     $this->installSchema('system', ['sequences']);
     $this->installSchema('flag', ['flag_counts']);
     $this->installConfig(['filter', 'flag', 'message_subscribe', 'user']);

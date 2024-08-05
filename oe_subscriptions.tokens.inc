@@ -28,7 +28,7 @@ function oe_subscriptions_token_info(): array {
 /**
  * Implements hook_tokens().
  */
-function oe_subscriptions_tokens(string $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+function oe_subscriptions_tokens(string $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata): array {
   $replacements = [];
 
   if (

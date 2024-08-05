@@ -13,7 +13,7 @@ use Drupal\Core\Url;
 /**
  * Implements hook_tokens_alter().
  */
-function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $context, BubbleableMetadata $bubbleable_metadata) {
+function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $context, BubbleableMetadata $bubbleable_metadata): void {
   // Alter the tokens URL to subscriptions page for anonymous users.
   if (
     $context['type'] === 'user' &&
