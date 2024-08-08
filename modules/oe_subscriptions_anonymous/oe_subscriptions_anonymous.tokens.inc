@@ -30,8 +30,13 @@ function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $co
 
     // Chained token relationships.
     if ($url_tokens = \Drupal::token()->findWithPrefix($context['tokens'], 'subscriptions-page')) {
+      // First we clean up any existing token, we have an offset of args.
+      foreach ($url_tokens as $k => $v) {
+        unset($replacements[$v]);
+      }
+      // Then add generated tokens.
       $anonymous_replacements = \Drupal::token()->generate('url', $url_tokens, ['url' => $url], $context['options'], $bubbleable_metadata);
-      $replacements = array_merge($replacements, $anonymous_replacements);
+      $replacements += $anonymous_replacements;
     }
   }
 }
