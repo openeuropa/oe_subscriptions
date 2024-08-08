@@ -35,15 +35,8 @@ function oe_subscriptions_tokens(string $type, array $tokens, array $data, array
     $type === 'user' &&
     !empty($data['user'])
   ) {
-    // Adding the URL to the subscriptions page will lead into an 403 for
-    // non-logged users, we add a login URL with the subscriptions page
-    // destination.
-    $url = Url::fromRoute('user.login', [], [
-      'query' => [
-        'destination' => Url::fromRoute('oe_subscriptions.user.subscriptions', [
-          'user' => $data['user']->id(),
-        ])->toString(),
-      ],
+    $url = Url::fromRoute('oe_subscriptions.user.subscriptions', [
+      'user' => $data['user']->id(),
     ]);
 
     if (isset($tokens['subscriptions-page'])) {

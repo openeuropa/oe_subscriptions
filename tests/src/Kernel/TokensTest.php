@@ -63,7 +63,7 @@ class TokensTest extends KernelTestBase {
    */
   public function testUserTokens(): void {
     $user = $this->createUser();
-    $url = Url::fromUserInput("/user/login?destination=/user/{$user->id()}/subscriptions");
+    $url = Url::fromUserInput("/user/{$user->id()}/subscriptions");
 
     $this->doSubscriptionsPageTokenTest($url, $user);
   }
@@ -91,7 +91,7 @@ class TokensTest extends KernelTestBase {
        'subscriptions-page:unaliased' => $expected_url->toString(),
        'subscriptions-page:args:value:0' => explode('/', $expected_url->getInternalPath())[0],
        'subscriptions-page:args:value:1' => explode('/', $expected_url->getInternalPath())[1],
-       'subscriptions-page:args:value:2' => NULL,
+       'subscriptions-page:args:value:2' => explode('/', $expected_url->getInternalPath())[2] ?? NULL,
      ]);
 
     // Check nested token.
