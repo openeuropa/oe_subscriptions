@@ -53,7 +53,7 @@ function oe_subscriptions_tokens(string $type, array $tokens, array $data, array
     }
 
     // Chained token relationships.
-    if (($url_tokens = \Drupal::token()->findWithPrefix($tokens, 'subscriptions-page'))) {
+    if ($url_tokens = \Drupal::token()->findWithPrefix($tokens, 'subscriptions-page')) {
       $replacements += \Drupal::token()->generate('url', $url_tokens, ['url' => $url], $options, $bubbleable_metadata);
     }
   }

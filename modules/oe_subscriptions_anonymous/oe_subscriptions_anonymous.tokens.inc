@@ -29,7 +29,7 @@ function oe_subscriptions_anonymous_tokens_alter(array &$replacements, array $co
     }
 
     // Chained token relationships.
-    if (($url_tokens = \Drupal::token()->findWithPrefix($context['tokens'], 'subscriptions-page'))) {
+    if ($url_tokens = \Drupal::token()->findWithPrefix($context['tokens'], 'subscriptions-page')) {
       $anonymous_replacements = \Drupal::token()->generate('url', $url_tokens, ['url' => $url], $context['options'], $bubbleable_metadata);
       $replacements = array_merge($replacements, $anonymous_replacements);
     }
