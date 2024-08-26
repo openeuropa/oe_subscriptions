@@ -19,7 +19,7 @@ use Drupal\symfony_mailer\Processor\TokenProcessorTrait;
  *   label = @Translation("Anonymous subscriptions"),
  *   sub_types = {
  *     "subscription_create" = @Translation("Subscription confirmation creation"),
- *     "email_taken" = @Translation("Subscription confirmation - email address already taken"),
+ *     "registered_user_email_notice" = @Translation("Subscription confirmation - email address already taken"),
  *     "user_subscriptions_access" = @Translation("Subscriptions page access request"),
  *   },
  *   override = TRUE,

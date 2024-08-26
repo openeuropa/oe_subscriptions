@@ -10,7 +10,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
- * Prepares the "email_taken" mail.
+ * Prepares the "registered_user_email_notice" mail.
  *
  * This is sent if an anonymous user attempts to subscribe with an email address
  * that is already associated with a regular user account.
