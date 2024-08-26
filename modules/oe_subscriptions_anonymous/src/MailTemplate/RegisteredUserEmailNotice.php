@@ -15,7 +15,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
  * This is sent if an anonymous user attempts to subscribe with an email address
  * that is already associated with a regular user account.
  */
-class EmailTaken implements ContainerInjectionInterface, MailTemplateInterface {
+class RegisteredUserEmailNotice implements ContainerInjectionInterface, MailTemplateInterface {
 
   use StringTranslationTrait;
   use AutowireTrait;
