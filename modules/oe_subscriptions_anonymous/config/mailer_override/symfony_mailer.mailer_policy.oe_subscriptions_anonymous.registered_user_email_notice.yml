@@ -3,7 +3,7 @@ status: true
 dependencies:
   module:
     - oe_subscriptions_anonymous
-id: oe_subscriptions_anonymous.email_taken
+id: oe_subscriptions_anonymous.registered_user_email_notice
 configuration:
   email_subject:
     value: 'Cannot subscribe to {{ entity_label }}'

@@ -147,9 +147,9 @@ BODY);
     $this->drupalGet($spans->eq(3)->html());
     $assert_session->statusMessageContains('Your subscription request has been canceled.', 'status');
 
-    // Override the 'email_taken' email template.
+    // Override the 'registered_user_email_notice' email template.
     $this->drupalLogin($admin_user);
-    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.email_taken');
+    $this->drupalGet('admin/config/system/mailer/policy/oe_subscriptions_anonymous.registered_user_email_notice');
     $assert_session->fieldExists('edit-config-email-subject-value')->setValue('Overridden subject for email taken');
     $assert_session->fieldExists('edit-config-email-body-content-value')->setValue(<<<BODY
 <span>{{ entity_label }}</span>
@@ -172,7 +172,7 @@ BODY);
 <span>$article_label</span>
 <span>$article_url</span>
 BODY,
-      $this->getMailBodyWithoutWrapper('email_taken'),
+      $this->getMailBodyWithoutWrapper('registered_user_email_notice'),
     );
 
     // Override the templates for the subscriptions access mail.
@@ -259,7 +259,7 @@ BODY);
 <p>If you still want to subscribe to content updates for this item, you should log into the website, using your existing account, and then subscribe as a regular user.</p>
 <p>If you do not want to subscribe, you can ignore this message.</p>
 BODY,
-      $this->getMailBodyWithoutWrapper('email_taken'),
+      $this->getMailBodyWithoutWrapper('registered_user_email_notice'),
     );
 
     // Test request access HTML mail content.

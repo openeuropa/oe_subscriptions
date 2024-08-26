@@ -179,7 +179,7 @@ class AnonymousSubscribeForm extends FormBase {
       if ($account->isCoupled()) {
         // The email address belongs to a regular user account, which requires
         // regular login.
-        $mail_key = 'email_taken';
+        $mail_key = 'registered_user_email_notice';
         $mail_params = [
           'email' => $mail,
           'entity_type' => $flag->getFlaggableEntityTypeId(),
