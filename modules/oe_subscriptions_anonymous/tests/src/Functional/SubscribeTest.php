@@ -240,9 +240,9 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertMailProperty('subject', "Cannot subscribe to {$entity->label()}", $mail_data);
 
     $this->assertMailString('body', "Thank you for showing interest in keeping up with the updates for {$entity->label()} [1]!", $mail_data);
-    $this->assertMailString('body', 'The email address you were using to subscribe is already associated with a regular account on this website.', $mail_data);
-    $this->assertMailString('body', 'If you still want to subscribe to content updates for this item, you should log into the website, using your existing account, and then subscribe as a regular user.', $mail_data);
-    $this->assertMailString('body', 'If you do not want to subscribe, you can ignore this message.', $mail_data);
+    $this->assertMailString('body', 'The email address you were using when trying to subscribe is already associated with a regular account on this website.', $mail_data);
+    $this->assertMailString('body', 'If you still want to subscribe to the updates made to the content, you can log in to the website, using your existing account, and then subscribe as a regular user.', $mail_data);
+    $this->assertMailString('body', 'If you do not want to subscribe or are unsure why you received this email, you can ignore this message.', $mail_data);
 
     $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
     $this->assertCount(1, $mail_urls);
