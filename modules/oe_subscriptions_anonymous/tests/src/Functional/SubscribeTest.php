@@ -297,6 +297,34 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
+   * Visits and submits a subscription form.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The subscription flag.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to subscribe to.
+   * @param string $email
+   *   The email address to use in the subscribe form.
+   */
+  protected function requestSubscriptionForEntity(FlagInterface $flag, EntityInterface $entity, string $email): void {
+    $assert_session = $this->assertSession();
+    $mail_label = 'Your e-mail';
+    $terms_label = 'I have read and agree with the data protection terms.';
+
+    // Visit the subscribe form directly, without going to the entity first.
+    $this->visitSubscriptionRequestPageForEntity($flag, $entity);
+
+    // Fill the subscribe form, and submit.
+    $assert_session->fieldExists($mail_label)->setValue($email);
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+
+    // Arrive on the entity page with a status message.
+    $this->assertSubscriptionCreateMailStatusMessage();
+    $assert_session->addressEquals($entity->toUrl()->setAbsolute()->toString());
+  }
+
+  /**
    * Visits the subscription request page for the given entity.
    *
    * @param \Drupal\flag\FlagInterface $flag
