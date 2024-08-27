@@ -111,7 +111,7 @@ class SubscriptionAnonymousController extends ControllerBase {
       // address is associated with a regular account.
       $this->messenger()->addWarning(
         '<p>' . $this->t('You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.') . '</p>'
-        . '<p>' . $this->t('If you still want to subscribe, you should log in and subscribe as a regular user.') . '</p>',
+        . '<p>' . $this->t('If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.') . '</p>',
       );
       return $response;
     }
