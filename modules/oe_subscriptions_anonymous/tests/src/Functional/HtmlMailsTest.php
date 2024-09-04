@@ -361,14 +361,14 @@ BODY,
    */
   protected function getMailBodyWithoutWrapper(string $mail_id): string {
     $crawler = new Crawler($this->email->getHtmlBody());
-    $outer_div = $crawler->filter('body > div');
-    // The module name and thus "email-type" is the same for all emails within
-    // this test. Only the sub-type differs.
-    $this->assertSame(
-      'email-type-oe-subscriptions-anonymous email-sub-type-' . str_replace('_', '-', $mail_id),
-      $outer_div->attr('class'),
-    );
-    $content_div = $outer_div->filter('table div.clearfix');
+    $expected_class = 'email-sub-type-' . str_replace('_', '-', $mail_id);
+    $content_div = $crawler->filter("body > div.email-type-oe-subscriptions-anonymous.$expected_class table div.clearfix");
+    $this->assertCount(1, $content_div, sprintf(
+      // Show the actual email body, to make it easier to see what went wrong.
+      "Expected an email body with '%s' mail key. Found:\n%s",
+      $mail_id,
+      $this->email->getHtmlBody(),
+    ));
     return trim($content_div->html());
   }
 
