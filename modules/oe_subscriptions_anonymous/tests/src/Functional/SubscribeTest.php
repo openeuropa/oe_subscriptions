@@ -284,8 +284,12 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
 
     $assert_session = $this->assertSession();
-    $assert_session->statusMessageContains('You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.', 'warning');
-    $assert_session->statusMessageContains('If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.', 'warning');
+    $this->assertHtmlStatusMessage([
+      'p' => 'You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.',
+    ], 'warning');
+    $this->assertHtmlStatusMessage([
+      'p' => 'If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user',
+    ], 'warning');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
   }
 
