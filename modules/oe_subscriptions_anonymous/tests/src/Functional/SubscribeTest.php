@@ -6,7 +6,6 @@ namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
-use Drupal\decoupled_auth\DecoupledAuthUserInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\oe_subscriptions_anonymous\SettingsFormAlter;
 use Drupal\Tests\BrowserTestBase;
@@ -228,8 +227,8 @@ class SubscribeTest extends BrowserTestBase {
     ]);
 
     // Create a regular user account.
+    /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $user */
     $user = $this->createUser(values: ['mail' => 'conflict@example.com']);
-    $this->assertInstanceOf(DecoupledAuthUserInterface::class, $user);
     $this->assertTrue($user->isCoupled());
 
     // Request to subscribe as anonymous, with the same email address.
