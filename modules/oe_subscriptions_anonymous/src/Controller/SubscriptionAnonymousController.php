@@ -104,7 +104,7 @@ class SubscriptionAnonymousController extends ControllerBase {
       $this->subscriptionManager->subscribe($email, $flag, $entity_id);
     }
     catch (RegisteredUserEmailException) {
-      // The email address is already taken.
+      // The email address belongs to a registered user.
       // The user has already proven at this point that they own the email
       // address.
       // It is therefore ok to reveal that a user account with this email

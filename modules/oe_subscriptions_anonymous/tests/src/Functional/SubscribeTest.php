@@ -213,9 +213,9 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
-   * Tests a case where an email is already taken when a request is submitted.
+   * Tests subscribing with an address that belongs to a registered user.
    */
-  public function testEmailTakenOnSubscribeRequest(): void {
+  public function testRegisteredUserEmailSubscribe(): void {
     // Create flag and page.
     $pages_flag = $this->createFlagFromArray([
       'id' => 'subscribe_page',
@@ -253,9 +253,9 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
-   * Tests a case where an email is taken when a reqest is confirmed.
+   * Tests a subscribe email belonging to a registered user on confirm.
    */
-  public function testEmailTakenOnConfirm(): void {
+  public function testRegisteredUserEmailConfirm(): void {
     // Create flag and page.
     $pages_flag = $this->createFlagFromArray([
       'id' => 'subscribe_page',
