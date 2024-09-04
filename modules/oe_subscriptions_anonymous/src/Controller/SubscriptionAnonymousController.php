@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\oe_subscriptions_anonymous\Controller;
 
-use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
@@ -110,22 +109,13 @@ class SubscriptionAnonymousController extends ControllerBase {
       // address.
       // It is therefore ok to reveal that a user account with this email
       // address is associated with a regular account.
-      $this->messenger()->addWarning(
-        // Create a wrapper to apply the '<p>' tags, so that translators don't
-        // need to add '<p>' tags in their translations.
-        // In other places this is done by rendering a theme template.
-        // But here there is not much for themes to override.
-        new FormattableMarkup(
-          // The wrapper html is not translatable, so the placeholders are
-          // completely internal.
-          '<p>@first_line</p>
-<p>@second_line</p>',
-          [
-            '@first_line' => $this->t('You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.'),
-            '@second_line' => $this->t('If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.'),
-          ],
-        ),
-      );
+      $this->messenger()->addWarning($this->t(
+        // This message might be more readable with '<p>' tags. Unfortunately,
+        // in core themes, a message with multiple paragraphs looks the same as
+        // multiple separate messages. So, just use '<br>' instead.
+        'You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.<br>
+If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.',
+      ));
       return $response;
     }
 
