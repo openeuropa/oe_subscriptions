@@ -6,7 +6,7 @@ dependencies:
 id: oe_subscriptions_anonymous.registered_user_email_notice
 configuration:
   email_subject:
-    value: 'Cannot subscribe to {{ entity_label }}'
+    value: 'Please log in to subscribe to {{ entity_label }}'
   email_body:
     content:
       value: |-

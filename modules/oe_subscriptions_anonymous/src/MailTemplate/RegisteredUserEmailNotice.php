@@ -67,7 +67,7 @@ class RegisteredUserEmailNotice implements ContainerInjectionInterface, MailTemp
   public function prepare(array $params): array {
     $variables = $this->getVariables($params);
 
-    $message['subject'] = $this->t('Cannot subscribe to @entity_label', [
+    $message['subject'] = $this->t('Please log in to subscribe to @entity_label', [
       '@entity_label' => $variables['entity_label'],
     ]);
 

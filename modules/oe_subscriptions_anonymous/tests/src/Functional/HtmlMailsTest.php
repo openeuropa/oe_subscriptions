@@ -250,7 +250,7 @@ BODY);
     // Receive the failure email.
     $this->readMail();
     $this->assertTo('conflict@example.com');
-    $this->assertSubject("Cannot subscribe to $article_label");
+    $this->assertSubject("Please log in to subscribe to $article_label");
     $article_url = $this->article->toUrl()->setAbsolute()->toString();
     $this->assertSame(
       <<<BODY

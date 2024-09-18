@@ -239,7 +239,7 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertCount(1, $mails);
     $mail_data = $mails[0];
     $this->assertMailProperty('to', 'conflict@example.com', $mail_data);
-    $this->assertMailProperty('subject', "Cannot subscribe to {$entity->label()}", $mail_data);
+    $this->assertMailProperty('subject', "Please log in to subscribe to {$entity->label()}", $mail_data);
 
     $this->assertMailString('body', "Thank you for showing interest in keeping up with the updates for {$entity->label()} [1]!", $mail_data);
     $this->assertMailString('body', 'The email address you were using when trying to subscribe is already associated with a regular account on this website.', $mail_data);
