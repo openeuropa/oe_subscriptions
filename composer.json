@@ -62,7 +62,8 @@
         },
         "patches": {
             "drupal/message_digest": {
-                "Installing site from existing config fails when message_digest_ui module is part of the install @see https://www.drupal.org/project/message_digest/issues/3375308": "https://www.drupal.org/files/issues/2024-03-07/message_digest-3375308-installing-site-config-fails.patch"
+                "Installing site from existing config fails when message_digest_ui module is part of the install @see https://www.drupal.org/project/message_digest/issues/3375308": "https://www.drupal.org/files/issues/2024-03-07/message_digest-3375308-installing-site-config-fails.patch",
+                "Missing plugins in frequency @see https://www.drupal.org/project/message_digest/issues/3477172": "https://www.drupal.org/files/issues/2024-09-27/3477172-9.patch"
             },
             "drupal/message_subscribe": {
                 "'An anonymous user must be identified by session ID' crash on Drupal 10 @see https://www.drupal.org/project/message_subscribe/issues/3388551": "https://www.drupal.org/files/issues/2024-03-06/message_subscribe-3388551-support-anonymous-sessions-7.patch"
