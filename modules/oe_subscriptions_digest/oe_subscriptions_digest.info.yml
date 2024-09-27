@@ -4,5 +4,5 @@ description: 'This module allows users to configure frequency for the notificati
 package: Openeuropa
 core_version_requirement: ^10
 dependencies:
-  - message_diggest:message_digest_ui
+  - message_digest:message_digest_ui
   - oe_subscriptions:oe_subscriptions
