@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions_digest\Functional;
 
-use Drupal\field\Entity\FieldConfig;
-use Drupal\message_digest\Entity\MessageDigestInterval;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\SubscriptionsPageTrait;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\message_digest\Entity\MessageDigestInterval;
 use Drupal\user\UserInterface;
 
 /**

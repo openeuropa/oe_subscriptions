@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
-use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
 use Drupal\Tests\oe_subscriptions\Functional\UserSubscriptionsPageTestBase;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\SubscriptionsPageTrait;
+use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
 use Drupal\user\Entity\Role;
 use Drupal\user\UserInterface;
 

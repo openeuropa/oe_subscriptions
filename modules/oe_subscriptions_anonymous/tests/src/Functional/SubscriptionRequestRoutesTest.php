@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Functional;
 
 use Drupal\Core\Url;
-use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 
 /**
  * Tests the subscription request routes.

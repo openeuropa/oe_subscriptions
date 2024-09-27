@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\oe_subscriptions_digest;
 
-use Drupal\flag\FlaggingInterface;
 use Drupal\flag\FlagInterface;
+use Drupal\flag\FlaggingInterface;
 use Drupal\oe_subscriptions\FlagHelper;
 
 /**

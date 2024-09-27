@@ -32,7 +32,7 @@ trait AssertMailTrait {
    * @param array|null $mail
    *   The mail itself. If left empty, the last collected e-mail will be used.
    */
-  protected function assertMailProperty(string $key, $value, array $mail = NULL): void {
+  protected function assertMailProperty(string $key, $value, ?array $mail = NULL): void {
     if ($mail === NULL) {
       $mails = $this->getMails();
       $mail = end($mails);
@@ -52,7 +52,7 @@ trait AssertMailTrait {
    * @param array|null $mail
    *   The mail itself. If left empty, the last collected e-mail will be used.
    */
-  protected function assertMailString(string $key, string $string, array $mail = NULL): void {
+  protected function assertMailString(string $key, string $string, ?array $mail = NULL): void {
     if ($mail === NULL) {
       $mails = $this->getMails();
       $mail = end($mails);

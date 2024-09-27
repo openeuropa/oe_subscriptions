@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Drupal\Core\Url;
-use Drupal\filter\Entity\FilterFormat;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests the subscription configuration.

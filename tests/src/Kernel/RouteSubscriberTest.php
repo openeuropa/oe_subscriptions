@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions\Kernel;
 
-use Drupal\entity_test\Entity\EntityTestBundle;
-use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions\Trait\RouteAccessTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
+use Drupal\entity_test\Entity\EntityTestBundle;
+use Drupal\entity_test\Entity\EntityTestWithBundle;
 
 /**
  * Route subscriber tests.

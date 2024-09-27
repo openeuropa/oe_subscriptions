@@ -6,14 +6,14 @@ namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\flag\FlagInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\oe_subscriptions\Form\SettingsForm;
-use Drupal\Tests\BrowserTestBase;
-use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\user\UserInterface;
 
 /**
