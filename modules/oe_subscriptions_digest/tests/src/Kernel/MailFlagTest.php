@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_digest\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\oe_subscriptions\FlagHelper;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\oe_subscriptions\FlagHelper;
 
 /**
  * Class to test mail flag.

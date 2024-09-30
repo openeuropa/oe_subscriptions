@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
+use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\decoupled_auth\DecoupledAuthUserInterface;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\oe_subscriptions_anonymous\Exception\RegisteredUserEmailException;
-use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
  * Tests the anonymous subscription manager.

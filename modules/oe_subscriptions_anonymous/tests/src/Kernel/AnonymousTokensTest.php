@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\oe_subscriptions_anonymous\Kernel;
 
 use Drupal\Core\Url;
-use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
 use Drupal\Tests\oe_subscriptions\Kernel\TokensTest;
+use Drupal\decoupled_auth\Entity\DecoupledAuthUser;
 
 /**
  * Test the Anonymous subscriptions tokens.

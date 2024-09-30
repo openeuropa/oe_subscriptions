@@ -87,7 +87,7 @@ class AnonymousSubscribeForm extends FormBase {
    * @return array
    *   The form structure.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, FlagInterface $flag = NULL, string $entity_id = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, ?FlagInterface $flag = NULL, ?string $entity_id = NULL) {
     // Terms and conditions link.
     $title = $this->t('I have read and agree with the data protection terms.');
     $config = $this->configFactory->get(SettingsFormAlter::CONFIG_NAME);

@@ -24,7 +24,7 @@ trait RouteAccessTrait {
    * @return bool
    *   True if access is allowed, false otherwise.
    */
-  protected function checkRouteAccess(string $route_name, array $route_parameters, AccountInterface $user = NULL): bool {
+  protected function checkRouteAccess(string $route_name, array $route_parameters, ?AccountInterface $user = NULL): bool {
     $access_check = $this->container->get('access_manager')->checkNamedRoute(
       $route_name,
       $route_parameters,
