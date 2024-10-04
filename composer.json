@@ -80,11 +80,12 @@
         "allow-plugins": {
             "composer/installers": true,
             "cweagans/composer-patches": true,
-            "drupal/core-composer-scaffold": true,
-            "phpro/grumphp": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
+            "drupal/core-composer-scaffold": true,
+            "php-http/discovery": false,
+            "phpro/grumphp": true,
             "phpstan/extension-installer": true,
-            "php-http/discovery": false
+            "tbachert/spi": true
         }
     }
 }
