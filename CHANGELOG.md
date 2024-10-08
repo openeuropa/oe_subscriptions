@@ -1,10 +1,19 @@
 # Change Log
 
+## [1.0.0-alpha4](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha4) (2024-10-08)
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha3...1.0.0-alpha4)
+
+**Merged pull requests:**
+
+- OEL-3427: Fix failing tests. [\#40](https://github.com/openeuropa/oe_subscriptions/pull/40) ([drishu](https://github.com/drishu))
+- DARWIN-1045: Provide link to user profile and/or subscriptions page [\#34](https://github.com/openeuropa/oe_subscriptions/pull/34) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
+
 ## [1.0.0-alpha3](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha3) (2024-07-17)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha2...1.0.0-alpha3)
 
 **Merged pull requests:**
 
+- Prepare release 1.0.0-alpha3. [\#36](https://github.com/openeuropa/oe_subscriptions/pull/36) ([drishu](https://github.com/drishu))
 - OEL-3115: Update to Drupal 10.3 [\#35](https://github.com/openeuropa/oe_subscriptions/pull/35) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 - OEL-2853: Add support for HTML emails [\#31](https://github.com/openeuropa/oe_subscriptions/pull/31) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 
