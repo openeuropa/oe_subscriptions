@@ -210,6 +210,85 @@ class SubscribeTest extends BrowserTestBase {
   }
 
   /**
+   * Tests subscribing with an address that belongs to a registered user.
+   */
+  public function testRegisteredUserEmailSubscribe(): void {
+    // Create flag and page.
+    $pages_flag = $this->createFlagFromArray([
+      'id' => 'subscribe_page',
+      'entity_type' => 'node',
+      'bundles' => ['page'],
+    ]);
+    $entity = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
+    // Create a regular user account.
+    /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface $user */
+    $user = $this->createUser(values: ['mail' => 'conflict@example.com']);
+    $this->assertTrue($user->isCoupled());
+
+    // Request to subscribe as anonymous, with the same email address.
+    $this->requestSubscriptionForEntity($pages_flag, $entity, 'conflict@example.com');
+
+    // Receive a failure email.
+    $mails = $this->getMails();
+    $this->assertCount(1, $mails);
+    $mail_data = $mails[0];
+    $this->assertMailProperty('to', 'conflict@example.com', $mail_data);
+    $this->assertMailProperty('subject', "Please log in to subscribe to {$entity->label()}", $mail_data);
+
+    $this->assertMailString('body', "Thank you for showing interest in keeping up with the updates for {$entity->label()} [1]!", $mail_data);
+    $this->assertMailString('body', 'The email address you were using when trying to subscribe is already associated with a regular account on this website.', $mail_data);
+    $this->assertMailString('body', 'If you still want to subscribe to the updates made to the content, you can log in to the website, using your existing account, and then subscribe as a regular user.', $mail_data);
+    $this->assertMailString('body', 'If you do not want to subscribe or are unsure why you received this email, you can ignore this message.', $mail_data);
+
+    $mail_urls = $this->getMailFootNoteUrls($mail_data['body']);
+    $this->assertCount(1, $mail_urls);
+    $this->assertEquals($entity->toUrl()->setAbsolute()->toString(), $mail_urls[1]);
+  }
+
+  /**
+   * Tests a subscribe email belonging to a registered user on confirm.
+   */
+  public function testRegisteredUserEmailConfirm(): void {
+    // Create flag and page.
+    $pages_flag = $this->createFlagFromArray([
+      'id' => 'subscribe_page',
+      'entity_type' => 'node',
+      'bundles' => ['page'],
+    ]);
+    $page = $this->drupalCreateNode([
+      'type' => 'page',
+      'status' => 1,
+    ]);
+
+    // Request to subscribe as anonymous, at a time when no account exists yet
+    // with this email address.
+    $this->requestSubscriptionForEntity($pages_flag, $page, 'conflict@example.com');
+
+    // Receive the confirm email.
+    $mails = $this->getMails();
+    $this->assertCount(1, $mails);
+    $mail_urls = $this->assertSubscriptionConfirmationMail($mails[0], 'conflict@example.com', $pages_flag, $page);
+
+    // Create a regular user account with the same email address.
+    // Do this before visiting the confirm link.
+    $this->createUser(values: ['mail' => 'conflict@example.com']);
+
+    // Visit the confirm link from the email.
+    $this->drupalGet($mail_urls[2]);
+
+    $assert_session = $this->assertSession();
+    $assert_session->statusMessageContains('You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.', 'warning');
+    $this->assertHtmlStatusMessage(['br' => ''], 'warning');
+    $assert_session->statusMessageContains('If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.
+', 'warning');
+    $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
+  }
+
+  /**
    * Tests the terms and conditions link.
    */
   public function testTermsAndConditionsLink() {
@@ -294,6 +373,34 @@ class SubscribeTest extends BrowserTestBase {
     $this->assertMatchesRegularExpression('@^' . preg_quote($base_cancel_url, '@') . '/.+$@', $mail_urls[3]);
 
     return $mail_urls;
+  }
+
+  /**
+   * Visits and submits a subscription form.
+   *
+   * @param \Drupal\flag\FlagInterface $flag
+   *   The subscription flag.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to subscribe to.
+   * @param string $email
+   *   The email address to use in the subscribe form.
+   */
+  protected function requestSubscriptionForEntity(FlagInterface $flag, EntityInterface $entity, string $email): void {
+    $assert_session = $this->assertSession();
+    $mail_label = 'Your e-mail';
+    $terms_label = 'I have read and agree with the data protection terms.';
+
+    // Visit the subscribe form directly, without going to the entity first.
+    $this->visitSubscriptionRequestPageForEntity($flag, $entity);
+
+    // Fill the subscribe form, and submit.
+    $assert_session->fieldExists($mail_label)->setValue($email);
+    $assert_session->fieldExists($terms_label)->check();
+    $assert_session->buttonExists('Subscribe me')->press();
+
+    // Arrive on the entity page with a status message.
+    $this->assertSubscriptionCreateMailStatusMessage();
+    $assert_session->addressEquals($entity->toUrl()->setAbsolute()->toString());
   }
 
   /**

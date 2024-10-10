@@ -12,6 +12,7 @@ use Drupal\flag\FlagInterface;
 use Drupal\flag\FlagServiceInterface;
 use Drupal\oe_subscriptions\Form\UserSubscriptionsForm;
 use Drupal\oe_subscriptions_anonymous\AnonymousSubscriptionManager;
+use Drupal\oe_subscriptions_anonymous\Exception\RegisteredUserEmailException;
 use Drupal\oe_subscriptions_anonymous\TokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -96,9 +97,28 @@ class SubscriptionAnonymousController extends ControllerBase {
       return $response;
     }
 
-    $this->subscriptionManager->subscribe($email, $flag, $entity_id);
     // The token has been used, so we need to invalidate it.
     $this->tokenManager->delete($email, $scope);
+
+    try {
+      $this->subscriptionManager->subscribe($email, $flag, $entity_id);
+    }
+    catch (RegisteredUserEmailException) {
+      // The email address belongs to a registered user.
+      // The user has already proven at this point that they own the email
+      // address.
+      // It is therefore ok to reveal that a user account with this email
+      // address is associated with a regular account.
+      $this->messenger()->addWarning($this->t(
+        // This message might be more readable with '<p>' tags. Unfortunately,
+        // in core themes, a message with multiple paragraphs looks the same as
+        // multiple separate messages. So, just use '<br>' instead.
+        'You have attempted to subscribe as anonymous, using an email address that is already associated with a regular account.<br>
+If you still want to subscribe to content updates for this item, you can log in to the website, using your existing account, and then subscribe as a regular user.',
+      ));
+      return $response;
+    }
+
     // Success message and redirection to entity.
     $this->messenger()->addMessage($this->t('Your subscription request has been confirmed.'));
 

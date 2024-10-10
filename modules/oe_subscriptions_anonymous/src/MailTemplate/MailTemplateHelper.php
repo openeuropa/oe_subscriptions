@@ -17,6 +17,7 @@ final class MailTemplateHelper {
   public static function getMailTemplate(string $key): MailTemplateInterface {
     return \Drupal::classResolver(match ($key) {
       'subscription_create' => SubscriptionCreate::class,
+      'registered_user_email_notice' => RegisteredUserEmailNotice::class,
       'user_subscriptions_access' => UserSubscriptionsAccess::class,
     });
   }

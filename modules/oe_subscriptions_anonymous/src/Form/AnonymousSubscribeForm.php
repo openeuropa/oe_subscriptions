@@ -154,20 +154,45 @@ class AnonymousSubscribeForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $mail = $form_state->getValue('email');
+    /**
+     * @var \Drupal\flag\FlagInterface $flag
+     * @var string|int $entity_id
+     */
     [$flag, $entity_id] = $form_state->getBuildInfo()['args'];
 
+    $mail_key = 'subscription_create';
+    $mail_params = [
+      'email' => $mail,
+      'flag' => $flag,
+      'entity_id' => $entity_id,
+    ];
+
+    // Check if a user with this email already exists.
+    // @todo Use dependency injection instead of function call.
+    // The decoupled_auth module is installed, which replaces the class for
+    // user entities.
+    /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface|null $account */
+    $account = user_load_by_mail($mail);
+
+    if ($account !== FALSE && $account->isCoupled()) {
+      // The email address belongs to a regular user account, which requires
+      // regular login.
+      $mail_key = 'registered_user_email_notice';
+      $mail_params = [
+        'email' => $mail,
+        'entity_type' => $flag->getFlaggableEntityTypeId(),
+        'entity_id' => $entity_id,
+      ];
+    }
+
     // @todo Send a different e-mail when the user is already subscribed.
-    // @todo Send a different e-mail if the user is coupled.
     $result = $this->mailManager->mail(
       'oe_subscriptions_anonymous',
-      'subscription_create',
+      $mail_key,
       $mail,
       $this->languageManager->getCurrentLanguage()->getId(),
-      [
-        'email' => $mail,
-        'flag' => $flag,
-        'entity_id' => $entity_id,
-      ]);
+      $mail_params,
+    );
 
     if (!$result) {
       $this->messenger()->addError($this->t('An error occurred when sending the confirmation e-mail. Please contact the administrator.'));
