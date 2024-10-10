@@ -1,10 +1,18 @@
 # Change Log
 
-## [1.0.0-alpha4](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha4) (2024-10-08)
+## [1.0.0-beta1](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta1) (2024-10-10)
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha4...1.0.0-beta1)
+
+**Merged pull requests:**
+
+- DARWIN-1152: Error from confirmation link in the email for corporate email [\#38](https://github.com/openeuropa/oe_subscriptions/pull/38) ([donquixote](https://github.com/donquixote))
+
+## [1.0.0-alpha4](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha4) (2024-10-09)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha3...1.0.0-alpha4)
 
 **Merged pull requests:**
 
+- Prepare release 1.0.0-alpha4. [\#41](https://github.com/openeuropa/oe_subscriptions/pull/41) ([drishu](https://github.com/drishu))
 - OEL-3427: Fix failing tests. [\#40](https://github.com/openeuropa/oe_subscriptions/pull/40) ([drishu](https://github.com/drishu))
 - DARWIN-1045: Provide link to user profile and/or subscriptions page [\#34](https://github.com/openeuropa/oe_subscriptions/pull/34) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 
