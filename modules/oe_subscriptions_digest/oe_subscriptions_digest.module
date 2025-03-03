@@ -81,11 +81,10 @@ function oe_subscriptions_digest_user_update(EntityInterface $entity): void {
   $flagging_storage = \Drupal::service('entity_type.manager')->getStorage('flagging');
   $query = $flagging_storage->getQuery();
   $query
-    ->accessCheck(FALSE)
     ->condition('flag_id', $mail_prefix, 'STARTS_WITH')
     ->condition('uid', $entity->id());
 
-  $flaggings = $flagging_storage->loadMultiple($query->execute());
+  $flaggings = $flagging_storage->loadMultiple($query->accessCheck(FALSE)->execute());
   foreach ($flaggings as $flagging) {
     if ($flagging->hasField('message_digest')) {
       $flagging->set('message_digest', $entity->get('message_digest')->value)->save();
