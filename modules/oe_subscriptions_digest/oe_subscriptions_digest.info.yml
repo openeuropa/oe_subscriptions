@@ -2,7 +2,7 @@ name: 'Openeuropa subscriptions digest'
 type: module
 description: 'This module allows users to configure frequency for the notifications.'
 package: Openeuropa
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - message_digest:message_digest_ui
   - oe_subscriptions:oe_subscriptions
