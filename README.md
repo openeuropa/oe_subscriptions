@@ -1,3 +1,3 @@
 # OpenEuropa Subscriptions
 
-The Open Europa Subscriptions module provides a system for users and anonymous to subscribe to content and receive notifications using message stack and Symfony Mailer.
+The OpenEuropa Subscriptions module provides a system that allows both registered users and anonymous visitors to subscribe to content and receive notifications using the Message stack and Symfony Mailer.
