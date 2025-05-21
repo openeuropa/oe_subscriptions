@@ -1,10 +1,21 @@
 # Change Log
 
+## [1.0.0-beta2](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta2) (2025-05-21)
+
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-beta1...1.0.0-beta2)
+
+**Merged pull requests:**
+
+- OEL-3837: Removed patch. [\#46](https://github.com/openeuropa/oe_subscriptions/pull/46) ([tibi2303](https://github.com/tibi2303))
+- OEL-3578: Improve README.md. [\#45](https://github.com/openeuropa/oe_subscriptions/pull/45) ([drishu](https://github.com/drishu))
+- EWPP-4991: PHP8.3 compatibility [\#43](https://github.com/openeuropa/oe_subscriptions/pull/43) ([msnassar](https://github.com/msnassar))
+
 ## [1.0.0-beta1](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta1) (2024-10-10)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-alpha4...1.0.0-beta1)
 
 **Merged pull requests:**
 
+- Prepare changelog for release 1.0.0-beta1. [\#42](https://github.com/openeuropa/oe_subscriptions/pull/42) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
 - DARWIN-1152: Error from confirmation link in the email for corporate email [\#38](https://github.com/openeuropa/oe_subscriptions/pull/38) ([donquixote](https://github.com/donquixote))
 
 ## [1.0.0-alpha4](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-alpha4) (2024-10-09)
