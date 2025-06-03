@@ -1,11 +1,18 @@
 # Change Log
 
-## [1.0.0-beta2](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta2) (2025-05-21)
+## [1.0.0-beta3](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta3) (2025-05-30)
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-beta2...1.0.0-beta3)
 
+**Merged pull requests:**
+
+- EWPP-5341: Support D11. [\#44](https://github.com/openeuropa/oe_subscriptions/pull/44) ([msnassar](https://github.com/msnassar))
+
+## [1.0.0-beta2](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta2) (2025-05-21)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-beta1...1.0.0-beta2)
 
 **Merged pull requests:**
 
+- Prepare release 1.0.0-beta2. [\#47](https://github.com/openeuropa/oe_subscriptions/pull/47) ([tibi2303](https://github.com/tibi2303))
 - OEL-3837: Removed patch. [\#46](https://github.com/openeuropa/oe_subscriptions/pull/46) ([tibi2303](https://github.com/tibi2303))
 - OEL-3578: Improve README.md. [\#45](https://github.com/openeuropa/oe_subscriptions/pull/45) ([drishu](https://github.com/drishu))
 - EWPP-4991: PHP8.3 compatibility [\#43](https://github.com/openeuropa/oe_subscriptions/pull/43) ([msnassar](https://github.com/msnassar))
