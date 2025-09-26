@@ -154,6 +154,7 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     // And some for user two.
     $flag_service->flag($articles_flag, $article, $user_two);
     $flag_service->flag($pages_flag, $page_one, $user_two);
+    $flag_service->flag($pages_flag, $page_two, $user_two);
 
     $fn_go_to_page($user_one);
     $table = $assert_session->elementExists('css', 'table.user-subscriptions');
@@ -188,21 +189,32 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     // Check the flags of user two.
     $fn_go_to_page($user_two);
     $rows = $this->getTableSectionRows($table, 'tbody');
+    $this->assertCount(3, $rows);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_two, $rows[0]);
+    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_two, $rows[1]);
+    $this->assertSubscriptionRow('Content', $article, $articles_flag, $user_two, $rows[2]);
+
+    // Use the remove button in the middle row.
+    // This proves that Drupal correctly determines which button was pushed.
+    $rows[1][2]->pressButton('Remove');
+    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $page_one->label(), 'status');
+    $rows = $this->getTableSectionRows($table, 'tbody');
     $this->assertCount(2, $rows);
-    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_two, $rows[0]);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_two, $rows[0]);
     $this->assertSubscriptionRow('Content', $article, $articles_flag, $user_two, $rows[1]);
+    $this->assertFalse($pages_flag->isFlagged($page_one, $user_two));
 
     // Use the remove button to unsubscribe from the article.
     $rows[1][2]->pressButton('Remove');
     $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $article->label(), 'status');
     $rows = $this->getTableSectionRows($table, 'tbody');
     $this->assertCount(1, $rows);
-    $this->assertSubscriptionRow('Content', $page_one, $pages_flag, $user_two, $rows[0]);
+    $this->assertSubscriptionRow('Content', $page_two, $pages_flag, $user_two, $rows[0]);
     $this->assertFalse($articles_flag->isFlagged($article, $user_two));
 
-    // Unsubscribe from the page too.
+    // Unsubscribe from page two.
     $rows[0][2]->pressButton('Remove');
-    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $page_one->label(), 'status');
+    $assert_session->statusMessageContains('You have successfully unsubscribed from ' . $page_two->label(), 'status');
     $this->assertEmpty($this->getTableSectionRows($table, 'tbody'));
     $assert_session->pageTextContains('No subscriptions found.');
 

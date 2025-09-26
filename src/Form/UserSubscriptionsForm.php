@@ -210,6 +210,7 @@ class UserSubscriptionsForm extends FormBase {
           '#type' => 'submit',
           '#value' => $this->t('Remove'),
           '#submit' => ['::unflagSubmit'],
+          '#name' => 'remove_flagging_' . $flagging->id(),
         ],
       ];
     }
