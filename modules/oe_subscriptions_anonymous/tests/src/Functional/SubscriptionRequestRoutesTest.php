@@ -123,7 +123,7 @@ class SubscriptionRequestRoutesTest extends BrowserTestBase {
    * @return iterable
    *   The test scenarios.
    */
-  public function subscriptionRequestInvalidTokenDataProvider(): iterable {
+  public static function subscriptionRequestInvalidTokenDataProvider(): iterable {
     yield ['oe_subscriptions_anonymous.subscription_request.confirm'];
     yield ['oe_subscriptions_anonymous.subscription_request.cancel'];
   }

@@ -6,12 +6,15 @@ namespace Drupal\Tests\oe_subscriptions\Functional;
 
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\oe_subscriptions\Trait\GetSelectOptionsTrait;
 use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests the subscription configuration.
  */
 class SettingsTest extends BrowserTestBase {
+
+  use GetSelectOptionsTrait;
 
   /**
    * {@inheritdoc}
@@ -66,7 +69,7 @@ class SettingsTest extends BrowserTestBase {
       'plain_text' => 'Plain text',
       'full_html' => 'Full HTML',
       'filtered_html' => 'Filtered HTML',
-    ], $this->getOptions($text_format));
+    ], $this->getSelectOptions($text_format));
     $this->assertEquals('plain_text', $text_format->getValue());
     $text_format->setValue('full_html');
     $assert_session->buttonExists('Save configuration')->press();

@@ -7,6 +7,7 @@ namespace Drupal\Tests\oe_subscriptions_digest\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
 use Drupal\Tests\oe_subscriptions_anonymous\Trait\SubscriptionsPageTrait;
+use Drupal\Tests\oe_subscriptions\Trait\GetSelectOptionsTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\message_digest\Entity\MessageDigestInterval;
 use Drupal\user\UserInterface;
@@ -17,6 +18,7 @@ use Drupal\user\UserInterface;
 abstract class UserDigestTestBase extends BrowserTestBase {
 
   use FlagCreateTrait;
+  use GetSelectOptionsTrait;
   use SubscriptionsPageTrait;
 
   /**
@@ -54,7 +56,7 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'Send immediately' => 'Send immediately',
       'message_digest:daily' => 'Daily',
       'message_digest:weekly' => 'Weekly',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     MessageDigestInterval::create([
       'id' => 'bi_weekly',
@@ -67,7 +69,7 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'message_digest:daily' => 'Daily',
       'message_digest:weekly' => 'Weekly',
       'message_digest:bi_weekly' => 'Bi-weekly',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     MessageDigestInterval::create([
       'id' => 'monthly',
@@ -81,7 +83,7 @@ abstract class UserDigestTestBase extends BrowserTestBase {
       'message_digest:weekly' => 'Weekly',
       'message_digest:bi_weekly' => 'Bi-weekly',
       'message_digest:monthly' => 'Monthly',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     $select->selectOption('Daily');
     $assert_session->buttonExists('Save')->press();

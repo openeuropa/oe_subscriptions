@@ -8,6 +8,7 @@ use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\flag\Traits\FlagCreateTrait;
+use Drupal\Tests\oe_subscriptions\Trait\GetSelectOptionsTrait;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestWithBundle;
 use Drupal\filter\Entity\FilterFormat;
@@ -22,6 +23,7 @@ use Drupal\user\UserInterface;
 abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
 
   use FlagCreateTrait;
+  use GetSelectOptionsTrait;
 
   /**
    * {@inheritdoc}
@@ -257,14 +259,14 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
     $select = $assert_session->selectExists('Preferred language');
     $this->assertEquals([
       'en' => 'English',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     ConfigurableLanguage::createFromLangcode('it')->save();
     $this->drupalGet($path);
     $this->assertEquals([
       'en' => 'English',
       'it' => 'Italian',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     ConfigurableLanguage::createFromLangcode('es')->save();
     $this->drupalGet($path);
@@ -272,7 +274,7 @@ abstract class UserSubscriptionsPageTestBase extends BrowserTestBase {
       'en' => 'English',
       'it' => 'Italian',
       'es' => 'Spanish',
-    ], $this->getOptions($select));
+    ], $this->getSelectOptions($select));
 
     $select->selectOption('Italian');
     $assert_session->buttonExists('Save')->press();

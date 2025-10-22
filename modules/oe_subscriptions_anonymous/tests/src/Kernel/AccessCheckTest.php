@@ -144,7 +144,7 @@ class AccessCheckTest extends KernelTestBase {
    * @return iterable
    *   The test scenarios.
    */
-  public function routeDataProvider(): iterable {
+  public static function routeDataProvider(): iterable {
     yield [
       'oe_subscriptions_anonymous.subscription_request',
     ];
