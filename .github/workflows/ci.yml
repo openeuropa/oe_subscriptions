@@ -19,11 +19,14 @@ jobs:
           - "10.4.0"
           - "11.1.0"
           - "11.2.0"
+          - "11.3.0"
         exclude:
           - php_version: "8.1"
             core_version: "11.1.0"
           - php_version: "8.1"
             core_version: "11.2.0"
+          - php_version: "8.1"
+            core_version: "11.3.0"
     env:
       PHP_VERSION: ${{ matrix.php_version }}
     steps:
@@ -40,15 +43,13 @@ jobs:
       - name: Start services with Docker Compose
         run: docker compose up -d
 
-      - run: docker compose exec -T web composer self-update
+      - run: docker compose exec -T web composer self-update 2.8.12
 
       - name: Build dependencies
-        run: >
-          docker compose exec -T web composer require
-          drupal/core:~${{ matrix.core_version }}
-          drupal/core-composer-scaffold:~${{ matrix.core_version }}
-          drupal/core-dev:~${{ matrix.core_version }}
-          --update-with-all-dependencies --ansi --no-progress --no-interaction
+        run: |
+          docker compose exec -T web composer require drupal/core:~${{ matrix.core_version }} --no-update --no-interaction
+          docker compose exec -T web composer require --dev drupal/core-composer-scaffold:~${{ matrix.core_version }} drupal/core-dev:~${{ matrix.core_version }} --no-update --no-interaction
+          docker compose exec -T web composer update --with-all-dependencies --ansi --no-progress --no-interaction
 
       - name: Run grumphp
         run: docker compose exec -T web ./vendor/bin/grumphp run
