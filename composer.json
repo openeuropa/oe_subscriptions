@@ -9,7 +9,7 @@
         "php": ">=8.1",
         "cweagans/composer-patches": "^1.7",
         "drupal/core": "^10 || ^11",
-        "drupal/flag": "^4.0@beta",
+        "drupal/flag": "^5.0",
         "drupal/message": "^1.8",
         "drupal/message_subscribe": "^2.0"
     },
