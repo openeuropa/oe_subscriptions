@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.0.0-beta4](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta4) (09/04/2026)
+
+[Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-beta3...1.0.0-beta4)
+
+**Merged pull requests:**
+
+- OEL-4670: Update Flag module. [\#54](https://github.com/openeuropa/oe_subscriptions/pull/54) ([AaronGilMartinez](https://github.com/AaronGilMartinez))
+- OEL-4512: Update to Drupal 11.3.x. [\#53](https://github.com/openeuropa/oe_subscriptions/pull/53) ([tibi2303](https://github.com/tibi2303))
+- OEL-4191: Always trigger the correct Remove button. [\#52](https://github.com/openeuropa/oe_subscriptions/pull/52) ([donquixote](https://github.com/donquixote))
+- OEL-4177: Test with drupal/core:~11.2.0 in github actions. [\#51](https://github.com/openeuropa/oe_subscriptions/pull/51) ([donquixote](https://github.com/donquixote))
+- OEL-4101: Move CI to github actions. [\#50](https://github.com/openeuropa/oe_subscriptions/pull/50) ([donquixote](https://github.com/donquixote))
+- OEL-3858: Updated images. [\#49](https://github.com/openeuropa/oe_subscriptions/pull/49) ([tibi2303](https://github.com/tibi2303))
+
 ## [1.0.0-beta3](https://github.com/openeuropa/oe_subscriptions/tree/1.0.0-beta3) (2025-05-30)
 [Full Changelog](https://github.com/openeuropa/oe_subscriptions/compare/1.0.0-beta2...1.0.0-beta3)
 
