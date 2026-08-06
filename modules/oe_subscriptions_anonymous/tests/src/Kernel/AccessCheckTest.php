@@ -53,17 +53,6 @@ class AccessCheckTest extends KernelTestBase {
       'entity_type' => 'entity_test_with_bundle',
       'bundles' => [],
     ]);
-
-    // @todo Remove when support for 10.2.x is dropped.
-    // See https://www.drupal.org/project/drupal/issues/3158130
-    // Call the install hook of the User module which creates the Anonymous user
-    // and User 1. This is needed because the Anonymous user is loaded to
-    // provide the current User context which is needed in places like route
-    // enhancers.
-    // @see CurrentUserContext::getRuntimeContexts().
-    // @see EntityConverter::convert().
-    \Drupal::moduleHandler()->loadInclude('user', 'install');
-    user_install();
   }
 
   /**
