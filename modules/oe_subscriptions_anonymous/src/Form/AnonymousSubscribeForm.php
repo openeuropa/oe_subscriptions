@@ -9,6 +9,7 @@ use Drupal\Core\Ajax\AjaxFormHelperTrait;
 use Drupal\Core\Ajax\AjaxHelperTrait;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\RedirectCommand;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -41,12 +42,15 @@ class AnonymousSubscribeForm extends FormBase {
    *   The language manager.
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
   public function __construct(
     protected MailManagerInterface $mailManager,
     protected FlagServiceInterface $flagService,
     protected LanguageManagerInterface $languageManager,
     protected RendererInterface $renderer,
+    protected EntityTypeManagerInterface $entityTypeManager,
   ) {}
 
   /**
@@ -57,7 +61,8 @@ class AnonymousSubscribeForm extends FormBase {
       $container->get('plugin.manager.mail'),
       $container->get('flag'),
       $container->get('language_manager'),
-      $container->get('renderer')
+      $container->get('renderer'),
+      $container->get('entity_type.manager')
     );
     $instance->setMessenger($container->get('messenger'));
     $instance->setConfigFactory($container->get('config.factory'));
@@ -168,11 +173,11 @@ class AnonymousSubscribeForm extends FormBase {
     ];
 
     // Check if a user with this email already exists.
-    // @todo Use dependency injection instead of function call.
     // The decoupled_auth module is installed, which replaces the class for
     // user entities.
     /** @var \Drupal\decoupled_auth\DecoupledAuthUserInterface|null $account */
-    $account = user_load_by_mail($mail);
+    $accounts = $this->entityTypeManager->getStorage('user')->loadByProperties(['mail' => $mail]);
+    $account = reset($accounts);
 
     if ($account !== FALSE && $account->isCoupled()) {
       // The email address belongs to a regular user account, which requires
