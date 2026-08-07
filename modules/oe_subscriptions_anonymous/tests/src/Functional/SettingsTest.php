@@ -64,12 +64,20 @@ class SettingsTest extends BrowserTestBase {
     $assert_session->statusMessageContains('The configuration options have been saved.', 'status');
 
     // Set invalid links.
+    // The error message changed in Drupal 11.4 via #2828556.
+    // @todo Remove the version check when support for Drupal 11.3 is dropped.
+    if (version_compare(\Drupal::VERSION, '11.4', '>=')) {
+      $expected_error = 'Enter a content title to select it, or enter an internal path starting with /, ? or #. External links must be a full URL including the protocol, such as https://example.com.';
+    }
+    else {
+      $expected_error = 'Manually entered paths should start with one of the following characters: / ? #';
+    }
     $url_field->setValue('Plain text');
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('Enter a content title to select it, or enter an internal path starting with /, ? or #. External links must be a full URL including the protocol, such as https://example.com.', 'error');
+    $assert_session->statusMessageContains($expected_error, 'error');
     $url_field->setValue('www.drupal.org');
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('Enter a content title to select it, or enter an internal path starting with /, ? or #. External links must be a full URL including the protocol, such as https://example.com.', 'error');
+    $assert_session->statusMessageContains($expected_error, 'error');
   }
 
 }
