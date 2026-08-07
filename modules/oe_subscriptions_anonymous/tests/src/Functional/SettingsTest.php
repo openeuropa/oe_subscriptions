@@ -66,10 +66,10 @@ class SettingsTest extends BrowserTestBase {
     // Set invalid links.
     $url_field->setValue('Plain text');
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
+    $assert_session->statusMessageContains('Enter a content title to select it, or enter an internal path starting with /, ? or #. External links must be a full URL including the protocol, such as https://example.com.', 'error');
     $url_field->setValue('www.drupal.org');
     $assert_session->buttonExists('Save configuration')->press();
-    $assert_session->statusMessageContains('Manually entered paths should start with one of the following characters: / ? #', 'error');
+    $assert_session->statusMessageContains('Enter a content title to select it, or enter an internal path starting with /, ? or #. External links must be a full URL including the protocol, such as https://example.com.', 'error');
   }
 
 }

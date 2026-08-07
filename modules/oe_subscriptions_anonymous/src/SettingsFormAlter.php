@@ -9,6 +9,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\link\LinkItemInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -59,6 +60,7 @@ final class SettingsFormAlter implements ContainerInjectionInterface {
       '#default_value' => !empty($url) ? $this->getUriAsDisplayableString($url) : '',
       '#description' => t('The URL to the terms and conditions page.'),
       '#required' => TRUE,
+      '#link_type' => LinkItemInterface::LINK_GENERIC,
       '#element_validate' => [
         [
           'Drupal\link\Plugin\Field\FieldWidget\LinkWidget',
