@@ -62,7 +62,7 @@ class AnonymousSubscribeForm extends FormBase {
       $container->get('flag'),
       $container->get('language_manager'),
       $container->get('renderer'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
     );
     $instance->setMessenger($container->get('messenger'));
     $instance->setConfigFactory($container->get('config.factory'));
