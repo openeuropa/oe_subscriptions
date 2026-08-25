@@ -72,7 +72,8 @@ class SubscriptionManagerTest extends KernelTestBase {
 
     // Test subscribing with an e-mail that is not associated to any users.
     $subscription_manager->subscribe('test@example.com', $article_flag, $article_one->id());
-    $user = user_load_by_mail('test@example.com');
+    $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => 'test@example.com']);
+    $user = reset($accounts);
     $this->assertInstanceOf(DecoupledAuthUserInterface::class, $user);
     $this->assertTrue($article_flag->isFlagged($article_one, $user));
     // The created user is marked as decoupled.
@@ -94,7 +95,8 @@ class SubscriptionManagerTest extends KernelTestBase {
 
     // Subscribe another user to the first article.
     $subscription_manager->subscribe('another@example.com', $article_flag, $article_one->id());
-    $another_user = user_load_by_mail('another@example.com');
+    $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => 'another@example.com']);
+    $another_user = reset($accounts);
     $this->assertInstanceOf(DecoupledAuthUserInterface::class, $another_user);
     $this->assertTrue($another_user->isDecoupled());
     $this->assertTrue($another_user->hasRole('anonymous_subscriber'));

@@ -35,7 +35,8 @@ class AnonymousSubscriptionManager implements AnonymousSubscriptionManagerInterf
     }
 
     // Check if a user with this email already exists.
-    $account = user_load_by_mail($mail);
+    $accounts = $this->entityTypeManager->getStorage('user')->loadByProperties(['mail' => $mail]);
+    $account = reset($accounts);
 
     // If no user is present, create a decoupled user.
     if ($account === FALSE) {

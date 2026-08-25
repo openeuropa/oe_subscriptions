@@ -117,7 +117,8 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $assert_session->addressEquals($article->toUrl()->setAbsolute()->toString());
-    $account = user_load_by_mail('test@test.com');
+    $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => 'test@test.com']);
+    $account = reset($accounts);
     $this->assertNotEmpty($account);
     $this->assertTrue($article_flag->isFlagged($article, $account));
 
@@ -143,7 +144,8 @@ class SubscribeTest extends BrowserTestBase {
     $this->drupalGet($mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
     $assert_session->addressEquals($page->toUrl()->setAbsolute()->toString());
-    $account = user_load_by_mail('another@example.com');
+    $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => 'another@example.com']);
+    $account = reset($accounts);
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
 
@@ -200,7 +202,8 @@ class SubscribeTest extends BrowserTestBase {
 
     $this->drupalGet($first_mail_urls[2]);
     $assert_session->statusMessageContains('Your subscription request has been confirmed.', 'status');
-    $account = user_load_by_mail('multiple@example.com');
+    $accounts = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => 'multiple@example.com']);
+    $account = reset($accounts);
     $this->assertNotEmpty($account);
     $this->assertTrue($pages_flag->isFlagged($page, $account));
 
