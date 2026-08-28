@@ -28,10 +28,10 @@ jobs:
           tools: composer:v2
       - name: Select Composer Patches version
         run: |
-          composer config require.cweagans/composer-patches "${{ matrix.composer_patches_version }}"
+          composer require --no-update "cweagans/composer-patches:${{ matrix.composer_patches_version }}"
           # decoupled_auth pins Composer Patches 1.x and isn't needed to check
           # whether this project's message_digest patches apply.
-          composer config --unset require-dev.drupal/decoupled_auth
+          composer remove --dev --no-update drupal/decoupled_auth
       - name: Install dependencies
         run: composer install --no-scripts --ansi --no-progress --no-interaction
         env:
