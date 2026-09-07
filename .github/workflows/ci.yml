@@ -17,7 +17,9 @@ jobs:
       matrix:
         composer_patches_version:
           - "^1.7"
-          - "^2.0"
+          # Temporarily satisfy decoupled_auth's ~1.0 constraint while testing
+          # the real 2.0.0 plugin. Remove the alias when upstream allows 2.x.
+          - "2.0.0 as 1.7.0"
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
@@ -29,9 +31,6 @@ jobs:
       - name: Select Composer Patches version
         run: |
           composer require --no-update "cweagans/composer-patches:${{ matrix.composer_patches_version }}"
-          # decoupled_auth pins Composer Patches 1.x and isn't needed to check
-          # whether this project's message_digest patches apply.
-          composer remove --dev --no-update drupal/decoupled_auth
       - name: Install dependencies
         run: composer install --no-scripts --ansi --no-progress --no-interaction
         env:
